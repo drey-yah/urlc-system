@@ -23,6 +23,14 @@ class ResearchProposalController extends Controller
     // Researcher: Store proposal
     public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required',
+            'abstract' => 'required',
+            'research_field' => 'nullable|string',
+            'budget_requested' => 'required|numeric',
+            'document' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
         $filePath = null;
 
         if ($request->hasFile('document')) {
@@ -45,7 +53,7 @@ class ResearchProposalController extends Controller
     // Reviewer: View ALL proposals
     public function reviewerIndex()
     {
-        $proposals = ResearchProposal::all();
+        $proposals = ResearchProposal::with('user')->get();
         return view('reviewer.proposals', compact('proposals'));
     }
 
@@ -69,11 +77,27 @@ class ResearchProposalController extends Controller
         return redirect()->back()->with('success', 'Proposal updated successfully!');
     }
 
-    // 🔥 Admin: View ALL proposals
+    // Admin: View ALL proposals
     public function adminIndex()
     {
-        $proposals = ResearchProposal::all();
+        $proposals = ResearchProposal::with('user')->get();
         return view('admin.proposals', compact('proposals'));
+    }
+
+    // Admin: Final decision
+    public function adminFinalDecision(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:final_approved,final_rejected',
+        ]);
+
+        $proposal = ResearchProposal::findOrFail($id);
+
+        $proposal->update([
+            'status' => $request->status,
+        ]);
+
+        return redirect()->back()->with('success', 'Final decision applied successfully!');
     }
 
     public function show(ResearchProposal $researchProposal)
@@ -81,14 +105,55 @@ class ResearchProposalController extends Controller
         //
     }
 
-    public function edit(ResearchProposal $researchProposal)
+    // Researcher: Show edit form for revision
+    public function edit($id)
     {
-        //
+        $proposal = ResearchProposal::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        if ($proposal->status !== 'revision_required') {
+            abort(403, 'You cannot edit this proposal.');
+        }
+
+        return view('researcher.edit_proposal', compact('proposal'));
     }
 
-    public function update(Request $request, ResearchProposal $researchProposal)
+    // Researcher: Update and resubmit proposal
+    public function update(Request $request, $id)
     {
-        //
+        $proposal = ResearchProposal::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        if ($proposal->status !== 'revision_required') {
+            abort(403, 'You cannot update this proposal.');
+        }
+
+        $request->validate([
+            'title' => 'required',
+            'abstract' => 'required',
+            'research_field' => 'nullable|string',
+            'budget_requested' => 'required|numeric',
+            'document' => 'nullable|file|mimes:pdf|max:20480',
+        ]);
+
+        $filePath = $proposal->document_path;
+
+        if ($request->hasFile('document')) {
+            $filePath = $request->file('document')->store('documents', 'public');
+        }
+
+        $proposal->update([
+            'title' => $request->title,
+            'abstract' => $request->abstract,
+            'research_field' => $request->research_field,
+            'budget_requested' => $request->budget_requested,
+            'document_path' => $filePath,
+            'status' => 'pending',
+        ]);
+
+        return redirect('/proposal/my')->with('success', 'Proposal resubmitted successfully!');
     }
 
     public function destroy(ResearchProposal $researchProposal)

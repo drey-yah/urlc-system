@@ -60,6 +60,9 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
     Route::get('/proposal/create', [ResearchProposalController::class, 'create'])->name('proposal.create');
     Route::post('/proposal/store', [ResearchProposalController::class, 'store'])->name('proposal.store');
     Route::get('/proposal/my', [ResearchProposalController::class, 'index'])->name('proposal.index');
+
+    Route::get('/proposal/{id}/edit', [ResearchProposalController::class, 'edit'])->name('proposal.edit');
+    Route::put('/proposal/{id}/update', [ResearchProposalController::class, 'update'])->name('proposal.update');
 });
 
 /*
@@ -75,12 +78,15 @@ Route::middleware(['auth', 'role:reviewer'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| 🔥 Admin Proposal Routes (NEW)
+| 🔥 Admin Proposal Routes
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/proposals', [ResearchProposalController::class, 'adminIndex'])->name('admin.proposals');
+
+    // ✅ NEW: Final decision route
+    Route::post('/admin/proposals/{id}/final-decision', [ResearchProposalController::class, 'adminFinalDecision'])->name('admin.proposals.finalDecision');
 });
 
 /*

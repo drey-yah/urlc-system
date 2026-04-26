@@ -20,6 +20,11 @@ class ResearchProposal extends Model
         'review_comments',
         'review_suggestions',
         'document_path',
-        
     ];
+
+    //Relationship: Proposal belongs to a User (Researcher)
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
 }
