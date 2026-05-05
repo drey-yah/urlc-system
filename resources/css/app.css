@@ -1,3 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* URLC System - Custom Styles */
+/* Bootstrap 5 is loaded via CDN in the layout files */
+
+body {
+    font-family: 'Nunito', sans-serif;
+}

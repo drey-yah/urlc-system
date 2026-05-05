@@ -1,0 +1,410 @@
+# URLC Research Proposal Management System — Full System Report
+
+## 1. System Overview
+
+The **URLC System** is a **Role-Based Research Proposal Management System** built with **Laravel 8 (Breeze)**. It allows researchers to submit, track, and revise research proposals, while reviewers evaluate them and admins make final decisions.
+
+> [!NOTE]
+> Base URL: `http://localhost:8000` (via `php artisan serve`)
+> Database: MySQL (`urlc_system`) on `127.0.0.1:3306`
+
+---
+
+## 2. Technology Stack
+
+| Layer | Technology | Version |
+|---|---|---|
+| **Framework** | Laravel | ^8.75 |
+| **Language** | PHP | ^7.3 / ^8.0 |
+| **Auth Scaffolding** | Laravel Breeze | ^1.10 |
+| **API Tokens** | Laravel Sanctum | ^2.11 |
+| **Database** | MySQL (XAMPP) | — |
+| **Frontend** | Blade + Bootstrap (via Breeze components) | — |
+| **Build Tool** | Webpack Mix + Vite (config present) | — |
+| **CORS** | fruitcake/laravel-cors | ^2.0 |
+
+---
+
+## 3. Architecture Overview
+
+```mermaid
+graph TD
+    A["Browser"] --> B["Laravel Router<br>(web.php + auth.php)"]
+    B --> C{"Auth Middleware"}
+    C --> D{"Role Middleware"}
+    D --> E["ResearchProposalController"]
+    D --> F["Auth Controllers (Breeze)"]
+    E --> G["ResearchProposal Model"]
+    F --> H["User Model"]
+    G --> I[("MySQL: research_proposals")]
+    H --> J[("MySQL: users")]
+    E --> K["Blade Views"]
+    K --> L["Researcher Views"]
+    K --> M["Reviewer Views"]
+    K --> N["Admin Views"]
+```
+
+---
+
+## 4. Database Schema
+
+### 4.1 `users` Table
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | bigint (PK) | Auto-increment |
+| `name` | string | Required |
+| `email` | string | Unique |
+| `email_verified_at` | timestamp | Nullable |
+| `password` | string | Hashed |
+| `role` | string | Default: `'researcher'` |
+| `remember_token` | string | — |
+| `created_at` | timestamp | — |
+| `updated_at` | timestamp | — |
+
+> Source: [2014_10_12_000000_create_users_table.php](file:///c:/Users/andre/urlc-system/database/migrations/2014_10_12_000000_create_users_table.php) + [2026_04_24_191250_add_role_to_users_table.php](file:///c:/Users/andre/urlc-system/database/migrations/2026_04_24_191250_add_role_to_users_table.php)
+
+### 4.2 `research_proposals` Table
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | bigint (PK) | Auto-increment |
+| `user_id` | bigint (FK → users) | Cascading delete |
+| `title` | string | Required |
+| `abstract` | text | Required |
+| `research_field` | string | Nullable |
+| `budget_requested` | decimal(12,2) | Default: 0 |
+| `budget_spent` | decimal(12,2) | Default: 0 |
+| `status` | string | Default: `'pending'` |
+| `review_comments` | text | Nullable |
+| `review_suggestions` | text | Nullable (added later) |
+| `document_path` | string | Nullable, stored in `storage/app/public/documents` |
+| `created_at` | timestamp | — |
+| `updated_at` | timestamp | — |
+
+> Source: [2026_04_25_111808_create_research_proposals_table.php](file:///c:/Users/andre/urlc-system/database/migrations/2026_04_25_111808_create_research_proposals_table.php) + [2026_04_25_144526_add_review_suggestions.php](file:///c:/Users/andre/urlc-system/database/migrations/2026_04_25_144526_add_review_suggestions_to_research_proposals_table.php)
+
+### 4.3 Entity Relationship
+
+```mermaid
+erDiagram
+    USERS ||--o{ RESEARCH_PROPOSALS : "submits"
+    USERS {
+        bigint id PK
+        string name
+        string email
+        string password
+        string role
+    }
+    RESEARCH_PROPOSALS {
+        bigint id PK
+        bigint user_id FK
+        string title
+        text abstract
+        string research_field
+        decimal budget_requested
+        decimal budget_spent
+        string status
+        text review_comments
+        text review_suggestions
+        string document_path
+    }
+```
+
+---
+
+## 5. Role-Based Access Control (RBAC)
+
+### 5.1 Roles
+
+| Role | Default | Description |
+|---|---|---|
+| `researcher` | ✅ Yes | Submits and tracks proposals. Assigned automatically on registration. |
+| `reviewer` | ❌ | Reviews proposals, sets status, provides comments & suggestions. |
+| `admin` | ❌ | Views all proposals and makes final approval/rejection decisions. |
+
+### 5.2 Role Middleware
+
+Defined in [RoleMiddleware.php](file:///c:/Users/andre/urlc-system/app/Http/Middleware/RoleMiddleware.php) and registered as `'role'` in [Kernel.php](file:///c:/Users/andre/urlc-system/app/Http/Kernel.php):
+
+```php
+// Checks auth()->user()->role == $role, returns 403 if mismatch
+```
+
+### 5.3 Post-Login Redirect Flow
+
+```mermaid
+flowchart TD
+    A["User Logs In"] --> B["/redirect"]
+    B --> C{"role?"}
+    C -->|admin| D["/admin"]
+    C -->|reviewer| E["/reviewer"]
+    C -->|researcher| F["/researcher"]
+```
+
+---
+
+## 6. Complete Route Map
+
+### 6.1 Public Routes
+
+| Method | URI | Action | Auth |
+|---|---|---|---|
+| GET | `/` | Welcome page | ❌ |
+
+### 6.2 Authentication Routes ([auth.php](file:///c:/Users/andre/urlc-system/routes/auth.php))
+
+| Method | URI | Name | Controller | Auth |
+|---|---|---|---|---|
+| GET | `/register` | `register` | RegisteredUserController@create | Guest |
+| POST | `/register` | — | RegisteredUserController@store | Guest |
+| GET | `/login` | `login` | AuthenticatedSessionController@create | Guest |
+| POST | `/login` | — | AuthenticatedSessionController@store | Guest |
+| GET | `/forgot-password` | `password.request` | PasswordResetLinkController@create | Guest |
+| POST | `/forgot-password` | `password.email` | PasswordResetLinkController@store | Guest |
+| GET | `/reset-password/{token}` | `password.reset` | NewPasswordController@create | Guest |
+| POST | `/reset-password` | `password.update` | NewPasswordController@store | Guest |
+| GET | `/verify-email` | `verification.notice` | EmailVerificationPromptController | Auth |
+| GET | `/verify-email/{id}/{hash}` | `verification.verify` | VerifyEmailController | Auth |
+| POST | `/email/verification-notification` | `verification.send` | EmailVerificationNotificationController | Auth |
+| GET | `/confirm-password` | `password.confirm` | ConfirmablePasswordController@show | Auth |
+| POST | `/confirm-password` | — | ConfirmablePasswordController@store | Auth |
+| POST | `/logout` | `logout` | AuthenticatedSessionController@destroy | Auth |
+
+### 6.3 Dashboard & Redirect Routes
+
+| Method | URI | Middleware | Action |
+|---|---|---|---|
+| GET | `/redirect` | `auth` | Redirects to role-specific dashboard |
+| GET | `/dashboard` | `auth` | Redirects to `/redirect` |
+| GET | `/whoami` | `auth` | Debug: returns current user JSON |
+
+### 6.4 Researcher Routes (role: `researcher`)
+
+| Method | URI | Name | Controller Method |
+|---|---|---|---|
+| GET | `/researcher` | — | Dashboard view |
+| GET | `/proposal/create` | `proposal.create` | `create()` — Show submission form |
+| POST | `/proposal/store` | `proposal.store` | `store()` — Submit new proposal |
+| GET | `/proposal/my` | `proposal.index` | `index()` — List own proposals |
+| GET | `/proposal/{id}/edit` | `proposal.edit` | `edit()` — Edit form (revision only) |
+| PUT | `/proposal/{id}/update` | `proposal.update` | `update()` — Resubmit revised proposal |
+
+### 6.5 Reviewer Routes (role: `reviewer`)
+
+| Method | URI | Name | Controller Method |
+|---|---|---|---|
+| GET | `/reviewer` | — | Dashboard view |
+| GET | `/reviewer/proposals` | `reviewer.proposals` | `reviewerIndex()` — View all proposals |
+| POST | `/reviewer/proposals/{id}/update-status` | `reviewer.proposals.updateStatus` | `updateStatus()` — Update status/comments/suggestions |
+
+### 6.6 Admin Routes (role: `admin`)
+
+| Method | URI | Name | Controller Method |
+|---|---|---|---|
+| GET | `/admin` | — | Dashboard view |
+| GET | `/admin/proposals` | `admin.proposals` | `adminIndex()` — View all proposals |
+| POST | `/admin/proposals/{id}/final-decision` | `admin.proposals.finalDecision` | `adminFinalDecision()` — Final approve/reject |
+
+---
+
+## 7. Proposal Workflow & Status Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending: Researcher submits
+    pending --> approved: Reviewer approves
+    pending --> rejected: Reviewer rejects
+    pending --> revision_required: Reviewer requests revision
+    revision_required --> pending: Researcher resubmits
+    approved --> final_approved: Admin final approve
+    approved --> final_rejected: Admin final reject
+    rejected --> final_approved: Admin overrides
+    rejected --> final_rejected: Admin confirms
+    final_approved --> [*]
+    final_rejected --> [*]
+```
+
+### Status Values
+
+| Status | Badge Color | Set By | Description |
+|---|---|---|---|
+| `pending` | Gray | System/Researcher | Initial state or resubmitted |
+| `approved` | Green | Reviewer | Reviewer approves proposal |
+| `rejected` | Red | Reviewer | Reviewer rejects proposal |
+| `revision_required` | Yellow | Reviewer | Reviewer requests changes |
+| `final_approved` | Blue | Admin | Admin gives final approval |
+| `final_rejected` | Dark | Admin | Admin gives final rejection |
+
+---
+
+## 8. Controller Logic Summary
+
+### [ResearchProposalController.php](file:///c:/Users/andre/urlc-system/app/Http/Controllers/ResearchProposalController.php)
+
+| Method | Role | Logic |
+|---|---|---|
+| `index()` | Researcher | Fetches proposals where `user_id == auth()->id()` |
+| `create()` | Researcher | Returns the create proposal form |
+| `store()` | Researcher | Validates input, stores PDF to `documents/` disk, creates proposal with status `pending` |
+| `edit($id)` | Researcher | Only allows editing if `status == 'revision_required'` AND owned by user |
+| `update($id)` | Researcher | Only allows update if `status == 'revision_required'`, resets status to `pending` |
+| `reviewerIndex()` | Reviewer | Fetches ALL proposals with eager-loaded `user` relation |
+| `updateStatus($id)` | Reviewer | Updates `status`, `review_comments`, `review_suggestions` |
+| `adminIndex()` | Admin | Fetches ALL proposals with eager-loaded `user` relation |
+| `adminFinalDecision($id)` | Admin | Sets status to `final_approved` or `final_rejected` only |
+
+### Validation Rules
+
+| Field | Create | Update |
+|---|---|---|
+| `title` | required | required |
+| `abstract` | required | required |
+| `research_field` | nullable, string | nullable, string |
+| `budget_requested` | required, numeric | required, numeric |
+| `document` | required, PDF, max 20MB | nullable, PDF, max 20MB |
+
+---
+
+## 9. Views Structure
+
+```
+resources/views/
+├── welcome.blade.php              # Landing page
+├── dashboard.blade.php            # Generic dashboard (redirects)
+├── layouts/
+│   ├── app.blade.php              # Authenticated layout
+│   ├── guest.blade.php            # Guest layout
+│   └── navigation.blade.php      # Nav bar
+├── components/                    # 11 Blade components (Breeze)
+│   ├── application-logo.blade.php
+│   ├── auth-card.blade.php
+│   ├── button.blade.php
+│   ├── dropdown.blade.php
+│   ├── input.blade.php
+│   ├── label.blade.php
+│   ├── nav-link.blade.php
+│   └── ...
+├── auth/
+│   ├── login.blade.php
+│   ├── register.blade.php
+│   ├── forgot-password.blade.php
+│   ├── reset-password.blade.php
+│   ├── confirm-password.blade.php
+│   └── verify-email.blade.php
+├── researcher/
+│   ├── dashboard.blade.php        # Simple <h1> only
+│   ├── create_proposal.blade.php  # Form: title, abstract, field, budget, PDF upload
+│   ├── my_proposals.blade.php     # Table: all own proposals + edit/resubmit action
+│   └── edit_proposal.blade.php    # Pre-filled form for revision resubmission
+├── reviewer/
+│   ├── dashboard.blade.php        # Simple <h1> only
+│   └── proposals.blade.php        # Table: all proposals + status/comments/suggestions form
+└── admin/
+    ├── dashboard.blade.php        # Simple <h1> only
+    └── proposals.blade.php        # Table: all proposals + final decision dropdown
+```
+
+---
+
+## 10. Models & Relationships
+
+### [User.php](file:///c:/Users/andre/urlc-system/app/Models/User.php)
+
+- Uses: `HasApiTokens`, `HasFactory`, `Notifiable`
+- Fillable: `name`, `email`, `password`, `role`
+- Hidden: `password`, `remember_token`
+- **No relationship method defined** (missing `proposals()` hasMany)
+
+### [ResearchProposal.php](file:///c:/Users/andre/urlc-system/app/Models/ResearchProposal.php)
+
+- Fillable: `user_id`, `title`, `abstract`, `research_field`, `budget_requested`, `budget_spent`, `status`, `review_comments`, `review_suggestions`, `document_path`
+- Relationship: `user()` → `belongsTo(User::class)`
+
+---
+
+## 11. Registration & Default Role
+
+New users registered via `/register` are **automatically assigned the `researcher` role** via the database migration default:
+
+```php
+$table->string('role')->default('researcher');
+```
+
+> [!IMPORTANT]
+> There is **no role selection** on the registration form. To create `admin` or `reviewer` accounts, you must manually update the `role` column in the `users` table via database (phpMyAdmin or Tinker).
+
+---
+
+## 12. File Upload Handling
+
+- **Storage disk**: `public` (files stored in `storage/app/public/documents/`)
+- **Accepted format**: PDF only (`mimes:pdf`)
+- **Max size**: 20 MB (`max:20480`)
+- **Access URL**: `asset('storage/' . $proposal->document_path)`
+
+> [!WARNING]
+> You must run `php artisan storage:link` to create the symbolic link from `public/storage` to `storage/app/public`, otherwise uploaded documents will not be accessible via the browser.
+
+---
+
+## 13. Security Features
+
+| Feature | Implementation |
+|---|---|
+| **Authentication** | Laravel Breeze (session-based) |
+| **CSRF Protection** | `@csrf` on all forms, `VerifyCsrfToken` middleware |
+| **Role-Based Access** | Custom `RoleMiddleware` checking `auth()->user()->role` |
+| **Ownership Guard** | `edit()` and `update()` verify `user_id == auth()->id()` |
+| **Status Guard** | Edit/update only allowed when `status == 'revision_required'` |
+| **Password Hashing** | `Hash::make()` via Breeze |
+| **Input Validation** | Server-side validation on all form submissions |
+| **File Validation** | Only PDF, max 20MB |
+
+---
+
+## 14. Areas for Improvement
+
+> [!TIP]
+> These are observations based on the current codebase:
+
+| Area | Current State | Suggestion |
+|---|---|---|
+| **Dashboard Pages** | All 3 dashboards are just `<h1>` tags | Add summary stats, quick links, charts |
+| **User Model** | Missing `proposals()` relationship | Add `hasMany(ResearchProposal::class)` |
+| **Role Assignment** | Manual DB edits only | Add admin UI to manage user roles |
+| **Notifications** | None | Email notifications on status changes |
+| **Pagination** | None on proposal listings | Add `->paginate()` to queries |
+| **Search/Filter** | None | Filter proposals by status, field, date |
+| **Soft Deletes** | Not implemented | Add `SoftDeletes` trait to proposals |
+| **Budget Spent** | Column exists but never updated | Add a way for admins to track spending |
+| **Audit Trail** | None | Log who reviewed and when |
+| **API** | Sanctum installed but unused | Expose REST API for mobile/SPA use |
+| **Tests** | No custom tests | Add Feature tests for the proposal workflow |
+
+---
+
+## 15. How to Run
+
+```bash
+# 1. Install dependencies
+composer install
+npm install
+
+# 2. Copy environment
+cp .env.example .env
+php artisan key:generate
+
+# 3. Configure database in .env
+# DB_DATABASE=urlc_system  (already set)
+
+# 4. Run migrations
+php artisan migrate
+
+# 5. Create storage link
+php artisan storage:link
+
+# 6. Start server
+php artisan serve
+# → http://localhost:8000
+```

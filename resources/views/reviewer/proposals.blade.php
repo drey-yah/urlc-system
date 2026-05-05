@@ -3,12 +3,6 @@
         <h2 class="h4 mb-0">Reviewer - Research Proposals</h2>
     </x-slot>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
     <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
@@ -62,14 +56,17 @@
                 <td>{{ $proposal->review_suggestions }}</td>
 
                 <td>
+                    <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-info btn-sm text-white mb-2 d-block">
+                        View Details
+                    </a>
                     <form method="POST" action="{{ route('reviewer.proposals.updateStatus', $proposal->id) }}">
                         @csrf
 
                         <select name="status" class="form-select mb-2">
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="revision_required">Revision Required</option>
+                            <option value="pending" {{ $proposal->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="approved" {{ $proposal->status == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="rejected" {{ $proposal->status == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                            <option value="revision_required" {{ $proposal->status == 'revision_required' ? 'selected' : '' }}>Revision Required</option>
                         </select>
 
                         <textarea name="review_comments" class="form-control mb-2" placeholder="Comments">{{ $proposal->review_comments }}</textarea>

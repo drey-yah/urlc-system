@@ -63,6 +63,23 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
 
     Route::get('/proposal/{id}/edit', [ResearchProposalController::class, 'edit'])->name('proposal.edit');
     Route::put('/proposal/{id}/update', [ResearchProposalController::class, 'update'])->name('proposal.update');
+    Route::delete('/proposal/{id}', [ResearchProposalController::class, 'destroy'])->name('proposal.destroy');
+});
+
+// Shared Proposal Routes (All authenticated users)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/proposal/{id}', [ResearchProposalController::class, 'show'])->name('proposal.show');
+    
+    // Call for Papers (Announcements)
+    Route::get('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::post('/announcements/{id}/like', [\App\Http\Controllers\AnnouncementInteractionController::class, 'like'])->name('announcements.like');
+    Route::post('/announcements/{id}/comment', [\App\Http\Controllers\AnnouncementInteractionController::class, 'comment'])->name('announcements.comment');
+});
+
+// Admin ONLY Announcements CRUD
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::post('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::delete('/announcements/{id}', [\App\Http\Controllers\AnnouncementController::class, 'destroy'])->name('announcements.destroy');
 });
 
 /*
@@ -84,9 +101,14 @@ Route::middleware(['auth', 'role:reviewer'])->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/proposals', [ResearchProposalController::class, 'adminIndex'])->name('admin.proposals');
-
-    // ✅ NEW: Final decision route
     Route::post('/admin/proposals/{id}/final-decision', [ResearchProposalController::class, 'adminFinalDecision'])->name('admin.proposals.finalDecision');
+    Route::patch('/admin/proposals/{id}/phase', [ResearchProposalController::class, 'updatePhase'])->name('admin.proposals.updatePhase');
+
+    Route::get('/admin/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::patch('/admin/users/{id}/role', [\App\Http\Controllers\Admin\UserManagementController::class, 'updateRole'])->name('admin.users.updateRole');
+
+    // Reviewer Assignment
+    Route::post('/admin/proposals/{id}/assign', [ResearchProposalController::class, 'assignReviewer'])->name('admin.proposals.assign');
 });
 
 /*
@@ -98,16 +120,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::get('/dashboard', function () {
     return redirect('/redirect');
 })->middleware(['auth'])->name('dashboard');
-
-/*
-|--------------------------------------------------------------------------
-| Temporary Debug Route
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/whoami', function () {
-    return auth()->user();
-})->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------

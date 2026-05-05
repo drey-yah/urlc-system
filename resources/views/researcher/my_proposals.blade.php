@@ -15,6 +15,7 @@
                     <th>Field</th>
                     <th>Budget</th>
                     <th>Status</th>
+                    <th>Phase</th>
                     <th>Reviewer Comments</th>
                     <th>Reviewer Suggestions</th>
                     <th>Date Submitted</th>
@@ -47,19 +48,41 @@
                         @endif
                     </td>
 
+                    <td>
+                        <div class="small fw-bold text-primary">Phase {{ $proposal->current_phase }}</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">
+                            @if($proposal->current_phase == 1) Submission
+                            @elseif($proposal->current_phase == 2) In-House Review
+                            @elseif($proposal->current_phase == 3) Inception
+                            @elseif($proposal->current_phase == 4) Monitoring
+                            @elseif($proposal->current_phase == 5) Final Review
+                            @endif
+                        </div>
+                    </td>
+
                     <td>{{ $proposal->review_comments ?? 'No comments yet' }}</td>
                     <td>{{ $proposal->review_suggestions ?? 'No suggestions yet' }}</td>
                     <td>{{ $proposal->created_at }}</td>
 
                     <!-- 🔥 NEW ACTION COLUMN -->
                     <td>
-                        @if($proposal->status == 'revision_required')
-                            <a href="{{ route('proposal.edit', $proposal->id) }}" class="btn btn-warning btn-sm">
-                                Edit / Resubmit
+                        <div class="btn-group">
+                            <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-info btn-sm text-white">
+                                View
                             </a>
-                        @else
-                            <span class="text-muted">N/A</span>
-                        @endif
+                            @if($proposal->status == 'revision_required')
+                                <a href="{{ route('proposal.edit', $proposal->id) }}" class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+                            @endif
+                            @if($proposal->status == 'pending' || $proposal->status == 'revision_required')
+                                <form action="{{ route('proposal.destroy', $proposal->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this proposal?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
             @endforeach
