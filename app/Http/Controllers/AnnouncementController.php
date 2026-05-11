@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Models\User;
+use App\Mail\AnnouncementNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AnnouncementController extends Controller
 {
@@ -28,14 +31,18 @@ class AnnouncementController extends Controller
             $imagePath = $request->file('image')->store('announcements', 'public');
         }
 
-        Announcement::create([
+        $announcement = Announcement::create([
             'user_id' => auth()->id(),
             'title' => $request->title,
             'content' => $request->content,
             'image_path' => $imagePath,
         ]);
 
-        // TODO: Send email notifications to all users
+        // Send notifications to all users
+        $users = User::all();
+        foreach ($users as $user) {
+            $user->notify(new \App\Notifications\NewAnnouncementNotification($announcement));
+        }
 
         return redirect()->back()->with('success', 'Announcement published successfully!');
     }

@@ -27,7 +27,6 @@ class ResearchProposalController extends Controller
             'title' => 'required',
             'abstract' => 'required',
             'research_field' => 'nullable|string',
-            'budget_requested' => 'required|numeric',
             'document' => 'required|file|mimes:pdf|max:20480',
         ]);
 
@@ -42,7 +41,6 @@ class ResearchProposalController extends Controller
             'title' => $request->title,
             'abstract' => $request->abstract,
             'research_field' => $request->research_field,
-            'budget_requested' => $request->budget_requested,
             'document_path' => $filePath,
             'status' => 'pending',
         ]);
@@ -107,7 +105,10 @@ class ResearchProposalController extends Controller
             'review_suggestions' => $request->review_suggestions,
         ]);
 
-        return redirect()->back()->with('success', 'Proposal updated successfully!');
+        // Notify Researcher
+        $proposal->user->notify(new \App\Notifications\ProposalFeedbackNotification($proposal));
+
+        return redirect()->back()->with('success', 'Proposal updated and researcher notified successfully!');
     }
 
     // Admin: View ALL proposals
@@ -115,7 +116,16 @@ class ResearchProposalController extends Controller
     {
         $proposals = ResearchProposal::with(['user', 'assignments'])->get();
         $reviewers = \App\Models\User::where('role', 'reviewer')->get();
-        return view('admin.proposals', compact('proposals', 'reviewers'));
+        $announcements = \App\Models\Announcement::with('user')->latest()->get();
+        
+        $stats = [
+            'total' => $proposals->count(),
+            'pending' => $proposals->where('status', 'pending')->count(),
+            'approved' => $proposals->whereIn('status', ['approved', 'final_approved'])->count(),
+            'announcements' => $announcements->count()
+        ];
+
+        return view('admin.proposals', compact('proposals', 'reviewers', 'announcements', 'stats'));
     }
 
     // Admin: Final decision
@@ -199,7 +209,6 @@ class ResearchProposalController extends Controller
             'title' => 'required',
             'abstract' => 'required',
             'research_field' => 'nullable|string',
-            'budget_requested' => 'required|numeric',
             'document' => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
@@ -217,7 +226,6 @@ class ResearchProposalController extends Controller
             'title' => $request->title,
             'abstract' => $request->abstract,
             'research_field' => $request->research_field,
-            'budget_requested' => $request->budget_requested,
             'document_path' => $filePath,
             'status' => 'pending',
         ]);

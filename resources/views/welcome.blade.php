@@ -3,105 +3,98 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title>URLC Research Proposal Management System</title>
-
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
-        <!-- Bootstrap CSS -->
+        <title>URLC Research Portal</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
         <style>
             body {
-                font-family: 'Nunito', sans-serif;
-                background-color: #f8f9fa;
-            }
-            .hero-section {
+                background-color: #EBF5FF;
                 height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+            }
+            .landing-card {
+                background: white;
+                border-radius: 24px;
+                padding: 3rem;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                max-width: 1000px;
+                width: 90%;
+            }
+            .role-card {
+                border-radius: 16px;
+                padding: 2rem;
+                color: white;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
                 text-align: center;
-                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             }
-            .navbar-brand img {
-                height: 40px;
+            .role-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                color: white;
             }
+            .role-icon {
+                font-size: 3rem;
+                margin-bottom: 1.5rem;
+            }
+            .btn-researcher { background-color: #2563EB; }
+            .btn-reviewer { background-color: #10B981; }
+            .btn-admin { background-color: #8B5CF6; }
         </style>
     </head>
     <body>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-            <div class="container">
-                <a class="navbar-brand fw-bold" href="/">
-                    URLC System
-                </a>
-                <div class="ms-auto">
-                    @if (Route::has('login'))
-                        @auth
-                            <a href="{{ url('/redirect') }}" class="btn btn-outline-primary">Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="btn btn-outline-dark me-2">Log in</a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="btn btn-dark">Register</a>
-                            @endif
-                        @endauth
-                    @endif
+        <div class="text-center">
+            <div class="mb-5">
+                <i class="bi bi-file-earmark-text-fill text-primary" style="font-size: 4rem;"></i>
+                <h1 class="display-4 fw-bold mt-3">URLC Research Portal</h1>
+                <p class="h5 text-muted fw-normal">Research Proposal Management System</p>
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <span class="badge bg-white text-muted border">Cloud Enabled</span>
+                    <span class="badge bg-white text-muted border">UI Optimized</span>
+                    <span class="badge bg-white text-muted border">State of the Art</span>
                 </div>
             </div>
-        </nav>
 
-        <header class="hero-section">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <h1 class="display-4 fw-bold mb-4">Research Proposal Management System</h1>
-                        <p class="lead mb-5 text-secondary">
-                            A streamlined platform for researchers to submit proposals, and for reviewers and administrators to manage the approval workflow effectively.
-                        </p>
-                        @auth
-                            <a href="{{ url('/redirect') }}" class="btn btn-primary btn-lg px-5">Go to Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="btn btn-primary btn-lg px-5 me-3">Get Started</a>
-                            <a href="#about" class="btn btn-outline-secondary btn-lg px-5">Learn More</a>
-                        @endauth
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <section id="about" class="py-5 bg-white">
-            <div class="container py-5">
-                <div class="row g-5 text-center">
+            <div class="landing-card mx-auto">
+                <h2 class="h4 fw-bold mb-5">Select Your Role</h2>
+                <div class="row g-4">
                     <div class="col-md-4">
-                        <div class="p-3">
-                            <h3 class="h4 mb-3">Submission</h3>
-                            <p class="text-muted">Easily upload your research proposals in PDF format and track their progress in real-time.</p>
-                        </div>
+                        <a href="{{ route('login') }}" class="role-card btn-researcher">
+                            <i class="bi bi-person role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Researcher</h3>
+                            <p class="small mb-0 opacity-75">Submit and track your research proposals</p>
+                        </a>
                     </div>
                     <div class="col-md-4">
-                        <div class="p-3">
-                            <h3 class="h4 mb-3">Reviewing</h3>
-                            <p class="text-muted">Reviewers provide feedback and suggestions to help improve research quality.</p>
-                        </div>
+                        <a href="{{ route('login') }}" class="role-card btn-reviewer">
+                            <i class="bi bi-person-check role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Reviewer</h3>
+                            <p class="small mb-0 opacity-75">Review and provide feedback on proposals</p>
+                        </a>
                     </div>
                     <div class="col-md-4">
-                        <div class="p-3">
-                            <h3 class="h4 mb-3">Approval</h3>
-                            <p class="text-muted">Transparent approval process with final decisions made by system administrators.</p>
-                        </div>
+                        <a href="{{ route('login') }}" class="role-card btn-admin">
+                            <i class="bi bi-shield-check role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Administrator</h3>
+                            <p class="small mb-0 opacity-75">Manage system and announcements</p>
+                        </a>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <footer class="py-4 bg-light border-top">
-            <div class="container text-center">
-                <p class="mb-0 text-muted">&copy; {{ date('Y') }} URLC Research Proposal Management System. All rights reserved.</p>
+            
+            <div class="mt-5 text-muted small">
+                &copy; {{ date('Y') }} URLC Research Portal. All rights reserved.
             </div>
-        </footer>
-
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </div>
     </body>
 </html>

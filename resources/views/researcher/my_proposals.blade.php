@@ -1,92 +1,79 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="h4 mb-0">My Research Proposals</h2>
-    </x-slot>
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-6 fw-bold mb-1">Researcher Dashboard</h1>
+            <p class="text-muted h6 fw-normal">Welcome, {{ Auth::user()->name }}</p>
+        </div>
+        <a href="{{ route('proposal.create') }}" class="btn btn-primary d-flex align-items-center gap-2 py-2 px-4 shadow-sm">
+            <i class="bi bi-plus-lg"></i> Submit New Proposal
+        </a>
+    </div>
 
-    <a href="{{ route('proposal.create') }}" class="btn btn-primary mb-3">
-        Submit New Proposal
-    </a>
-
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Title</th>
-                    <th>Field</th>
-                    <th>Budget</th>
-                    <th>Status</th>
-                    <th>Phase</th>
-                    <th>Reviewer Comments</th>
-                    <th>Reviewer Suggestions</th>
-                    <th>Date Submitted</th>
-                    <th>Action</th> <!-- ✅ NEW -->
-                </tr>
-            </thead>
-
-            <tbody>
-            @foreach($proposals as $proposal)
-                <tr>
-                    <td>{{ $proposal->title }}</td>
-                    <td>{{ $proposal->research_field }}</td>
-                    <td>{{ $proposal->budget_requested }}</td>
-
-                    <td>
-                        @if($proposal->status == 'pending')
-                            <span class="badge bg-secondary">Pending</span>
-                        @elseif($proposal->status == 'approved')
-                            <span class="badge bg-success">Approved</span>
-                        @elseif($proposal->status == 'rejected')
-                            <span class="badge bg-danger">Rejected</span>
-                        @elseif($proposal->status == 'revision_required')
-                            <span class="badge bg-warning text-dark">Revision Required</span>
-                        @elseif($proposal->status == 'final_approved')
-                            <span class="badge bg-primary">Final Approved</span>
-                        @elseif($proposal->status == 'final_rejected')
-                            <span class="badge bg-dark">Final Rejected</span>
-                        @else
-                            <span class="badge bg-secondary">{{ $proposal->status }}</span>
-                        @endif
-                    </td>
-
-                    <td>
-                        <div class="small fw-bold text-primary">Phase {{ $proposal->current_phase }}</div>
-                        <div class="text-muted" style="font-size: 0.7rem;">
-                            @if($proposal->current_phase == 1) Submission
-                            @elseif($proposal->current_phase == 2) In-House Review
-                            @elseif($proposal->current_phase == 3) Inception
-                            @elseif($proposal->current_phase == 4) Monitoring
-                            @elseif($proposal->current_phase == 5) Final Review
-                            @endif
-                        </div>
-                    </td>
-
-                    <td>{{ $proposal->review_comments ?? 'No comments yet' }}</td>
-                    <td>{{ $proposal->review_suggestions ?? 'No suggestions yet' }}</td>
-                    <td>{{ $proposal->created_at }}</td>
-
-                    <!-- 🔥 NEW ACTION COLUMN -->
-                    <td>
-                        <div class="btn-group">
-                            <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-info btn-sm text-white">
-                                View
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom border-light">
+            <h5 class="mb-0 fw-bold">My Proposals</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Proposal Title</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Phase</th>
+                        <th class="text-center">Submitted Date</th>
+                        <th class="pe-4 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse($proposals as $proposal)
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-file-earmark-text text-muted h4 mb-0"></i>
+                                <span class="fw-semibold text-dark">{{ $proposal->title }}</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            @php
+                                $badgeClass = match($proposal->status) {
+                                    'approved', 'final_approved' => 'badge-approved',
+                                    'pending' => 'badge-pending',
+                                    'rejected', 'final_rejected' => 'badge-rejected',
+                                    'revision_required' => 'badge-in-review',
+                                    default => 'badge-pending'
+                                };
+                            @endphp
+                            <span class="badge {{ $badgeClass }}">
+                                {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="text-muted fw-medium">Phase {{ $proposal->current_phase }}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2 text-muted small">
+                                <i class="bi bi-calendar3"></i>
+                                {{ $proposal->created_at->format('Y-m-d') }}
+                            </div>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2 px-3 border">
+                                <i class="bi bi-eye"></i> View Details
                             </a>
-                            @if($proposal->status == 'revision_required')
-                                <a href="{{ route('proposal.edit', $proposal->id) }}" class="btn btn-warning btn-sm">
-                                    Edit
-                                </a>
-                            @endif
-                            @if($proposal->status == 'pending' || $proposal->status == 'revision_required')
-                                <form action="{{ route('proposal.destroy', $proposal->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this proposal?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-            @endforeach
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-folder2-open display-4 mb-3 d-block"></i>
+                                <p class="mb-0">You haven't submitted any proposals yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </x-app-layout>

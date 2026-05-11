@@ -5,28 +5,3 @@ body {
     font-family: 'Nunito', sans-serif;
 }
 
-/* Auth card styling (replaces Tailwind utility classes from Breeze components) */
-.min-h-screen {
-    min-height: 100vh;
-}
-
-.auth-card-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding-top: 1.5rem;
-    background-color: #f8f9fa;
-}
-
-.auth-card {
-    width: 100%;
-    max-width: 28rem;
-    margin-top: 1.5rem;
-    padding: 1.5rem;
-    background-color: #fff;
-    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
-    overflow: hidden;
-    border-radius: .5rem;
-}

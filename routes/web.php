@@ -74,6 +74,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])->name('announcements.index');
     Route::post('/announcements/{id}/like', [\App\Http\Controllers\AnnouncementInteractionController::class, 'like'])->name('announcements.like');
     Route::post('/announcements/{id}/comment', [\App\Http\Controllers\AnnouncementInteractionController::class, 'comment'])->name('announcements.comment');
+
+    // Email Templates Preview
+    Route::get('/email-templates', function() {
+        return view('emails.templates');
+    })->name('email.templates');
+
+    // Notifications
+    Route::post('/notifications/mark-as-read', function() {
+        auth()->user()->unreadNotifications->markAsRead();
+        return back();
+    })->name('notifications.markRead');
 });
 
 // Admin ONLY Announcements CRUD
