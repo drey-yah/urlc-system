@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class RoleMiddleware
+class SuperAdminMiddleware
 {
     /**
      * Handle an incoming request.
@@ -14,14 +14,12 @@ class RoleMiddleware
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle($request, Closure $next, $role)
+    public function handle(Request $request, Closure $next)
     {
-        if (auth()->check()) {
-            if (auth()->user()->role == $role || auth()->user()->isSuperAdmin()) {
-                return $next($request);
-            }
+        if (auth()->check() && auth()->user()->isSuperAdmin()) {
+            return $next($request);
         }
 
-        abort(403, 'Unauthorized');
+        abort(403, 'Unauthorized access.');
     }
 }

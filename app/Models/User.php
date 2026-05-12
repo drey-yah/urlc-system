@@ -22,6 +22,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_approved',
+        'campus',
+        'department',
     ];
 
     /**
@@ -41,5 +44,36 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_approved' => 'boolean',
     ];
+
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin' || $this->role === 'super_admin';
+    }
+
+    public function isReviewer()
+    {
+        return $this->role === 'reviewer';
+    }
+
+    public function isResearcher()
+    {
+        return $this->role === 'researcher';
+    }
+
+    public function leadProposals()
+    {
+        return $this->hasMany(\App\Models\ResearchProposal::class);
+    }
+
+    public function collaboratedProposals()
+    {
+        return $this->belongsToMany(\App\Models\ResearchProposal::class, 'proposal_collaborators');
+    }
 }

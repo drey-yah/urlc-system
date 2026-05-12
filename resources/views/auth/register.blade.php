@@ -44,6 +44,16 @@
                 <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required />
             </div>
 
+            <!-- Role Selection -->
+            <div class="mb-3">
+                <label for="role" class="form-label">Register as</label>
+                <select id="role" name="role" class="form-select" required>
+                    <option value="researcher">Researcher</option>
+                    <option value="reviewer">Reviewer</option>
+                    <option value="admin">Administrator (Requires Approval)</option>
+                </select>
+            </div>
+
             <div class="d-flex align-items-center justify-content-end">
                 <a class="text-decoration-underline text-muted me-3" href="{{ route('login') }}">
                     Already registered?

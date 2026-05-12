@@ -11,8 +11,10 @@ class ResearchProposal extends Model
 
     protected $fillable = [
         'user_id',
+        'reviewer_id',
         'title',
         'abstract',
+        'rationale',
         'research_field',
         'status',
         'current_phase',
@@ -29,9 +31,20 @@ class ResearchProposal extends Model
         return $this->belongsTo(\App\Models\User::class);
     }
 
+    // Relationship: Proposal was last reviewed by a User (Reviewer)
+    public function reviewer()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'reviewer_id');
+    }
+
     //Relationship: Proposal can be assigned to multiple Reviewers
     public function assignments()
     {
         return $this->belongsToMany(\App\Models\User::class, 'proposal_assignments');
+    }
+
+    public function collaborators()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'proposal_collaborators');
     }
 }

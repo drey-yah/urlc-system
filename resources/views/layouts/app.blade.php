@@ -23,36 +23,38 @@
     </head>
 
     <body class="antialiased" style="font-family: 'Inter', sans-serif; background-color: #F9FAFB;">
-        <div class="min-h-screen">
+        <div class="d-flex">
             @include('layouts.navigation')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow-sm mb-4">
-                    <div class="container py-4">
+            <div class="main-content flex-grow-1">
+                <!-- Page Heading -->
+                @isset($header)
+                    <header class="bg-white shadow-sm mb-4 rounded-4 p-4 border">
                         {{ $header }}
-                    </div>
-                </header>
-            @endisset
+                    </header>
+                @endisset
 
-            <!-- Page Content -->
-            <main class="container py-4">
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
+                <!-- Page Content -->
+                <div class="py-4">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
 
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
 
-                {{ $slot }}
-            </main>
+                    {{ $slot }}
+                </div>
+            </div>
         </div>
 
         <!-- Bootstrap JS -->

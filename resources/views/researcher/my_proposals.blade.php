@@ -1,79 +1,169 @@
 <x-app-layout>
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="display-6 fw-bold mb-1">Researcher Dashboard</h1>
-            <p class="text-muted h6 fw-normal">Welcome, {{ Auth::user()->name }}</p>
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Researches</h1>
+                <p class="text-muted small">Manage your research projects and collaborations</p>
+            </div>
+            <a href="{{ route('proposal.create') }}" class="btn btn-primary d-flex align-items-center gap-2 py-2 px-4 shadow-sm rounded-pill fw-bold">
+                <i class="bi bi-plus-lg"></i> SUBMIT PROPOSAL
+            </a>
         </div>
-        <a href="{{ route('proposal.create') }}" class="btn btn-primary d-flex align-items-center gap-2 py-2 px-4 shadow-sm">
-            <i class="bi bi-plus-lg"></i> Submit New Proposal
-        </a>
-    </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3 border-bottom border-light">
-            <h5 class="mb-0 fw-bold">My Proposals</h5>
+        <!-- Researches / As Lead -->
+        <div class="mb-5">
+            <h4 class="fw-bold mb-4">Researches <span class="text-primary fs-6 fw-normal ms-2">/ As Lead</span></h4>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-primary bg-opacity-10">
+                            <tr>
+                                <th class="ps-4 py-3 small fw-bold text-primary border-0">TITLE</th>
+                                <th class="py-3 small fw-bold text-primary border-0">RATIONALE</th>
+                                <th class="py-3 small fw-bold text-primary border-0">COLLABORATORS</th>
+                                <th class="py-3 small fw-bold text-primary border-0">STATUS</th>
+                                <th class="py-3 small fw-bold text-primary border-0">CURRENT PHASE</th>
+                                <th class="pe-4 py-3 small fw-bold text-primary border-0 text-end">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($leadProposals as $proposal)
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="fw-bold text-dark mb-1">{{ $proposal->title }}</div>
+                                        <div class="text-muted small italic">{{ $proposal->research_field }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-muted small text-truncate" style="max-width: 200px;">
+                                            {{ $proposal->rationale ?? 'No rationale provided' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @forelse($proposal->collaborators as $collab)
+                                                <span class="badge bg-light text-muted border px-2 py-1" style="font-size: 0.65rem;">{{ $collab->name }}</span>
+                                            @empty
+                                                <span class="text-muted small italic">None</span>
+                                            @endforelse
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @php
+                                            $statusClass = match($proposal->status) {
+                                                'approved', 'final_approved' => 'bg-success text-success',
+                                                'pending' => 'bg-warning text-warning',
+                                                'rejected', 'final_rejected' => 'bg-danger text-danger',
+                                                'revision_required' => 'bg-info text-info',
+                                                default => 'bg-secondary text-secondary'
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $statusClass }} bg-opacity-10 px-3 py-2 rounded-pill small fw-bold">
+                                            {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ ($proposal->current_phase / 5) * 100 }}%"></div>
+                                            </div>
+                                            <span class="small fw-bold text-muted">Ph {{ $proposal->current_phase }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                                <li><a class="dropdown-item py-2" href="{{ route('proposal.show', $proposal->id) }}"><i class="bi bi-eye me-2"></i> View Details</a></li>
+                                                @if($proposal->status === 'revision_required')
+                                                    <li><a class="dropdown-item py-2 text-primary" href="{{ route('proposal.edit', $proposal->id) }}"><i class="bi bi-pencil-square me-2"></i> Edit Revision</a></li>
+                                                @endif
+                                                @if($proposal->status === 'pending')
+                                                    <li>
+                                                        <form action="{{ route('proposal.destroy', $proposal->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this submission?')">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-x-circle me-2"></i> Cancel Submission</button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted small italic">You haven't submitted any research proposals as lead.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="table mb-0 align-middle">
-                <thead>
-                    <tr>
-                        <th class="ps-4">Proposal Title</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Phase</th>
-                        <th class="text-center">Submitted Date</th>
-                        <th class="pe-4 text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @forelse($proposals as $proposal)
-                    <tr>
-                        <td class="ps-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <i class="bi bi-file-earmark-text text-muted h4 mb-0"></i>
-                                <span class="fw-semibold text-dark">{{ $proposal->title }}</span>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            @php
-                                $badgeClass = match($proposal->status) {
-                                    'approved', 'final_approved' => 'badge-approved',
-                                    'pending' => 'badge-pending',
-                                    'rejected', 'final_rejected' => 'badge-rejected',
-                                    'revision_required' => 'badge-in-review',
-                                    default => 'badge-pending'
-                                };
-                            @endphp
-                            <span class="badge {{ $badgeClass }}">
-                                {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <span class="text-muted fw-medium">Phase {{ $proposal->current_phase }}</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-2 text-muted small">
-                                <i class="bi bi-calendar3"></i>
-                                {{ $proposal->created_at->format('Y-m-d') }}
-                            </div>
-                        </td>
-                        <td class="pe-4 text-end">
-                            <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2 px-3 border">
-                                <i class="bi bi-eye"></i> View Details
-                            </a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center py-5">
-                            <div class="text-muted">
-                                <i class="bi bi-folder2-open display-4 mb-3 d-block"></i>
-                                <p class="mb-0">You haven't submitted any proposals yet.</p>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
+
+        <!-- Researches / As Collaborator -->
+        <div>
+            <h4 class="fw-bold mb-4">Researches <span class="text-info fs-6 fw-normal ms-2">/ As Collaborator</span></h4>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-info bg-opacity-10">
+                            <tr>
+                                <th class="ps-4 py-3 small fw-bold text-info border-0">TITLE</th>
+                                <th class="py-3 small fw-bold text-info border-0">LEAD RESEARCHER</th>
+                                <th class="py-3 small fw-bold text-info border-0">COLLABORATORS</th>
+                                <th class="py-3 small fw-bold text-info border-0">STATUS</th>
+                                <th class="pe-4 py-3 small fw-bold text-info border-0 text-end">CURRENT PHASE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($collaboratedProposals as $proposal)
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="fw-bold text-dark mb-1">{{ $proposal->title }}</div>
+                                        <div class="text-muted small italic">{{ $proposal->research_field }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                {{ substr($proposal->user->name, 0, 1) }}
+                                            </div>
+                                            <div class="small fw-bold">{{ $proposal->user->name }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach($proposal->collaborators as $collab)
+                                                @if($collab->id !== auth()->id())
+                                                    <span class="badge bg-light text-muted border px-2 py-1" style="font-size: 0.65rem;">{{ $collab->name }}</span>
+                                                @else
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-1" style="font-size: 0.65rem;">You</span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 
+                                            $proposal->status == 'pending' ? 'bg-warning text-warning' : 
+                                            (str_contains($proposal->status, 'approved') ? 'bg-success text-success' : 'bg-danger text-danger') 
+                                        }} bg-opacity-10 px-3 py-2 rounded-pill small fw-bold">
+                                            {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <span class="fw-bold text-muted small">Phase {{ $proposal->current_phase }}</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted small italic">You are not listed as a collaborator in any research project.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>

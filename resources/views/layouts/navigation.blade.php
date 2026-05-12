@@ -1,85 +1,98 @@
-<nav class="navbar navbar-expand-lg navbar-light border-bottom sticky-top shadow-sm">
-    <div class="container">
-        <!-- Logo -->
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
-            <i class="bi bi-file-earmark-text-fill text-primary h3 mb-0"></i>
-            <span style="font-size: 1.25rem; letter-spacing: -0.025em;">URLC Research Portal</span>
+<aside class="sidebar">
+    <!-- Brand -->
+    <a class="sidebar-brand" href="{{ route('dashboard') }}">
+        <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
+            <i class="bi bi-file-earmark-text-fill h4 mb-0"></i>
+        </div>
+        <div class="lh-sm">
+            <span class="fw-bold d-block" style="font-size: 1.1rem; letter-spacing: -0.02em;">URLC</span>
+            <span class="text-muted x-small" style="font-size: 0.65rem;">Research Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+        <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <i class="bi bi-grid-fill"></i>
+            <span>Dashboard</span>
         </a>
 
-        <!-- Hamburger -->
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        @if(auth()->user()->isSuperAdmin())
+            <a href="{{ route('superadmin.dashboard') }}" class="sidebar-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Super Admin</span>
+            </a>
+            <a href="{{ route('superadmin.users') }}" class="sidebar-link {{ request()->routeIs('superadmin.users') ? 'active' : '' }}">
+                <i class="bi bi-people-fill"></i>
+                <span>User Management</span>
+            </a>
+            <a href="{{ route('superadmin.settings') }}" class="sidebar-link {{ request()->routeIs('superadmin.settings') ? 'active' : '' }}">
+                <i class="bi bi-gear-fill"></i>
+                <span>System Settings</span>
+            </a>
+        @endif
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- Navigation Links -->
-            <ul class="navbar-nav ms-auto align-items-center">
-                @auth
-                    <!-- Notifications Dropdown -->
-                    <li class="nav-item dropdown me-3">
-                        <a class="nav-link px-2 position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-bell h5 mb-0"></i>
-                            @if(auth()->user()->unreadNotifications->count() > 0)
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                                    {{ auth()->user()->unreadNotifications->count() }}
-                                </span>
-                            @endif
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-2" aria-labelledby="notificationDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
-                            <li class="px-3 py-2 border-bottom">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold small">Notifications</span>
-                                    @if(auth()->user()->unreadNotifications->count() > 0)
-                                        <form action="{{ route('notifications.markRead') }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-link p-0 small text-decoration-none" style="font-size: 0.75rem;">Mark all as read</button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </li>
-                            @forelse(auth()->user()->unreadNotifications as $notification)
-                                <li>
-                                    <a class="dropdown-item p-3 rounded d-flex align-items-start gap-3 border-bottom border-light" href="{{ $notification->data['proposal_id'] ?? false ? route('proposal.show', $notification->data['proposal_id']) : route('announcements.index') }}">
-                                        <div class="bg-light p-2 rounded-circle {{ $notification->data['color'] ?? 'text-primary' }}">
-                                            <i class="bi {{ $notification->data['icon'] ?? 'bi-info-circle' }}"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold small text-dark">{{ $notification->data['title'] }}</div>
-                                            <div class="text-muted small" style="font-size: 0.75rem;">{{ $notification->data['message'] }}</div>
-                                            <div class="text-muted small mt-1" style="font-size: 0.65rem;">{{ $notification->created_at->diffForHumans() }}</div>
-                                        </div>
-                                    </a>
-                                </li>
-                            @empty
-                                <li class="px-3 py-4 text-center text-muted">
-                                    <i class="bi bi-bell-slash d-block h3 mb-2"></i>
-                                    <p class="small mb-0">No new notifications</p>
-                                </li>
-                            @endforelse
-                        </ul>
-                    </li>
+        @if(auth()->user()->role === 'admin' && !auth()->user()->isSuperAdmin())
+            <a href="{{ route('admin.proposals') }}" class="sidebar-link {{ request()->routeIs('admin.proposals') ? 'active' : '' }}">
+                <i class="bi bi-collection-fill"></i>
+                <span>All Proposals</span>
+            </a>
+        @endif
 
-                    <li class="nav-item">
-                        <a class="nav-link px-3 {{ request()->routeIs('announcements.index') ? 'active' : '' }}" href="{{ route('announcements.index') }}">
-                            Call for Papers
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3 {{ request()->routeIs('email.templates') ? 'active' : '' }}" href="{{ route('email.templates') }}">
-                            <i class="bi bi-envelope"></i> Email Templates
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item ms-lg-3">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-secondary btn-sm px-4 d-flex align-items-center gap-2">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </button>
-                        </form>
-                    </li>
-                @endauth
-            </ul>
+        @if(auth()->user()->role === 'reviewer')
+            <a href="{{ route('reviewer.proposals') }}" class="sidebar-link {{ request()->routeIs('reviewer.proposals') ? 'active' : '' }}">
+                <i class="bi bi-clipboard-check-fill"></i>
+                <span>Review Queue</span>
+            </a>
+        @endif
+
+        @if(auth()->user()->role === 'researcher')
+            <a href="{{ route('proposal.index') }}" class="sidebar-link {{ request()->routeIs('proposal.index') ? 'active' : '' }}">
+                <i class="bi bi-folder-fill"></i>
+                <span>My Researches</span>
+            </a>
+            <a href="{{ route('proposal.create') }}" class="sidebar-link {{ request()->routeIs('proposal.create') ? 'active' : '' }}">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Submit Proposal</span>
+            </a>
+        @endif
+
+        <a href="{{ route('announcements.index') }}" class="sidebar-link {{ request()->routeIs('announcements.index') ? 'active' : '' }}">
+            <i class="bi bi-megaphone-fill"></i>
+            <span>Call for Papers</span>
+        </a>
+
+        <a href="{{ route('email.templates') }}" class="sidebar-link {{ request()->routeIs('email.templates') ? 'active' : '' }}">
+            <i class="bi bi-envelope-paper-fill"></i>
+            <span>Email Templates</span>
+        </a>
+
+        <!-- Notifications (Collapsible or just a link) -->
+        <div class="mt-4 pt-4 border-top">
+            <h6 class="text-muted small fw-bold px-3 mb-3 text-uppercase">Notifications</h6>
+            @forelse(auth()->user()->unreadNotifications->take(3) as $notification)
+                <a href="{{ $notification->data['proposal_id'] ?? false ? route('proposal.show', $notification->data['proposal_id']) : route('announcements.index') }}" class="sidebar-link py-2" style="font-size: 0.8rem;">
+                    <i class="bi bi-dot text-primary fs-4"></i>
+                    <span class="text-truncate">{{ $notification->data['title'] }}</span>
+                </a>
+            @empty
+                <p class="text-muted x-small px-3 italic">No new notifications</p>
+            @endforelse
         </div>
+    </nav>
+
+    <!-- Footer Profile -->
+    <div class="sidebar-footer">
+        <a href="{{ route('profile.show') }}" class="sidebar-link mb-2 {{ request()->routeIs('profile.show') ? 'active' : '' }}">
+            <i class="bi bi-person-circle"></i>
+            <span class="text-truncate">{{ auth()->user()->name }}</span>
+        </a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-danger">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </button>
+        </form>
     </div>
-</nav>
+</aside>

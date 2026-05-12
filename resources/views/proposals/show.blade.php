@@ -59,7 +59,7 @@
                 <i class="bi bi-chat-left-text text-primary"></i> Reviewer Feedback
             </h3>
 
-            <p class="text-muted mb-4 small fw-medium">Reviewed by: Prof. Michael Chen</p>
+            <p class="text-muted mb-4 small fw-medium">Reviewed by: {{ $proposal->reviewer->name ?? 'Under Review' }}</p>
 
             <div class="mb-4">
                 <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Comments:</label>

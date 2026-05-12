@@ -11,6 +11,10 @@
             <div class="alert alert-success mb-3">{{ session('status') }}</div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-danger mb-3">{{ session('error') }}</div>
+        @endif
+
         <!-- Validation Errors -->
         @if ($errors->any())
             <div class="alert alert-danger mb-3">

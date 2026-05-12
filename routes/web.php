@@ -23,14 +23,16 @@ Route::get('/', function () {
 Route::get('/redirect', function () {
     $role = Auth::user()->role;
 
-    if ($role == 'admin') {
+    if ($role == 'super_admin') {
+        return redirect('/superadmin');
+    } elseif ($role == 'admin') {
         return redirect('/admin');
     } elseif ($role == 'reviewer') {
         return redirect('/reviewer');
     } else {
         return redirect('/researcher');
     }
-})->middleware(['auth']);
+})->middleware(['auth', 'approved']);
 
 /*
 |--------------------------------------------------------------------------
@@ -40,15 +42,15 @@ Route::get('/redirect', function () {
 
 Route::get('/admin', function () {
     return view('admin.dashboard');
-})->middleware(['auth', 'role:admin']);
+})->middleware(['auth', 'role:admin', 'approved']);
 
 Route::get('/reviewer', function () {
     return view('reviewer.dashboard');
-})->middleware(['auth', 'role:reviewer']);
+})->middleware(['auth', 'role:reviewer', 'approved']);
 
 Route::get('/researcher', function () {
     return view('researcher.dashboard');
-})->middleware(['auth', 'role:researcher']);
+})->middleware(['auth', 'role:researcher', 'approved']);
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +87,12 @@ Route::middleware(['auth'])->group(function () {
         auth()->user()->unreadNotifications->markAsRead();
         return back();
     })->name('notifications.markRead');
+
+    // Profile Routes
+    Route::get('/profile/{id?}', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/settings/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/settings/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/settings/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 
 // Admin ONLY Announcements CRUD
@@ -124,13 +132,28 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| 👑 Super Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'superadmin'])->group(function () {
+    Route::get('/superadmin', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('superadmin.dashboard');
+    Route::get('/superadmin/users', [\App\Http\Controllers\SuperAdminController::class, 'users'])->name('superadmin.users');
+    Route::post('/superadmin/users/{id}/approve', [\App\Http\Controllers\SuperAdminController::class, 'approveAdmin'])->name('superadmin.users.approve');
+    Route::delete('/superadmin/users/{id}', [\App\Http\Controllers\SuperAdminController::class, 'destroyUser'])->name('superadmin.users.destroy');
+    Route::get('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'settings'])->name('superadmin.settings');
+    Route::post('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'updateSettings'])->name('superadmin.settings.update');
+});
+
+/*
+|--------------------------------------------------------------------------
 | Default Dashboard
 |--------------------------------------------------------------------------
 */
 
 Route::get('/dashboard', function () {
     return redirect('/redirect');
-})->middleware(['auth'])->name('dashboard');
+})->middleware(['auth', 'approved'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

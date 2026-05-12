@@ -10,14 +10,19 @@ class ResearchProposalController extends Controller
     // Researcher: View own proposals
     public function index()
     {
-        $proposals = ResearchProposal::where('user_id', auth()->id())->get();
-        return view('researcher.my_proposals', compact('proposals'));
+        $leadProposals = auth()->user()->leadProposals()->with('collaborators')->latest()->get();
+        $collaboratedProposals = auth()->user()->collaboratedProposals()->with(['user', 'collaborators'])->latest()->get();
+        
+        return view('researcher.my_proposals', compact('leadProposals', 'collaboratedProposals'));
     }
 
     // Researcher: Show submission form
     public function create()
     {
-        return view('researcher.create_proposal');
+        $researchers = \App\Models\User::where('role', 'researcher')
+            ->where('id', '!=', auth()->id())
+            ->get();
+        return view('researcher.create_proposal', compact('researchers'));
     }
 
     // Researcher: Store proposal
@@ -26,8 +31,11 @@ class ResearchProposalController extends Controller
         $request->validate([
             'title' => 'required',
             'abstract' => 'required',
+            'rationale' => 'required',
             'research_field' => 'nullable|string',
             'document' => 'required|file|mimes:pdf|max:20480',
+            'collaborators' => 'nullable|array',
+            'collaborators.*' => 'exists:users,id',
         ]);
 
         $filePath = null;
@@ -36,14 +44,19 @@ class ResearchProposalController extends Controller
             $filePath = $request->file('document')->store('documents', 'public');
         }
 
-        ResearchProposal::create([
+        $proposal = ResearchProposal::create([
             'user_id' => auth()->id(),
             'title' => $request->title,
             'abstract' => $request->abstract,
+            'rationale' => $request->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath,
             'status' => 'pending',
         ]);
+
+        if ($request->has('collaborators')) {
+            $proposal->collaborators()->sync($request->collaborators);
+        }
 
         return redirect('/proposal/my')->with('success', 'Proposal submitted successfully!');
     }
@@ -101,6 +114,7 @@ class ResearchProposalController extends Controller
 
         $proposal->update([
             'status' => $request->status,
+            'reviewer_id' => auth()->id(),
             'review_comments' => $request->review_comments,
             'review_suggestions' => $request->review_suggestions,
         ]);
@@ -208,8 +222,11 @@ class ResearchProposalController extends Controller
         $request->validate([
             'title' => 'required',
             'abstract' => 'required',
+            'rationale' => 'required',
             'research_field' => 'nullable|string',
             'document' => 'nullable|file|mimes:pdf|max:20480',
+            'collaborators' => 'nullable|array',
+            'collaborators.*' => 'exists:users,id',
         ]);
 
         $filePath = $proposal->document_path;
@@ -225,10 +242,15 @@ class ResearchProposalController extends Controller
         $proposal->update([
             'title' => $request->title,
             'abstract' => $request->abstract,
+            'rationale' => $request->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath,
             'status' => 'pending',
         ]);
+
+        if ($request->has('collaborators')) {
+            $proposal->collaborators()->sync($request->collaborators);
+        }
 
         return redirect('/proposal/my')->with('success', 'Proposal resubmitted successfully!');
     }

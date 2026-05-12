@@ -1,9 +1,16 @@
 <x-app-layout>
-    <div class="mb-4">
-        <h1 class="h3 fw-bold d-flex align-items-center gap-3 mb-2">
-            <i class="bi bi-bell text-primary"></i> Call for Papers
-        </h1>
-        <p class="text-muted mb-0">Stay updated with the latest announcements and submission guidelines</p>
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 fw-bold d-flex align-items-center gap-3 mb-2">
+                <i class="bi bi-bell text-primary"></i> Call for Papers
+            </h1>
+            <p class="text-muted mb-0">Stay updated with the latest announcements and submission guidelines</p>
+        </div>
+        @if(auth()->user()->role === 'admin')
+            <button class="btn btn-primary px-4 d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                <i class="bi bi-plus-lg"></i> Create Announcement
+            </button>
+        @endif
     </div>
 
     <!-- Gradient Submission Banner -->
@@ -127,6 +134,39 @@
                         </li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Announcement Modal -->
+    <div class="modal fade" id="createAnnouncementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-0 px-4 pt-4 pb-0">
+                    <h5 class="modal-title fw-bold">Create New Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('announcements.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small uppercase">Announcement Title</label>
+                            <input type="text" name="title" class="form-control bg-light border-0 py-2 px-3" placeholder="Enter announcement title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small uppercase">Content</label>
+                            <textarea name="content" class="form-control bg-light border-0 py-2 px-3" rows="5" placeholder="Enter announcement content" required></textarea>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold text-muted small uppercase">Image (Optional)</label>
+                            <input type="file" name="image" class="form-control bg-light border-0 py-2 px-3">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">Create Announcement</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
