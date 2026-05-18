@@ -270,4 +270,28 @@ class ResearchProposalController extends Controller
 
         return redirect()->back()->with('success', 'Proposal deleted successfully!');
     }
+
+    public function downloadNoticeOfAcceptance($id)
+    {
+        $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+
+        if (!in_array($proposal->status, ['approved', 'final_approved'])) {
+            abort(403, 'This proposal has not been fully approved yet.');
+        }
+
+        $pdf = \PDF::loadView('pdfs.notice', compact('proposal'));
+        return $pdf->download('Notice_of_Acceptance_' . $proposal->id . '.pdf');
+    }
+
+    public function downloadCertificate($id)
+    {
+        $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+
+        if ($proposal->current_phase != 5) {
+            abort(403, 'This research has not reached completion phase yet.');
+        }
+
+        $pdf = \PDF::loadView('pdfs.certificate', compact('proposal'));
+        return $pdf->download('Certificate_of_Completion_' . $proposal->id . '.pdf');
+    }
 }

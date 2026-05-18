@@ -47,4 +47,10 @@ class ResearchProposal extends Model
     {
         return $this->belongsToMany(\App\Models\User::class, 'proposal_collaborators');
     }
+
+    // Relationship: Proposal has many milestones
+    public function milestones()
+    {
+        return $this->hasMany(ResearchMilestone::class);
+    }
 }

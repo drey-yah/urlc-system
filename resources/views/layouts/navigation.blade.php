@@ -62,6 +62,11 @@
             <span>Call for Papers</span>
         </a>
 
+        <a href="{{ route('repository.index') }}" class="sidebar-link {{ request()->routeIs('repository.index') ? 'active' : '' }}">
+            <i class="bi bi-journal-bookmark-fill"></i>
+            <span>Research Repository</span>
+        </a>
+
         <a href="{{ route('email.templates') }}" class="sidebar-link {{ request()->routeIs('email.templates') ? 'active' : '' }}">
             <i class="bi bi-envelope-paper-fill"></i>
             <span>Email Templates</span>

@@ -82,6 +82,16 @@ Route::middleware(['auth'])->group(function () {
         return view('emails.templates');
     })->name('email.templates');
 
+    // Repository
+    Route::get('/repository', [\App\Http\Controllers\RepositoryController::class, 'index'])->name('repository.index');
+
+    // Milestones
+    Route::post('/proposal/{id}/milestones', [\App\Http\Controllers\ResearchMilestoneController::class, 'store'])->name('milestones.store');
+    
+    // PDF Generation
+    Route::get('/proposal/{id}/notice-of-acceptance', [\App\Http\Controllers\ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');
+    Route::get('/proposal/{id}/certificate-of-completion', [\App\Http\Controllers\ResearchProposalController::class, 'downloadCertificate'])->name('proposal.downloadCertificate');
+
     // Notifications
     Route::post('/notifications/mark-as-read', function() {
         auth()->user()->unreadNotifications->markAsRead();
@@ -128,6 +138,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Reviewer Assignment
     Route::post('/admin/proposals/{id}/assign', [ResearchProposalController::class, 'assignReviewer'])->name('admin.proposals.assign');
+
+    // Milestones Status Update
+    Route::patch('/admin/milestones/{id}/status', [\App\Http\Controllers\ResearchMilestoneController::class, 'updateStatus'])->name('admin.milestones.updateStatus');
 });
 
 /*
