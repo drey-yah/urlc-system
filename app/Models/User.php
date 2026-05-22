@@ -67,6 +67,16 @@ class User extends Authenticatable
         return $this->role === 'researcher';
     }
 
+    public function isCoordinator()
+    {
+        return $this->role === 'coordinator';
+    }
+
+    public function isStaff()
+    {
+        return $this->role === 'staff';
+    }
+
     public function leadProposals()
     {
         return $this->hasMany(\App\Models\ResearchProposal::class);

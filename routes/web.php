@@ -29,6 +29,10 @@ Route::get('/redirect', function () {
         return redirect('/admin');
     } elseif ($role == 'reviewer') {
         return redirect('/reviewer');
+    } elseif ($role == 'coordinator') {
+        return redirect('/coordinator');
+    } elseif ($role == 'staff') {
+        return redirect('/staff');
     } else {
         return redirect('/researcher');
     }
@@ -51,6 +55,12 @@ Route::get('/reviewer', function () {
 Route::get('/researcher', function () {
     return view('researcher.dashboard');
 })->middleware(['auth', 'role:researcher', 'approved']);
+
+Route::get('/coordinator', [\App\Http\Controllers\CoordinatorController::class, 'dashboard'])
+    ->middleware(['auth', 'role:coordinator', 'approved'])->name('coordinator.dashboard');
+
+Route::get('/staff', [\App\Http\Controllers\StaffController::class, 'dashboard'])
+    ->middleware(['auth', 'role:staff', 'approved'])->name('staff.dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -120,6 +130,28 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:reviewer'])->group(function () {
     Route::get('/reviewer/proposals', [ResearchProposalController::class, 'reviewerIndex'])->name('reviewer.proposals');
     Route::post('/reviewer/proposals/{id}/update-status', [ResearchProposalController::class, 'updateStatus'])->name('reviewer.proposals.updateStatus');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Coordinator Proposal Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:coordinator'])->group(function () {
+    Route::get('/coordinator/proposals', [\App\Http\Controllers\CoordinatorController::class, 'index'])->name('coordinator.proposals');
+    Route::post('/coordinator/proposals/{id}/endorse', [\App\Http\Controllers\CoordinatorController::class, 'endorse'])->name('coordinator.proposals.endorse');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Staff Proposal Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:staff'])->group(function () {
+    Route::get('/staff/proposals', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.proposals');
+    Route::post('/staff/proposals/{id}/forward', [\App\Http\Controllers\StaffController::class, 'forward'])->name('staff.proposals.forward');
 });
 
 /*

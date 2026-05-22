@@ -37,7 +37,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:researcher,reviewer,admin'],
+            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff'],
         ]);
 
         $is_approved = $request->role !== 'admin';
@@ -47,6 +47,7 @@ class RegisteredUserController extends Controller
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->role = $request->role;
+        $user->department = $request->department;
         $user->is_approved = \DB::raw($is_approved ? 'true' : 'false');
         $user->save();
 

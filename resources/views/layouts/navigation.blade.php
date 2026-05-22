@@ -46,6 +46,20 @@
             </a>
         @endif
 
+        @if(auth()->user()->role === 'coordinator')
+            <a href="{{ route('coordinator.proposals') }}" class="sidebar-link {{ request()->routeIs('coordinator.proposals') ? 'active' : '' }}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Endorsements</span>
+            </a>
+        @endif
+
+        @if(auth()->user()->role === 'staff')
+            <a href="{{ route('staff.proposals') }}" class="sidebar-link {{ request()->routeIs('staff.proposals') ? 'active' : '' }}">
+                <i class="bi bi-inbox-fill"></i>
+                <span>Receiving Queue</span>
+            </a>
+        @endif
+
         @if(auth()->user()->role === 'researcher')
             <a href="{{ route('proposal.index') }}" class="sidebar-link {{ request()->routeIs('proposal.index') ? 'active' : '' }}">
                 <i class="bi bi-folder-fill"></i>
@@ -59,7 +73,7 @@
 
         <a href="{{ route('announcements.index') }}" class="sidebar-link {{ request()->routeIs('announcements.index') ? 'active' : '' }}">
             <i class="bi bi-megaphone-fill"></i>
-            <span>Call for Papers</span>
+            <span>Announcements</span>
         </a>
 
         <a href="{{ route('repository.index') }}" class="sidebar-link {{ request()->routeIs('repository.index') ? 'active' : '' }}">

@@ -16,6 +16,9 @@
                             <i class="bi bi-person"></i> {{ $proposal->user->name }}
                         </span>
                         <span class="d-flex align-items-center gap-2">
+                            <i class="bi bi-tag"></i> {{ $proposal->proposal_code ?? 'No Tag Yet' }}
+                        </span>
+                        <span class="d-flex align-items-center gap-2">
                             <i class="bi bi-calendar3"></i> Submitted: {{ $proposal->created_at->format('Y-m-d') }}
                         </span>
                     </div>
@@ -23,9 +26,9 @@
                 @php
                     $statusColor = match($proposal->status) {
                         'approved', 'final_approved' => '#10B981',
-                        'pending' => '#F59E0B',
+                        'pending', 'pending_coordinator_endorsement' => '#F59E0B',
+                        'endorsed_by_coordinator', 'revision_required' => '#3B82F6',
                         'rejected', 'final_rejected' => '#EF4444',
-                        'revision_required' => '#3B82F6',
                         default => '#6B7280'
                     };
                 @endphp
@@ -77,19 +80,56 @@
         </div>
     </div>
 
-    <!-- Document Preview Link -->
+    <!-- Document History Section -->
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body d-flex justify-content-between align-items-center p-4">
-            <div class="d-flex align-items-center gap-3">
-                <i class="bi bi-file-earmark-pdf text-danger h3 mb-0"></i>
-                <div>
-                    <h5 class="mb-0 fw-bold">Full Proposal Document</h5>
-                    <small class="text-muted">PDF Format</small>
+        <div class="card-body p-4 p-lg-5">
+            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-file-earmark-pdf text-danger"></i> Document History
+            </h3>
+            
+            @if($proposal->documents && $proposal->documents->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Document Tag</th>
+                                <th>Version</th>
+                                <th>Phase</th>
+                                <th>Date Uploaded</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($proposal->documents->sortByDesc('version') as $doc)
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ $doc->document_tag }}</span></td>
+                                <td>V{{ $doc->version }}</td>
+                                <td>Phase {{ $doc->phase }}</td>
+                                <td>{{ $doc->created_at->format('M d, Y h:i A') }}</td>
+                                <td>
+                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> View PDF
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            <a href="{{ asset('storage/' . $proposal->document_path) }}" target="_blank" class="btn btn-outline-primary px-4">
-                View PDF
-            </a>
+            @elseif($proposal->document_path)
+                <!-- Fallback for old proposals -->
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                    <div>
+                        <h6 class="mb-0 fw-bold">Original Proposal Document</h6>
+                        <small class="text-muted">Legacy Upload</small>
+                    </div>
+                    <a href="{{ asset('storage/' . $proposal->document_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4">
+                        View PDF
+                    </a>
+                </div>
+            @else
+                <p class="text-muted mb-0">No documents uploaded.</p>
+            @endif
         </div>
     </div>
 

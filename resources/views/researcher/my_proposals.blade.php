@@ -18,7 +18,8 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-primary bg-opacity-10">
                             <tr>
-                                <th class="ps-4 py-3 small fw-bold text-primary border-0">TITLE</th>
+                                <th class="ps-4 py-3 small fw-bold text-primary border-0">PROPOSAL CODE</th>
+                                <th class="py-3 small fw-bold text-primary border-0">TITLE</th>
                                 <th class="py-3 small fw-bold text-primary border-0">RATIONALE</th>
                                 <th class="py-3 small fw-bold text-primary border-0">COLLABORATORS</th>
                                 <th class="py-3 small fw-bold text-primary border-0">STATUS</th>
@@ -30,6 +31,9 @@
                             @forelse($leadProposals as $proposal)
                                 <tr>
                                     <td class="ps-4 py-3">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1" style="font-size: 0.65rem;">{{ $proposal->proposal_code ?? 'NO TAG' }}</span>
+                                    </td>
+                                    <td class="py-3">
                                         <div class="fw-bold text-dark mb-1">{{ $proposal->title }}</div>
                                         <div class="text-muted small italic">{{ $proposal->research_field }}</div>
                                     </td>
@@ -93,7 +97,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted small italic">You haven't submitted any research proposals as lead.</td>
+                                    <td colspan="7" class="text-center py-5 text-muted small italic">You haven't submitted any research proposals as lead.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -110,7 +114,8 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-info bg-opacity-10">
                             <tr>
-                                <th class="ps-4 py-3 small fw-bold text-info border-0">TITLE</th>
+                                <th class="ps-4 py-3 small fw-bold text-info border-0">PROPOSAL CODE</th>
+                                <th class="py-3 small fw-bold text-info border-0">TITLE</th>
                                 <th class="py-3 small fw-bold text-info border-0">LEAD RESEARCHER</th>
                                 <th class="py-3 small fw-bold text-info border-0">COLLABORATORS</th>
                                 <th class="py-3 small fw-bold text-info border-0">STATUS</th>
@@ -121,6 +126,9 @@
                             @forelse($collaboratedProposals as $proposal)
                                 <tr>
                                     <td class="ps-4 py-3">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1" style="font-size: 0.65rem;">{{ $proposal->proposal_code ?? 'NO TAG' }}</span>
+                                    </td>
+                                    <td class="py-3">
                                         <div class="fw-bold text-dark mb-1">{{ $proposal->title }}</div>
                                         <div class="text-muted small italic">{{ $proposal->research_field }}</div>
                                     </td>
@@ -157,7 +165,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted small italic">You are not listed as a collaborator in any research project.</td>
+                                    <td colspan="6" class="text-center py-5 text-muted small italic">You are not listed as a collaborator in any research project.</td>
                                 </tr>
                             @endforelse
                         </tbody>

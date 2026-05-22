@@ -44,12 +44,30 @@
                 <input id="password_confirmation" class="form-control" type="password" name="password_confirmation" required />
             </div>
 
+            <!-- Department / College -->
+            <div class="mb-3">
+                <label for="department" class="form-label">College / Department</label>
+                <select id="department" name="department" class="form-select">
+                    <option value="">-- Not Applicable --</option>
+                    <option value="CCIS">College of Computing and Information Sciences (CCIS)</option>
+                    <option value="CAS">College of Art and Sciences (CAS)</option>
+                    <option value="CIT">College of Industrial Technology (CIT)</option>
+                    <option value="CMS">College of Maritime Studies (CMS)</option>
+                    <option value="CCJE">College of Criminal Justice Education (CCJE)</option>
+                    <option value="CMG">College of Management and Governance (CMG)</option>
+                    <option value="CTE">College of Teacher Education (CTE)</option>
+                </select>
+                <div class="form-text small">Required for Researchers and Coordinators.</div>
+            </div>
+
             <!-- Role Selection -->
             <div class="mb-3">
                 <label for="role" class="form-label">Register as</label>
                 <select id="role" name="role" class="form-select" required>
                     <option value="researcher">Researcher</option>
                     <option value="reviewer">Reviewer</option>
+                    <option value="coordinator">College Coordinator</option>
+                    <option value="staff">Supporting Staff</option>
                     <option value="admin">Administrator (Requires Approval)</option>
                 </select>
             </div>

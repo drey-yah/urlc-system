@@ -21,8 +21,7 @@
                                 <th class="pe-4 text-end">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @foreach($proposals as $proposal)
+                            @forelse($proposals as $proposal)
                             <tr id="proposal-row-{{ $proposal->id }}" class="proposal-row">
                                 <td class="ps-4 py-3">
                                     <div class="fw-semibold text-dark">{{ $proposal->title }}</div>
@@ -56,7 +55,11 @@
                                     </button>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted small italic">No proposals have been assigned to you for review yet.</td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

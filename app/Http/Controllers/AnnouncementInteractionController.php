@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class AnnouncementInteractionController extends Controller
 {
-    public function like($id)
+    public function like(Request $request, $id)
     {
         $userId = auth()->id();
         
@@ -19,16 +19,22 @@ class AnnouncementInteractionController extends Controller
 
         if ($existingLike) {
             $existingLike->delete();
-            return redirect()->back()->with('success', 'Unliked');
+            $liked = false;
+        } else {
+            AnnouncementInteraction::create([
+                'user_id' => $userId,
+                'announcement_id' => $id,
+                'type' => 'like',
+            ]);
+            $liked = true;
         }
 
-        AnnouncementInteraction::create([
-            'user_id' => $userId,
-            'announcement_id' => $id,
-            'type' => 'like',
-        ]);
+        if ($request->wantsJson() || $request->ajax()) {
+            $likesCount = AnnouncementInteraction::where('announcement_id', $id)->where('type', 'like')->count();
+            return response()->json(['liked' => $liked, 'likesCount' => $likesCount]);
+        }
 
-        return redirect()->back()->with('success', 'Liked');
+        return redirect()->back()->with('success', $liked ? 'Liked' : 'Unliked');
     }
 
     public function comment(Request $request, $id)

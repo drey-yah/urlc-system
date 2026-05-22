@@ -67,7 +67,7 @@
 
             <div class="landing-card mx-auto">
                 <h2 class="h4 fw-bold mb-5">Select Your Role</h2>
-                <div class="row g-4">
+                <div class="row g-4 justify-content-center">
                     <div class="col-md-4">
                         <a href="{{ route('login') }}" class="role-card btn-researcher">
                             <i class="bi bi-person role-icon"></i>
@@ -89,6 +89,27 @@
                             <p class="small mb-0 opacity-75">Manage system and announcements</p>
                         </a>
                     </div>
+                    <div class="col-md-4">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #F59E0B;">
+                            <i class="bi bi-person-badge role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Coordinator</h3>
+                            <p class="small mb-0 opacity-75">Endorse proposals from your department</p>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #0ea5e9;">
+                            <i class="bi bi-inbox role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Support Staff</h3>
+                            <p class="small mb-0 opacity-75">Receive and route endorsed proposals</p>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-4 border-top text-center">
+                    <p class="text-muted mb-3">Don't have an account yet?</p>
+                    <a href="{{ route('register') }}" class="btn btn-outline-primary btn-lg px-5 rounded-pill fw-bold">
+                        <i class="bi bi-person-plus-fill me-2"></i> Register as a New User
+                    </a>
                 </div>
             </div>
             

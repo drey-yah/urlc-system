@@ -44,15 +44,34 @@ class ResearchProposalController extends Controller
             $filePath = $request->file('document')->store('documents', 'public');
         }
 
+        $department = auth()->user()->department ? strtoupper(auth()->user()->department) : 'UNI';
+        $year = date('Y');
+        $latestProposal = ResearchProposal::latest('id')->first();
+        $nextId = $latestProposal ? $latestProposal->id + 1 : 1;
+        $sequence = str_pad($nextId, 3, '0', STR_PAD_LEFT);
+        $proposalCode = "{$department}-UA-RP-{$year}-{$sequence}";
+
         $proposal = ResearchProposal::create([
             'user_id' => auth()->id(),
+            'proposal_code' => $proposalCode,
             'title' => $request->title,
             'abstract' => $request->abstract,
             'rationale' => $request->rationale,
             'research_field' => $request->research_field,
-            'document_path' => $filePath,
-            'status' => 'pending',
+            'document_path' => $filePath, // Kept for backwards compatibility
+            'status' => 'pending_coordinator_endorsement',
         ]);
+
+        if ($filePath) {
+            $documentTag = "{$proposalCode}-PH1-MANUSCRIPT-V1";
+            $proposal->documents()->create([
+                'document_tag' => $documentTag,
+                'document_type' => 'manuscript',
+                'phase' => 1,
+                'version' => 1,
+                'file_path' => $filePath,
+            ]);
+        }
 
         if ($request->has('collaborators')) {
             $proposal->collaborators()->sync($request->collaborators);
@@ -184,11 +203,13 @@ class ResearchProposalController extends Controller
 
     public function show($id)
     {
-        $proposal = ResearchProposal::with('user')->findOrFail($id);
+        $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
         
         // Authorization check
         if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id()) {
-            abort(403);
+            if (!$proposal->collaborators->contains(auth()->id())) {
+                abort(403, 'Unauthorized access.');
+            }
         }
 
         return view('proposals.show', compact('proposal'));
@@ -232,11 +253,21 @@ class ResearchProposalController extends Controller
         $filePath = $proposal->document_path;
 
         if ($request->hasFile('document')) {
-            // BUG-08: Delete old file if it exists
-            if ($proposal->document_path && \Storage::disk('public')->exists($proposal->document_path)) {
-                \Storage::disk('public')->delete($proposal->document_path);
-            }
+            // BUG-08 FIXED: Previous file is no longer deleted to maintain version history
             $filePath = $request->file('document')->store('documents', 'public');
+            
+            $latestDoc = $proposal->documents()->where('document_type', 'manuscript')->latest('version')->first();
+            $nextVersion = $latestDoc ? $latestDoc->version + 1 : 2;
+            $phase = $proposal->current_phase ?? 1;
+            $documentTag = "{$proposal->proposal_code}-PH{$phase}-MANUSCRIPT-V{$nextVersion}";
+
+            $proposal->documents()->create([
+                'document_tag' => $documentTag,
+                'document_type' => 'manuscript',
+                'phase' => $phase,
+                'version' => $nextVersion,
+                'file_path' => $filePath,
+            ]);
         }
 
         $proposal->update([
@@ -244,8 +275,8 @@ class ResearchProposalController extends Controller
             'abstract' => $request->abstract,
             'rationale' => $request->rationale,
             'research_field' => $request->research_field,
-            'document_path' => $filePath,
-            'status' => 'pending',
+            'document_path' => $filePath, // Update main path for backwards compatibility
+            'status' => 'pending_coordinator_endorsement',
         ]);
 
         if ($request->has('collaborators')) {
@@ -266,6 +297,13 @@ class ResearchProposalController extends Controller
             \Storage::disk('public')->delete($proposal->document_path);
         }
 
+        // Delete all versioned document files
+        foreach ($proposal->documents as $doc) {
+            if ($doc->file_path && \Storage::disk('public')->exists($doc->file_path)) {
+                \Storage::disk('public')->delete($doc->file_path);
+            }
+        }
+
         $proposal->delete();
 
         return redirect()->back()->with('success', 'Proposal deleted successfully!');
@@ -274,6 +312,10 @@ class ResearchProposalController extends Controller
     public function downloadNoticeOfAcceptance($id)
     {
         $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+
+        if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id() && !$proposal->collaborators->contains(auth()->id())) {
+            abort(403, 'Unauthorized access.');
+        }
 
         if (!in_array($proposal->status, ['approved', 'final_approved'])) {
             abort(403, 'This proposal has not been fully approved yet.');
@@ -286,6 +328,10 @@ class ResearchProposalController extends Controller
     public function downloadCertificate($id)
     {
         $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+
+        if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id() && !$proposal->collaborators->contains(auth()->id())) {
+            abort(403, 'Unauthorized access.');
+        }
 
         if ($proposal->current_phase != 5) {
             abort(403, 'This research has not reached completion phase yet.');

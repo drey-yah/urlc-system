@@ -12,6 +12,7 @@ class ResearchProposal extends Model
     protected $fillable = [
         'user_id',
         'reviewer_id',
+        'proposal_code',
         'title',
         'abstract',
         'rationale',
@@ -52,5 +53,11 @@ class ResearchProposal extends Model
     public function milestones()
     {
         return $this->hasMany(ResearchMilestone::class);
+    }
+
+    // Relationship: Proposal has many documents
+    public function documents()
+    {
+        return $this->hasMany(ProposalDocument::class);
     }
 }

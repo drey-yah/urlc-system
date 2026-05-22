@@ -3,7 +3,8 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light">
                 <tr>
-                    <th class="ps-4 py-3 border-0">Title</th>
+                    <th class="ps-4 py-3 border-0">Proposal Code</th>
+                    <th class="py-3 border-0">Title</th>
                     <th class="py-3 border-0">Rationale</th>
                     <th class="py-3 border-0">{{ $type === 'lead' ? 'Collaborators' : 'Lead Researcher' }}</th>
                     <th class="pe-4 py-3 border-0 text-end">File</th>
@@ -13,6 +14,9 @@
                 @forelse($proposals as $proposal)
                     <tr>
                         <td class="ps-4 py-3">
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1" style="font-size: 0.65rem;">{{ $proposal->proposal_code ?? 'NO TAG' }}</span>
+                        </td>
+                        <td class="py-3">
                             <div class="fw-bold text-primary">{{ $proposal->title }}</div>
                             <div class="text-muted small italic">{{ $proposal->research_field }}</div>
                         </td>
@@ -52,7 +56,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center py-5 text-muted small italic">
+                        <td colspan="5" class="text-center py-5 text-muted small italic">
                             No research projects found.
                         </td>
                     </tr>

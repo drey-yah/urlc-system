@@ -70,7 +70,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($proposals as $proposal)
+                            @forelse($proposals as $proposal)
                             <tr>
                                 <td class="ps-4 py-3">
                                     <div class="fw-semibold text-dark">{{ Str::limit($proposal->title, 40) }}</div>
@@ -140,7 +140,11 @@
                                     </ul>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted small italic">No proposals have been submitted yet.</td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -158,7 +162,7 @@
                 </div>
                 <div class="card-body p-0">
                     <div style="max-height: 600px; overflow-y: auto;">
-                        @foreach($announcements as $ann)
+                        @forelse($announcements as $ann)
                         <div class="p-4 border-bottom border-light">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h6 class="fw-bold mb-0 text-dark">{{ $ann->title }}</h6>
@@ -173,7 +177,9 @@
                                 </form>
                             </div>
                         </div>
-                        @endforeach
+                        @empty
+                        <div class="text-center py-5 text-muted small italic">No active announcements.</div>
+                        @endforelse
                     </div>
                 </div>
             </div>
