@@ -106,8 +106,8 @@
                                             <form action="{{ route('admin.proposals.updatePhase', $proposal->id) }}" method="POST" class="d-flex gap-1">
                                                 @csrf @method('PATCH')
                                                 <select name="phase" class="form-select form-select-sm">
-                                                    @for($i=1; $i<=5; $i++)
-                                                        <option value="{{ $i }}" {{ $proposal->current_phase == $i ? 'selected' : '' }}>Ph {{ $i }}</option>
+                                                    @for($i=1; $i<=6; $i++)
+                                                        <option value="{{ $i }}" {{ $proposal->current_phase == $i ? 'selected' : '' }}>Phase {{ $i }}</option>
                                                     @endfor
                                                 </select>
                                                 <button type="submit" class="btn btn-sm btn-primary">Ok</button>
@@ -137,6 +137,19 @@
                                                 </div>
                                             </form>
                                         </li>
+                                        @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 text-success fw-bold" href="{{ route('proposal.downloadNTP', $proposal->id) }}"><i class="bi bi-file-earmark-pdf me-2"></i> Download NTP</a></li>
+                                        @endif
+                                        @if($proposal->status === 'completed')
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li class="px-3 py-2 text-center">
+                                            <form method="POST" action="{{ route('admin.proposals.archive', $proposal->id) }}" onsubmit="return confirm('Are you sure you want to archive this completed proposal?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-dark w-100"><i class="bi bi-archive me-2"></i> Archive</button>
+                                            </form>
+                                        </li>
+                                        @endif
                                     </ul>
                                 </td>
                             </tr>

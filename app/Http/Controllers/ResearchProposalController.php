@@ -28,12 +28,14 @@ class ResearchProposalController extends Controller
     // Researcher: Store proposal
     public function store(Request $request)
     {
+        $isDraft = $request->action === 'draft';
+
         $request->validate([
             'title' => 'required',
             'abstract' => 'required',
             'rationale' => 'required',
             'research_field' => 'nullable|string',
-            'document' => 'required|file|mimes:pdf|max:20480',
+            'document' => $isDraft ? 'nullable|file|mimes:pdf|max:20480' : 'required|file|mimes:pdf|max:20480',
             'collaborators' => 'nullable|array',
             'collaborators.*' => 'exists:users,id',
         ]);
@@ -59,7 +61,7 @@ class ResearchProposalController extends Controller
             'rationale' => $request->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath, // Kept for backwards compatibility
-            'status' => 'pending_coordinator_endorsement',
+            'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
         ]);
 
         if ($filePath) {
@@ -77,7 +79,8 @@ class ResearchProposalController extends Controller
             $proposal->collaborators()->sync($request->collaborators);
         }
 
-        return redirect('/proposal/my')->with('success', 'Proposal submitted successfully!');
+        $msg = $isDraft ? 'Proposal saved as draft!' : 'Proposal submitted successfully!';
+        return redirect('/proposal/my')->with('success', $msg);
     }
 
     // Reviewer: View ALL proposals
@@ -120,9 +123,10 @@ class ResearchProposalController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,approved,rejected,revision_required',
+            'status' => 'required|in:pending,approved,rejected,revision_required,approved_with_revisions',
             'review_comments' => 'nullable|string',
             'review_suggestions' => 'nullable|string',
+            'evaluation_document' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
         $proposal = ResearchProposal::findOrFail($id);
@@ -137,6 +141,18 @@ class ResearchProposalController extends Controller
             'review_comments' => $request->review_comments,
             'review_suggestions' => $request->review_suggestions,
         ]);
+
+        if ($request->hasFile('evaluation_document')) {
+            $filePath = $request->file('evaluation_document')->store('evaluations', 'public');
+            
+            $proposal->documents()->create([
+                'document_tag' => "{$proposal->proposal_code}-PH{$proposal->current_phase}-EVAL-" . auth()->id() . '-' . time(),
+                'document_type' => 'evaluation',
+                'phase' => $proposal->current_phase ?? 3,
+                'version' => 1,
+                'file_path' => $filePath,
+            ]);
+        }
 
         // Notify Researcher
         $proposal->user->notify(new \App\Notifications\ProposalFeedbackNotification($proposal));
@@ -222,7 +238,7 @@ class ResearchProposalController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        if ($proposal->status !== 'revision_required') {
+        if (!in_array($proposal->status, ['revision_required', 'draft', 'returned_for_revision'])) {
             abort(403, 'You cannot edit this proposal.');
         }
 
@@ -236,9 +252,11 @@ class ResearchProposalController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        if ($proposal->status !== 'revision_required') {
+        if (!in_array($proposal->status, ['revision_required', 'draft', 'returned_for_revision'])) {
             abort(403, 'You cannot update this proposal.');
         }
+
+        $isDraft = $request->action === 'draft';
 
         $request->validate([
             'title' => 'required',
@@ -276,14 +294,15 @@ class ResearchProposalController extends Controller
             'rationale' => $request->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath, // Update main path for backwards compatibility
-            'status' => 'pending_coordinator_endorsement',
+            'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
         ]);
 
         if ($request->has('collaborators')) {
             $proposal->collaborators()->sync($request->collaborators);
         }
 
-        return redirect('/proposal/my')->with('success', 'Proposal resubmitted successfully!');
+        $msg = $isDraft ? 'Draft updated successfully!' : 'Proposal submitted successfully!';
+        return redirect('/proposal/my')->with('success', $msg);
     }
 
     public function destroy($id)
@@ -317,12 +336,28 @@ class ResearchProposalController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        if (!in_array($proposal->status, ['approved', 'final_approved'])) {
+        if (!in_array($proposal->status, ['approved', 'final_approved', 'ongoing', 'completed', 'archived'])) {
             abort(403, 'This proposal has not been fully approved yet.');
         }
 
         $pdf = \PDF::loadView('pdfs.notice', compact('proposal'));
         return $pdf->download('Notice_of_Acceptance_' . $proposal->id . '.pdf');
+    }
+
+    public function downloadNoticeToProceed($id)
+    {
+        $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+
+        if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id() && !$proposal->collaborators->contains(auth()->id())) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        if (!in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived'])) {
+            abort(403, 'This proposal has not received final approval yet.');
+        }
+
+        $pdf = \PDF::loadView('pdfs.ntp', compact('proposal'));
+        return $pdf->download('Notice_to_Proceed_' . $proposal->id . '.pdf');
     }
 
     public function downloadCertificate($id)
@@ -339,5 +374,51 @@ class ResearchProposalController extends Controller
 
         $pdf = \PDF::loadView('pdfs.certificate', compact('proposal'));
         return $pdf->download('Certificate_of_Completion_' . $proposal->id . '.pdf');
+    }
+
+    public function submitFinalManuscript(Request $request, $id)
+    {
+        $proposal = ResearchProposal::findOrFail($id);
+
+        if ($proposal->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'final_manuscript' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        $filePath = $request->file('final_manuscript')->store('terminal_reports', 'public');
+
+        $proposal->documents()->create([
+            'document_tag' => "{$proposal->proposal_code}-PH6-FINALMANUSCRIPT",
+            'document_type' => 'terminal_report',
+            'phase' => 6,
+            'version' => 1,
+            'file_path' => $filePath,
+        ]);
+
+        $proposal->update([
+            'current_phase' => 6,
+            'terminal_report_path' => $filePath,
+            'status' => 'completed'
+        ]);
+
+        return redirect()->back()->with('success', 'Final Manuscript submitted successfully.');
+    }
+
+    public function archiveProposal($id)
+    {
+        $proposal = ResearchProposal::findOrFail($id);
+
+        if (auth()->user()->role !== 'admin' && auth()->user()->role !== 'super_admin') {
+            abort(403);
+        }
+
+        $proposal->update([
+            'status' => 'archived'
+        ]);
+
+        return redirect()->back()->with('success', 'Proposal successfully archived to the repository.');
     }
 }

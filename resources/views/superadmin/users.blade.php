@@ -83,7 +83,7 @@
                             </td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end gap-2">
-                                    @if(!$user->is_approved && $user->role === 'admin')
+                                    @if(!$user->is_approved)
                                         <form action="{{ route('superadmin.users.approve', $user->id) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-success px-3">Approve</button>

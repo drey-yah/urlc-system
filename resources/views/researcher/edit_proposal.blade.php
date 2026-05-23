@@ -45,7 +45,8 @@
                     </div>
                     <div class="card-footer border-0 p-4 pt-0 bg-white d-flex justify-content-end gap-2">
                         <a href="{{ route('dashboard') }}" class="btn btn-light px-4">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-4 fw-bold">Update Proposal</button>
+                        <button type="submit" name="action" value="draft" class="btn btn-outline-secondary px-4 fw-bold">Save as Draft</button>
+                        <button type="submit" name="action" value="submit" class="btn btn-primary px-4 fw-bold">Update Proposal</button>
                     </div>
                 </form>
             </div>

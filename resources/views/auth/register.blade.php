@@ -67,7 +67,8 @@
                     <option value="researcher">Researcher</option>
                     <option value="reviewer">Reviewer</option>
                     <option value="coordinator">College Coordinator</option>
-                    <option value="staff">Supporting Staff</option>
+                    <option value="staff">Supporting Staff (Receiving)</option>
+                    <option value="recording_staff">Supporting Staff (Recording) (Requires Approval)</option>
                     <option value="admin">Administrator (Requires Approval)</option>
                 </select>
             </div>

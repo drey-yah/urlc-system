@@ -78,11 +78,24 @@
                         <p class="text-muted">Select a proposal to begin reviewing</p>
                     </div>
 
-                    <form id="review-form" method="POST" action="" class="d-none">
+                    <form id="review-form" method="POST" action="" enctype="multipart/form-data" class="d-none">
                         @csrf
                         <div class="bg-primary bg-opacity-10 p-3 rounded-3 mb-4">
                             <small class="text-primary fw-bold text-uppercase d-block mb-1">Selected Proposal:</small>
                             <p class="fw-bold mb-0 text-dark" id="selected-proposal-title"></p>
+                        </div>
+                        
+                        <div class="mb-4 d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
+                            <div class="small fw-semibold text-muted">1. Download Template</div>
+                            <a href="javascript:alert('Template download will be provided by Admin.')" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-bold">
+                                <i class="bi bi-download"></i> Evaluation Template
+                            </a>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small uppercase">2. Upload Completed Evaluation</label>
+                            <input type="file" name="evaluation_document" class="form-control bg-light border-0 py-2" accept=".pdf,.doc,.docx">
+                            <small class="text-muted" style="font-size: 0.7rem;">Optional. PDF, DOC, DOCX up to 10MB.</small>
                         </div>
 
                         <div class="mb-3">

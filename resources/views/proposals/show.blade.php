@@ -134,7 +134,7 @@
     </div>
 
     <!-- Official Documents (Notice & Certificate) -->
-    @if(in_array($proposal->status, ['approved', 'final_approved']))
+    @if(in_array($proposal->status, ['approved', 'final_approved', 'ongoing', 'completed', 'archived']))
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
@@ -143,7 +143,13 @@
                     <i class="bi bi-download"></i> Notice of Acceptance
                 </a>
                 
-                @if($proposal->current_phase == 5)
+                @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
+                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-info text-white">
+                    <i class="bi bi-download"></i> Notice to Proceed
+                </a>
+                @endif
+                
+                @if($proposal->current_phase >= 5)
                 <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success">
                     <i class="bi bi-download"></i> Certificate of Completion
                 </a>
@@ -151,6 +157,25 @@
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Phase 6: Final Manuscript Submission -->
+    @if(auth()->id() == $proposal->user_id && $proposal->current_phase >= 5 && $proposal->status !== 'archived')
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 p-lg-5">
+                <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
+                    <i class="bi bi-journal-check text-primary"></i> Phase 6: Final Manuscript Submission
+                </h3>
+                <form action="{{ route('proposal.submitFinal', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label">Upload Final Manuscript (PDF)</label>
+                        <input type="file" name="final_manuscript" class="form-control" accept=".pdf" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Final Manuscript</button>
+                </form>
+            </div>
+        </div>
     @endif
 
     <!-- Implementation Milestones -->

@@ -37,10 +37,17 @@ class CoordinatorController extends Controller
             abort(403, 'Unauthorized. You can only endorse proposals from your department.');
         }
 
+        if ($request->action === 'return') {
+            $proposal->update([
+                'status' => 'returned_for_revision'
+            ]);
+            return redirect()->back()->with('success', 'Proposal returned to researcher for revision.');
+        }
+
         $proposal->update([
-            'status' => 'endorsed_by_coordinator'
+            'status' => 'endorsed' // Formal status instead of endorsed_by_coordinator
         ]);
 
-        return redirect()->back()->with('success', 'Proposal endorsed successfully. It is now awaiting receiving by Support Staff.');
+        return redirect()->back()->with('success', 'Proposal endorsed successfully. It is now awaiting Administrative Review.');
     }
 }

@@ -33,6 +33,8 @@ Route::get('/redirect', function () {
         return redirect('/coordinator');
     } elseif ($role == 'staff') {
         return redirect('/staff');
+    } elseif ($role == 'recording_staff') {
+        return redirect('/recording-staff/dashboard');
     } else {
         return redirect('/researcher');
     }
@@ -81,6 +83,7 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
 // Shared Proposal Routes (All authenticated users)
 Route::middleware(['auth'])->group(function () {
     Route::get('/proposal/{id}', [ResearchProposalController::class, 'show'])->name('proposal.show');
+    Route::post('/proposal/{id}/submit-final', [\App\Http\Controllers\ResearchProposalController::class, 'submitFinalManuscript'])->name('proposal.submitFinal');
     
     // Call for Papers (Announcements)
     Route::get('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])->name('announcements.index');
@@ -100,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
     
     // PDF Generation
     Route::get('/proposal/{id}/notice-of-acceptance', [\App\Http\Controllers\ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');
+    Route::get('/proposal/{id}/notice-to-proceed', [\App\Http\Controllers\ResearchProposalController::class, 'downloadNoticeToProceed'])->name('proposal.downloadNTP');
     Route::get('/proposal/{id}/certificate-of-completion', [\App\Http\Controllers\ResearchProposalController::class, 'downloadCertificate'])->name('proposal.downloadCertificate');
 
     // Notifications
@@ -154,6 +158,10 @@ Route::middleware(['auth', 'role:staff'])->group(function () {
     Route::post('/staff/proposals/{id}/forward', [\App\Http\Controllers\StaffController::class, 'forward'])->name('staff.proposals.forward');
 });
 
+Route::middleware(['auth', 'role:recording_staff'])->group(function () {
+    Route::get('/recording-staff/dashboard', [\App\Http\Controllers\RecordingStaffController::class, 'dashboard'])->name('recording_staff.dashboard');
+});
+
 /*
 |--------------------------------------------------------------------------
 | 🔥 Admin Proposal Routes
@@ -164,6 +172,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/proposals', [ResearchProposalController::class, 'adminIndex'])->name('admin.proposals');
     Route::post('/admin/proposals/{id}/final-decision', [ResearchProposalController::class, 'adminFinalDecision'])->name('admin.proposals.finalDecision');
     Route::patch('/admin/proposals/{id}/phase', [ResearchProposalController::class, 'updatePhase'])->name('admin.proposals.updatePhase');
+    Route::post('/admin/proposals/{id}/archive', [ResearchProposalController::class, 'archiveProposal'])->name('admin.proposals.archive');
 
     Route::get('/admin/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users.index');
     Route::patch('/admin/users/{id}/role', [\App\Http\Controllers\Admin\UserManagementController::class, 'updateRole'])->name('admin.users.updateRole');

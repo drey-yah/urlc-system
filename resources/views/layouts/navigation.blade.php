@@ -60,6 +60,13 @@
             </a>
         @endif
 
+        @if(auth()->user()->role === 'recording_staff')
+            <a href="{{ route('recording_staff.dashboard') }}" class="sidebar-link {{ request()->routeIs('recording_staff.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-journal-text"></i>
+                <span>Tracking Dashboard</span>
+            </a>
+        @endif
+
         @if(auth()->user()->role === 'researcher')
             <a href="{{ route('proposal.index') }}" class="sidebar-link {{ request()->routeIs('proposal.index') ? 'active' : '' }}">
                 <i class="bi bi-folder-fill"></i>

@@ -32,6 +32,9 @@
                                     <select name="role" class="form-select form-select-sm" style="width: 150px;">
                                         <option value="researcher" {{ $user->role == 'researcher' ? 'selected' : '' }}>Researcher</option>
                                         <option value="reviewer" {{ $user->role == 'reviewer' ? 'selected' : '' }}>Reviewer</option>
+                                        <option value="coordinator" {{ $user->role == 'coordinator' ? 'selected' : '' }}>Coordinator</option>
+                                        <option value="staff" {{ $user->role == 'staff' ? 'selected' : '' }}>Staff (Receiving)</option>
+                                        <option value="recording_staff" {{ $user->role == 'recording_staff' ? 'selected' : '' }}>Staff (Recording)</option>
                                         <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
                                     </select>
                                     <button type="submit" class="btn btn-sm btn-primary">Update</button>

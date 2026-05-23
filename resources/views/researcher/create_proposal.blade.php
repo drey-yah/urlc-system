@@ -115,7 +115,8 @@
                     </div>
                     <div class="card-footer border-0 p-5 pt-0 bg-white d-flex justify-content-end gap-3">
                         <a href="{{ route('dashboard') }}" class="btn btn-light px-5 py-3 rounded-pill fw-bold text-muted">CANCEL</a>
-                        <button type="submit" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-sm">SUBMIT PROPOSAL</button>
+                        <button type="submit" name="action" value="draft" class="btn btn-outline-secondary px-5 py-3 rounded-pill fw-bold shadow-sm">SAVE AS DRAFT</button>
+                        <button type="submit" name="action" value="submit" class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-sm">SUBMIT PROPOSAL</button>
                     </div>
                 </form>
             </div>

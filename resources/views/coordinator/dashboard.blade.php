@@ -47,9 +47,12 @@
                                 <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-outline-primary btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm">
                                     <i class="bi bi-eye-fill fs-6"></i> View
                                 </a>
-                                <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to endorse this proposal?');">
+                                <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-flex gap-2">
                                     @csrf
-                                    <button type="submit" class="btn btn-success btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm">
+                                    <button type="submit" name="action" value="return" class="btn btn-outline-danger btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this proposal to the researcher for revision?');">
+                                        <i class="bi bi-arrow-return-left fs-6"></i> Return
+                                    </button>
+                                    <button type="submit" name="action" value="endorse" class="btn btn-success btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to endorse this proposal?');">
                                         <i class="bi bi-check2-circle fs-6"></i> Endorse
                                     </button>
                                 </form>

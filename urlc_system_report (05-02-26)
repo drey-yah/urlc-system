@@ -6,7 +6,7 @@ The **URLC System** is a **Role-Based Research Proposal Management System** buil
 
 > [!NOTE]
 > Base URL: `http://localhost:8000` (via `php artisan serve`)
-> Database: MySQL (`urlc_system`) on `127.0.0.1:3306`
+> Database: PostgreSQL (`urlc_system`) on `127.0.0.1:5432`
 
 ---
 
@@ -18,7 +18,7 @@ The **URLC System** is a **Role-Based Research Proposal Management System** buil
 | **Language** | PHP | ^7.3 / ^8.0 |
 | **Auth Scaffolding** | Laravel Breeze | ^1.10 |
 | **API Tokens** | Laravel Sanctum | ^2.11 |
-| **Database** | MySQL (XAMPP) | — |
+| **Database** | PostgreSQL | — |
 | **Frontend** | Blade + Bootstrap (via Breeze components) | — |
 | **Build Tool** | Webpack Mix + Vite (config present) | — |
 | **CORS** | fruitcake/laravel-cors | ^2.0 |
@@ -36,8 +36,8 @@ graph TD
     D --> F["Auth Controllers (Breeze)"]
     E --> G["ResearchProposal Model"]
     F --> H["User Model"]
-    G --> I[("MySQL: research_proposals")]
-    H --> J[("MySQL: users")]
+    G --> I[("PostgreSQL: research_proposals")]
+    H --> J[("PostgreSQL: users")]
     E --> K["Blade Views"]
     K --> L["Researcher Views"]
     K --> M["Reviewer Views"]

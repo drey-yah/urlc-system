@@ -50,12 +50,50 @@
                                 <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-outline-primary btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm">
                                     <i class="bi bi-eye-fill fs-6"></i> View
                                 </a>
-                                <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST" onsubmit="return confirm('Confirm receiving the manuscript and forwarding to Admin?');">
-                                    @csrf
-                                    <button type="submit" class="btn btn-primary btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm">
-                                        <i class="bi bi-send-fill fs-6"></i> Receive & Forward
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-primary btn-sm px-4 py-2 d-inline-flex align-items-center gap-2 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#receiveModal{{ $proposal->id }}">
+                                    <i class="bi bi-send-fill fs-6"></i> Receive & Forward
+                                </button>
+
+                                <!-- Modal -->
+                                <div class="modal fade" id="receiveModal{{ $proposal->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered text-start">
+                                        <div class="modal-content border-0 rounded-4 shadow-lg">
+                                            <div class="modal-header border-0 bg-light rounded-top-4">
+                                                <h5 class="modal-title fw-bold">Administrative Completeness Check</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST">
+                                                @csrf
+                                                <div class="modal-body p-4 text-start">
+                                                    <p class="text-muted small mb-4">Please verify the following requirements are met before routing to the Admin for Evaluation Assignment.</p>
+                                                    
+                                                    <div class="form-check mb-3">
+                                                        <input class="form-check-input border-primary" type="checkbox" value="" id="check1{{ $proposal->id }}" required>
+                                                        <label class="form-check-label small fw-semibold text-dark" for="check1{{ $proposal->id }}">
+                                                            Technical Checking Completed
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check mb-3">
+                                                        <input class="form-check-input border-primary" type="checkbox" value="" id="check2{{ $proposal->id }}" required>
+                                                        <label class="form-check-label small fw-semibold text-dark" for="check2{{ $proposal->id }}">
+                                                            Format Checking Completed
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check mb-4">
+                                                        <input class="form-check-input border-primary" type="checkbox" value="" id="check3{{ $proposal->id }}" required>
+                                                        <label class="form-check-label small fw-semibold text-dark" for="check3{{ $proposal->id }}">
+                                                            Similarity / Plagiarism Check Verified
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 p-4 pt-0">
+                                                    <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-bold text-muted" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">Log & Route to Admin</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                     </tr>

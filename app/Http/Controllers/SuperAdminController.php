@@ -49,15 +49,11 @@ class SuperAdminController extends Controller
     public function approveAdmin($id)
     {
         $user = User::findOrFail($id);
-        
-        if ($user->role !== 'admin') {
-            return redirect()->back()->with('error', 'Only Admin accounts require approval.');
-        }
 
         $user->is_approved = \DB::raw('true');
         $user->save();
 
-        return redirect()->back()->with('success', "Admin account for {$user->name} has been approved.");
+        return redirect()->back()->with('success', "Account for {$user->name} has been approved.");
     }
 
     public function destroyUser($id)

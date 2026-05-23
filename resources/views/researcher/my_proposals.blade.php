@@ -80,8 +80,8 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
                                                 <li><a class="dropdown-item py-2" href="{{ route('proposal.show', $proposal->id) }}"><i class="bi bi-eye me-2"></i> View Details</a></li>
-                                                @if($proposal->status === 'revision_required')
-                                                    <li><a class="dropdown-item py-2 text-primary" href="{{ route('proposal.edit', $proposal->id) }}"><i class="bi bi-pencil-square me-2"></i> Edit Revision</a></li>
+                                                @if(in_array($proposal->status, ['revision_required', 'draft', 'returned_for_revision']))
+                                                    <li><a class="dropdown-item py-2 text-primary" href="{{ route('proposal.edit', $proposal->id) }}"><i class="bi bi-pencil-square me-2"></i> Edit Proposal</a></li>
                                                 @endif
                                                 @if($proposal->status === 'pending')
                                                     <li>

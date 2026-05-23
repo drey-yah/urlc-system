@@ -37,10 +37,10 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff'],
+            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff,recording_staff'],
         ]);
 
-        $is_approved = $request->role !== 'admin';
+        $is_approved = !in_array($request->role, ['admin', 'recording_staff']);
 
         $user = new User();
         $user->name = $request->name;

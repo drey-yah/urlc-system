@@ -16,7 +16,7 @@ class StaffController extends Controller
     {
         // Staff sees all endorsed proposals globally
         $proposals = ResearchProposal::with(['user', 'documents'])
-            ->where('status', 'endorsed_by_coordinator')
+            ->where('status', 'endorsed')
             ->latest()
             ->get();
             
@@ -27,9 +27,9 @@ class StaffController extends Controller
     {
         $proposal = ResearchProposal::findOrFail($id);
 
-        // Change status to pending so Admin can assign reviewer
+        // Change status to pending_admin_review so Admin can assign reviewer
         $proposal->update([
-            'status' => 'pending'
+            'status' => 'pending_admin_review'
         ]);
 
         return redirect()->back()->with('success', 'Manuscript received and forwarded to Admin successfully.');
