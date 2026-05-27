@@ -21,7 +21,10 @@ class SuperAdminController extends Controller
             'pending_admins' => User::where('role', 'admin')->whereRaw('is_approved = false')->count(),
         ];
 
-        return view('superadmin.dashboard', compact('stats'));
+        $recentUsers = User::latest()->take(5)->get();
+        $recentProposals = ResearchProposal::with('user')->latest()->take(5)->get();
+
+        return view('superadmin.dashboard', compact('stats', 'recentUsers', 'recentProposals'));
     }
 
     public function users(Request $request)

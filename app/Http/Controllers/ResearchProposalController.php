@@ -43,7 +43,7 @@ class ResearchProposalController extends Controller
         $filePath = null;
 
         if ($request->hasFile('document')) {
-            $filePath = $request->file('document')->store('documents', 'public');
+            $filePath = $request->file('document')->store('documents', env('FILESYSTEM_DRIVER', 'public'));
         }
 
         $department = auth()->user()->department ? strtoupper(auth()->user()->department) : 'UNI';
@@ -143,7 +143,7 @@ class ResearchProposalController extends Controller
         ]);
 
         if ($request->hasFile('evaluation_document')) {
-            $filePath = $request->file('evaluation_document')->store('evaluations', 'public');
+            $filePath = $request->file('evaluation_document')->store('evaluations', env('FILESYSTEM_DRIVER', 'public'));
             
             $proposal->documents()->create([
                 'document_tag' => "{$proposal->proposal_code}-PH{$proposal->current_phase}-EVAL-" . auth()->id() . '-' . time(),
@@ -272,7 +272,7 @@ class ResearchProposalController extends Controller
 
         if ($request->hasFile('document')) {
             // BUG-08 FIXED: Previous file is no longer deleted to maintain version history
-            $filePath = $request->file('document')->store('documents', 'public');
+            $filePath = $request->file('document')->store('documents', env('FILESYSTEM_DRIVER', 'public'));
             
             $latestDoc = $proposal->documents()->where('document_type', 'manuscript')->latest('version')->first();
             $nextVersion = $latestDoc ? $latestDoc->version + 1 : 2;
@@ -312,14 +312,14 @@ class ResearchProposalController extends Controller
             ->firstOrFail();
 
         // Delete the file from storage
-        if ($proposal->document_path && \Storage::disk('public')->exists($proposal->document_path)) {
-            \Storage::disk('public')->delete($proposal->document_path);
+        if ($proposal->document_path && \Storage::disk(env('FILESYSTEM_DRIVER', 'public'))->exists($proposal->document_path)) {
+            \Storage::disk(env('FILESYSTEM_DRIVER', 'public'))->delete($proposal->document_path);
         }
 
         // Delete all versioned document files
         foreach ($proposal->documents as $doc) {
-            if ($doc->file_path && \Storage::disk('public')->exists($doc->file_path)) {
-                \Storage::disk('public')->delete($doc->file_path);
+            if ($doc->file_path && \Storage::disk(env('FILESYSTEM_DRIVER', 'public'))->exists($doc->file_path)) {
+                \Storage::disk(env('FILESYSTEM_DRIVER', 'public'))->delete($doc->file_path);
             }
         }
 
@@ -388,7 +388,7 @@ class ResearchProposalController extends Controller
             'final_manuscript' => 'required|file|mimes:pdf|max:20480',
         ]);
 
-        $filePath = $request->file('final_manuscript')->store('terminal_reports', 'public');
+        $filePath = $request->file('final_manuscript')->store('terminal_reports', env('FILESYSTEM_DRIVER', 'public'));
 
         $proposal->documents()->create([
             'document_tag' => "{$proposal->proposal_code}-PH6-FINALMANUSCRIPT",

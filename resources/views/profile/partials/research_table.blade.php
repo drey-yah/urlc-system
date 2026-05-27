@@ -45,7 +45,7 @@
                         </td>
                         <td class="pe-4 text-end">
                             @if($proposal->document_path)
-                                <a href="{{ asset('storage/' . $proposal->document_path) }}" target="_blank" class="text-decoration-none d-flex align-items-center justify-content-end gap-2 text-primary">
+                                <a href="{{ \Storage::url($proposal->document_path) }}" target="_blank" class="text-decoration-none d-flex align-items-center justify-content-end gap-2 text-primary">
                                     <i class="bi bi-file-earmark-pdf-fill fs-5"></i>
                                     <span class="small fw-bold">Open File</span>
                                 </a>

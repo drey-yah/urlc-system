@@ -107,7 +107,7 @@
                                 <td>Phase {{ $doc->phase }}</td>
                                 <td>{{ $doc->created_at->format('M d, Y h:i A') }}</td>
                                 <td>
-                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ \Storage::url($doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-download"></i> View PDF
                                     </a>
                                 </td>
@@ -123,7 +123,7 @@
                         <h6 class="mb-0 fw-bold">Original Proposal Document</h6>
                         <small class="text-muted">Legacy Upload</small>
                     </div>
-                    <a href="{{ asset('storage/' . $proposal->document_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4">
+                    <a href="{{ \Storage::url($proposal->document_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4">
                         View PDF
                     </a>
                 </div>
@@ -198,7 +198,7 @@
                             </div>
                             <p class="text-muted small mt-2">{{ $milestone->description }}</p>
                             @if($milestone->document_path)
-                                <a href="{{ asset('storage/' . $milestone->document_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">View Attachment</a>
+                                <a href="{{ \Storage::url($milestone->document_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">View Attachment</a>
                             @endif
 
                             @if(in_array(auth()->user()->role, ['admin', 'super_admin', 'reviewer']) && $milestone->status == 'pending')
