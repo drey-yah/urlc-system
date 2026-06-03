@@ -28,7 +28,7 @@ class AnnouncementController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('announcements', env('FILESYSTEM_DRIVER', 'public'));
+            $imagePath = $request->file('image')->store('announcements', config('filesystems.default', 'public'));
         }
 
         $announcement = Announcement::create([

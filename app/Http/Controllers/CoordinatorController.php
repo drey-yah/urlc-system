@@ -16,6 +16,10 @@ class CoordinatorController extends Controller
     {
         $department = auth()->user()->department;
         
+        if (empty($department)) {
+            abort(403, 'Your account is not assigned to a department. Please update your profile or contact an administrator.');
+        }
+        
         // Coordinator sees proposals from their department that need endorsement
         $proposals = ResearchProposal::with(['user', 'documents'])
             ->where('status', 'pending_coordinator_endorsement')

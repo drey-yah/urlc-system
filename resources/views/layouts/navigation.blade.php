@@ -30,6 +30,10 @@
                 <i class="bi bi-gear-fill"></i>
                 <span>System Settings</span>
             </a>
+            <a href="{{ route('superadmin.logs') }}" class="sidebar-link {{ request()->routeIs('superadmin.logs') ? 'active' : '' }}">
+                <i class="bi bi-journal-text"></i>
+                <span>Activity Logs</span>
+            </a>
         @endif
 
         @if(auth()->user()->role === 'admin' && !auth()->user()->isSuperAdmin())

@@ -25,8 +25,18 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small uppercase">Research Field</label>
+                            <input type="text" name="research_field" class="form-control bg-light border-0 py-2 px-3" value="{{ $proposal->research_field }}">
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label fw-semibold text-muted small uppercase">Description / Abstract</label>
                             <textarea name="abstract" class="form-control bg-light border-0 py-2 px-3" rows="4" required>{{ $proposal->abstract }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small uppercase">Rationale</label>
+                            <textarea name="rationale" class="form-control bg-light border-0 py-2 px-3" rows="4" required>{{ $proposal->rationale }}</textarea>
                         </div>
 
                         <div class="mb-4">

@@ -7,6 +7,7 @@ use App\Models\ResearchProposal;
 use App\Models\Announcement;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Spatie\Activitylog\Models\Activity;
 
 class SuperAdminController extends Controller
 {
@@ -88,5 +89,11 @@ class SuperAdminController extends Controller
         }
 
         return redirect()->back()->with('success', 'System settings updated successfully.');
+    }
+
+    public function activityLogs()
+    {
+        $logs = Activity::with('causer')->latest()->paginate(20);
+        return view('superadmin.activity_logs', compact('logs'));
     }
 }

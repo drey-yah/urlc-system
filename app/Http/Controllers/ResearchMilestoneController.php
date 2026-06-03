@@ -25,7 +25,7 @@ class ResearchMilestoneController extends Controller
 
         $filePath = null;
         if ($request->hasFile('document')) {
-            $filePath = $request->file('document')->store('milestones', env('FILESYSTEM_DRIVER', 'public'));
+            $filePath = $request->file('document')->store('milestones', config('filesystems.default', 'public'));
         }
 
         ResearchMilestone::create([

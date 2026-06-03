@@ -161,6 +161,11 @@
                         </tbody>
                     </table>
                 </div>
+                @if($proposals->hasPages())
+                <div class="card-footer bg-white border-top border-light py-3">
+                    {{ $proposals->appends(['announcements_page' => request('announcements_page')])->links('pagination::bootstrap-5') }}
+                </div>
+                @endif
             </div>
         </div>
 
@@ -194,6 +199,11 @@
                         <div class="text-center py-5 text-muted small italic">No active announcements.</div>
                         @endforelse
                     </div>
+                    @if($announcements->hasPages())
+                    <div class="p-3 border-top border-light bg-light rounded-bottom">
+                        {{ $announcements->appends(['proposals_page' => request('proposals_page')])->links('pagination::bootstrap-5') }}
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>

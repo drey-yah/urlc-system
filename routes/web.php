@@ -197,6 +197,7 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
     Route::delete('/superadmin/users/{id}', [\App\Http\Controllers\SuperAdminController::class, 'destroyUser'])->name('superadmin.users.destroy');
     Route::get('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'settings'])->name('superadmin.settings');
     Route::post('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'updateSettings'])->name('superadmin.settings.update');
+    Route::get('/superadmin/logs', [\App\Http\Controllers\SuperAdminController::class, 'activityLogs'])->name('superadmin.logs');
 });
 
 /*
