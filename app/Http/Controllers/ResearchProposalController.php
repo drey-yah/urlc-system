@@ -230,6 +230,10 @@ class ResearchProposalController extends Controller
             if (!$proposal->assignments->contains('id', auth()->id())) {
                 abort(403, 'Unauthorized access. You are not assigned to review this proposal.');
             }
+        } elseif (auth()->user()->role == 'dean') {
+            if ($proposal->user->department !== auth()->user()->department) {
+                abort(403, 'Unauthorized access. You can only view proposals from your college/department.');
+            }
         }
 
         return view('proposals.show', compact('proposal'));
@@ -292,13 +296,18 @@ class ResearchProposalController extends Controller
             ]);
         }
 
+        $newStatus = 'pending_coordinator_endorsement';
+        if ($proposal->status === 'revision_required' || $proposal->status === 'approved_with_revisions') {
+            $newStatus = 'accepted_for_in_house_review';
+        }
+
         $proposal->update([
             'title' => $request->title,
             'abstract' => $request->abstract,
             'rationale' => $request->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath, // Update main path for backwards compatibility
-            'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
+            'status' => $isDraft ? 'draft' : $newStatus,
         ]);
 
         if ($request->has('collaborators')) {
@@ -415,6 +424,85 @@ class ResearchProposalController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Final Manuscript submitted successfully.');
+    }
+
+    public function acceptForInHouseReview($id)
+    {
+        $proposal = ResearchProposal::findOrFail($id);
+
+        if (auth()->user()->role !== 'admin' && auth()->user()->role !== 'super_admin') {
+            abort(403);
+        }
+
+        if ($proposal->status !== 'pending_director_review') {
+            return redirect()->back()->with('error', 'Only proposals pending Director review can be accepted for In-House review.');
+        }
+
+        $proposal->update([
+            'status' => 'accepted_for_in_house_review',
+            'current_phase' => 2, // Technical/Ethics Review
+            'phase_updated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Proposal accepted for In-House review. "IN-HOUSE REVIEW ACCEPTANCE FORM" issued.');
+    }
+
+    public function endorseToVprei($id)
+    {
+        $proposal = ResearchProposal::findOrFail($id);
+
+        if (auth()->user()->role !== 'admin' && auth()->user()->role !== 'super_admin') {
+            abort(403);
+        }
+
+        if ($proposal->status !== 'final_copy_noted_by_dean') {
+            return redirect()->back()->with('error', 'Only final copies noted by the Dean can be endorsed to the VPREI.');
+        }
+
+        $proposal->update([
+            'status' => 'endorsed_to_vprei'
+        ]);
+
+        return redirect()->back()->with('success', 'Proposal successfully endorsed to the VPREI.');
+    }
+
+    public function submitFinalCopy(Request $request, $id)
+    {
+        $proposal = ResearchProposal::findOrFail($id);
+
+        if ($proposal->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($proposal->status !== 'approved') {
+            return redirect()->back()->with('error', 'You can only submit the final copy after the proposal is approved in the In-House review.');
+        }
+
+        $request->validate([
+            'final_copy' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        $filePath = $request->file('final_copy')->store('documents', config('filesystems.default', 'public'));
+
+        // Save versioned document
+        $latestDoc = $proposal->documents()->where('document_type', 'manuscript')->latest('version')->first();
+        $nextVersion = $latestDoc ? $latestDoc->version + 1 : 2;
+        $documentTag = "{$proposal->proposal_code}-PH2-FINALCOPY-V{$nextVersion}";
+
+        $proposal->documents()->create([
+            'document_tag' => $documentTag,
+            'document_type' => 'manuscript',
+            'phase' => 2,
+            'version' => $nextVersion,
+            'file_path' => $filePath,
+        ]);
+
+        $proposal->update([
+            'document_path' => $filePath,
+            'status' => 'final_copy_submitted'
+        ]);
+
+        return redirect()->back()->with('success', 'Final copy of research proposal submitted successfully.');
     }
 
     public function archiveProposal($id)

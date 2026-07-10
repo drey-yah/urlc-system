@@ -92,6 +92,16 @@ class User extends Authenticatable
         return $this->role === 'recording_staff';
     }
 
+    public function isDean()
+    {
+        return $this->role === 'dean';
+    }
+
+    public function isVprei()
+    {
+        return $this->role === 'vprei';
+    }
+
     public function leadProposals()
     {
         return $this->hasMany(\App\Models\ResearchProposal::class);

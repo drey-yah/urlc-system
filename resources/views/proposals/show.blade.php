@@ -55,7 +55,170 @@
         </div>
     </div>
 
+    <!-- Workflow Actions Card -->
+    @php
+        $showActionsCard = false;
+        $userRole = auth()->user()->role;
+        $userId = auth()->id();
+        
+        if ($userRole === 'coordinator' && ($proposal->status === 'pending_coordinator_endorsement' || $proposal->status === 'noted_by_dean')) {
+            $showActionsCard = true;
+        } elseif ($userRole === 'dean' && ($proposal->status === 'pending_dean_noting' || $proposal->status === 'final_copy_submitted')) {
+            $showActionsCard = true;
+        } elseif ($userRole === 'staff' && $proposal->status === 'submitted_to_research_unit') {
+            $showActionsCard = true;
+        } elseif (($userRole === 'admin' || auth()->user()->isSuperAdmin()) && ($proposal->status === 'pending_director_review' || $proposal->status === 'final_copy_noted_by_dean')) {
+            $showActionsCard = true;
+        } elseif ($userRole === 'vprei' && $proposal->status === 'endorsed_to_vprei') {
+            $showActionsCard = true;
+        } elseif ($userId === $proposal->user_id && $proposal->status === 'approved') {
+            $showActionsCard = true;
+        }
+    @endphp
+
+    @if($showActionsCard)
+    <div class="card border-0 shadow-sm mb-4 border-start border-primary border-4">
+        <div class="card-body p-4 p-lg-5">
+            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-3 text-primary">
+                <i class="bi bi-gear-wide-connected fs-4"></i> Workflow Actions Required
+            </h3>
+            <p class="text-muted small mb-4">Please review the proposal details below and perform the required action for the next step in the workflow.</p>
+
+            <!-- Coordinator Actions -->
+            @if($userRole === 'coordinator')
+                @if($proposal->status === 'pending_coordinator_endorsement')
+                    <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-flex gap-3">
+                        @csrf
+                        <button type="submit" name="action" value="return" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this proposal for revision?');">
+                            <i class="bi bi-arrow-return-left fs-6"></i> Return for Revision
+                        </button>
+                        <button type="submit" name="action" value="endorse" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to endorse this proposal?');">
+                            <i class="bi bi-check2-circle fs-6"></i> Endorse & Forward to Dean
+                        </button>
+                    </form>
+                @elseif($proposal->status === 'noted_by_dean')
+                    <form action="{{ route('coordinator.proposals.submitToUnit', $proposal->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Submit this noted proposal list to the Research Unit support staff?');">
+                            <i class="bi bi-send-fill fs-6"></i> Submit to Research Unit
+                        </button>
+                    </form>
+                @endif
+            @endif
+
+            <!-- Dean Actions -->
+            @if($userRole === 'dean')
+                @if($proposal->status === 'pending_dean_noting')
+                    <form action="{{ route('dean.noteEndorsement', $proposal->id) }}" method="POST" class="d-flex gap-3">
+                        @csrf
+                        <button type="submit" name="action" value="return" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this endorsement?');">
+                            <i class="bi bi-arrow-return-left fs-6"></i> Return to Coordinator
+                        </button>
+                        <button type="submit" name="action" value="note" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to note this endorsement?');">
+                            <i class="bi bi-journal-check fs-6"></i> Note Endorsement
+                        </button>
+                    </form>
+                @elseif($proposal->status === 'final_copy_submitted')
+                    <form action="{{ route('dean.noteFinal', $proposal->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Note the final copy submitted for this proposal?');">
+                            <i class="bi bi-check-circle-fill fs-6"></i> Note Final Copy
+                        </button>
+                    </form>
+                @endif
+            @endif
+
+            <!-- Support Staff Actions -->
+            @if($userRole === 'staff' && $proposal->status === 'submitted_to_research_unit')
+                <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-primary px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Forward this proposal to the Research Director for review?');">
+                        <i class="bi bi-box-arrow-in-right fs-6"></i> Forward to Research Director
+                    </button>
+                </form>
+            @endif
+
+            <!-- Research Director (Admin) Actions -->
+            @if($userRole === 'admin' || auth()->user()->isSuperAdmin())
+                @if($proposal->status === 'pending_director_review')
+                    <form action="{{ route('admin.proposals.acceptInHouse', $proposal->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Accept this proposal and issue the In-House Review Acceptance Form?');">
+                            <i class="bi bi-card-checklist fs-6"></i> Accept for In-House Review
+                        </button>
+                    </form>
+                @elseif($proposal->status === 'final_copy_noted_by_dean')
+                    <form action="{{ route('admin.proposals.endorseVprei', $proposal->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Endorse this revised proposal to the VPREI for final approval?');">
+                            <i class="bi bi-award-fill fs-6"></i> Endorse to VPREI
+                        </button>
+                    </form>
+                @endif
+            @endif
+
+            <!-- VPREI Actions -->
+            @if($userRole === 'vprei' && $proposal->status === 'endorsed_to_vprei')
+                <form action="{{ route('vprei.approve', $proposal->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Approve this proposal and issue the Notice to Proceed?');">
+                        <i class="bi bi-check-circle-fill fs-6"></i> Grant Final Approval & Issue NTP
+                    </button>
+                </form>
+            @endif
+
+            <!-- Researcher Submit Final Copy Action -->
+            @if($userId === $proposal->user_id && $proposal->status === 'approved')
+                <form action="{{ route('proposal.submitFinalCopy', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Upload Final Copy of Research Proposal (PDF)</label>
+                        <p class="text-muted small">Please submit the final version of your research proposal incorporating all reviewer suggestions. This is required before the Dean and Director can endorse it to VPREI.</p>
+                        <input type="file" name="final_copy" class="form-control" accept=".pdf" required>
+                    </div>
+                    <button type="submit" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-cloud-upload-fill fs-6"></i> Submit Final Copy
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- Collaborators section: visible to staff/admin roles only --}}
+    @if(!in_array(auth()->user()->role, ['researcher']))
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-lg-5">
+            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-people text-info"></i> Collaborators
+            </h3>
+
+            @if($proposal->collaborators->isNotEmpty())
+                <div class="d-flex flex-wrap gap-3">
+                    @foreach($proposal->collaborators as $collab)
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-light" style="min-width: 220px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                             style="width: 42px; height: 42px; font-size: 1rem; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                            {{ strtoupper(substr($collab->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold text-dark small">{{ $collab->name }}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">
+                                {{ $collab->department ? strtoupper($collab->department) : 'No Department' }}
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-muted mb-0 small fst-italic">No collaborators listed for this proposal.</p>
+            @endif
+        </div>
+    </div>
+    @endif
+
     <!-- Reviewer Feedback Section -->
+    @if(auth()->user()->role !== 'coordinator')
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4 p-lg-5">
             <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
@@ -79,6 +242,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Document History Section -->
     <div class="card border-0 shadow-sm mb-4">
@@ -107,7 +271,7 @@
                                 <td>Phase {{ $doc->phase }}</td>
                                 <td>{{ $doc->created_at->format('M d, Y h:i A') }}</td>
                                 <td>
-                                    <a href="{{ \Storage::url($doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('file.serve', ['path' => $doc->file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-download"></i> View PDF
                                     </a>
                                 </td>
@@ -123,7 +287,7 @@
                         <h6 class="mb-0 fw-bold">Original Proposal Document</h6>
                         <small class="text-muted">Legacy Upload</small>
                     </div>
-                    <a href="{{ \Storage::url($proposal->document_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4">
+                    <a href="{{ route('file.serve', ['path' => $proposal->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4">
                         View PDF
                     </a>
                 </div>
@@ -134,13 +298,13 @@
     </div>
 
     <!-- Official Documents (Notice & Certificate) -->
-    @if(in_array($proposal->status, ['approved', 'final_approved', 'ongoing', 'completed', 'archived']))
+    @if(in_array($proposal->status, ['accepted_for_in_house_review', 'revision_required', 'approved', 'final_copy_submitted', 'final_copy_noted_by_dean', 'endorsed_to_vprei', 'final_approved', 'ongoing', 'completed', 'archived']))
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
             <div class="d-flex gap-3">
                 <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary">
-                    <i class="bi bi-download"></i> Notice of Acceptance
+                    <i class="bi bi-download"></i> In-House Review Acceptance Form
                 </a>
                 
                 @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
@@ -198,7 +362,7 @@
                             </div>
                             <p class="text-muted small mt-2">{{ $milestone->description }}</p>
                             @if($milestone->document_path)
-                                <a href="{{ \Storage::url($milestone->document_path) }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">View Attachment</a>
+                                <a href="{{ route('file.serve', ['path' => $milestone->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">View Attachment</a>
                             @endif
 
                             @if(in_array(auth()->user()->role, ['admin', 'super_admin', 'reviewer']) && $milestone->status == 'pending')

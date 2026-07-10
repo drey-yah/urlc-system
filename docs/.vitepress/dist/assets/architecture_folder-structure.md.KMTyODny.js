@@ -1,0 +1,32 @@
+import{_ as a,o as e,c as n,a0 as p}from"./chunks/framework.BdMypFZ5.js";const u=JSON.parse('{"title":"Key File Map","description":"","frontmatter":{},"headers":[],"relativePath":"architecture/folder-structure.md","filePath":"architecture/folder-structure.md"}'),t={name:"architecture/folder-structure.md"};function o(l,s,r,i,c,d){return e(),n("div",null,[...s[0]||(s[0]=[p(`<h1 id="key-file-map" tabindex="-1">Key File Map <a class="header-anchor" href="#key-file-map" aria-label="Permalink to &quot;Key File Map&quot;">​</a></h1><p>This section helps you locate the most important files and directories in the URLC codebase.</p><div class="language-text vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">text</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>urlc-system/</span></span>
+<span class="line"><span>├── app/</span></span>
+<span class="line"><span>│   ├── Http/</span></span>
+<span class="line"><span>│   │   ├── Controllers/       # Request Handlers &amp; Business Logic</span></span>
+<span class="line"><span>│   │   │   ├── Admin/         # Admin Management (Users, Proposals, Settings)</span></span>
+<span class="line"><span>│   │   │   ├── Auth/          # Login, Register, Password Reset controllers</span></span>
+<span class="line"><span>│   │   │   └── Controller.php # Base Controller class</span></span>
+<span class="line"><span>│   │   └── Middleware/        # Authentication, Guest, and Role Middlewares</span></span>
+<span class="line"><span>│   ├── Models/                # Eloquent Database Models</span></span>
+<span class="line"><span>│   │   ├── User.php           # User accounts (roles, approvals)</span></span>
+<span class="line"><span>│   │   ├── ResearchProposal.php # Proposal states, tracks, and metadata</span></span>
+<span class="line"><span>│   │   └── ActivityLog.php    # Audit Logs (handled by Spatie)</span></span>
+<span class="line"><span>│   └── Notifications/         # Mail and database system notifications</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├── config/                    # System Configuration files</span></span>
+<span class="line"><span>│   ├── database.php           # DB credentials &amp; connection setup</span></span>
+<span class="line"><span>│   └── filesystems.php        # S3 storage bucket configuration</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├── database/</span></span>
+<span class="line"><span>│   ├── migrations/            # DB Schema definitions &amp; updates</span></span>
+<span class="line"><span>│   └── seeders/               # Test data seeds (roles, users)</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├── resources/</span></span>
+<span class="line"><span>│   ├── views/                 # Blade HTML templates</span></span>
+<span class="line"><span>│   │   ├── admin/             # Administrator dashboards</span></span>
+<span class="line"><span>│   │   ├── researcher/        # Researcher creation and edit forms</span></span>
+<span class="line"><span>│   │   ├── layouts/           # Master layouts (app, navigation, guest)</span></span>
+<span class="line"><span>│   │   └── auth/              # Auth pages (login, registration)</span></span>
+<span class="line"><span>│   └── css/                   # Tailwind config &amp; style definitions</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>└── routes/</span></span>
+<span class="line"><span>    └── web.php                # Application Routing</span></span></code></pre></div><h2 id="key-files-to-remember" tabindex="-1">Key Files to Remember <a class="header-anchor" href="#key-files-to-remember" aria-label="Permalink to &quot;Key Files to Remember&quot;">​</a></h2><h3 id="_1-routes-web-php" tabindex="-1">1. <code>routes/web.php</code> <a class="header-anchor" href="#_1-routes-web-php" aria-label="Permalink to &quot;1. \`routes/web.php\`&quot;">​</a></h3><p>Defines all web endpoints. Routes are grouped by authentication (<code>auth</code> middleware) and role-specific permissions (e.g. <code>role:admin</code>).</p><h3 id="_2-app-models-researchproposal-php" tabindex="-1">2. <code>app/Models/ResearchProposal.php</code> <a class="header-anchor" href="#_2-app-models-researchproposal-php" aria-label="Permalink to &quot;2. \`app/Models/ResearchProposal.php\`&quot;">​</a></h3><p>Defines the database schema bindings and relationships for research proposals. Important attributes:</p><ul><li><code>status</code>: Tracked as <code>draft</code>, <code>submitted</code>, <code>under_review</code>, <code>approved</code>, <code>rejected</code>.</li><li><code>phase</code>: Development milestones.</li><li><code>collaborators()</code>: Relationship with secondary researchers.</li></ul><h3 id="_3-app-http-controllers-auth-registeredusercontroller-php" tabindex="-1">3. <code>app/Http/Controllers/Auth/RegisteredUserController.php</code> <a class="header-anchor" href="#_3-app-http-controllers-auth-registeredusercontroller-php" aria-label="Permalink to &quot;3. \`app/Http/Controllers/Auth/RegisteredUserController.php\`&quot;">​</a></h3><p>Controls registration validation. Enforces that all registering users provide a valid <code>role</code> and determines if approval is required before logging in.</p>`,11)])])}const m=a(t,[["render",o]]);export{u as __pageData,m as default};

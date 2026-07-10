@@ -14,9 +14,9 @@ class StaffController extends Controller
 
     public function index()
     {
-        // Staff sees all endorsed proposals globally
+        // Staff sees all proposals submitted to the research unit
         $proposals = ResearchProposal::with(['user', 'documents'])
-            ->where('status', 'endorsed')
+            ->where('status', 'submitted_to_research_unit')
             ->latest()
             ->get();
             
@@ -27,11 +27,11 @@ class StaffController extends Controller
     {
         $proposal = ResearchProposal::findOrFail($id);
 
-        // Change status to pending_admin_review so Admin can assign reviewer
+        // Change status to pending_director_review
         $proposal->update([
-            'status' => 'pending_admin_review'
+            'status' => 'pending_director_review'
         ]);
 
-        return redirect()->back()->with('success', 'Manuscript received and forwarded to Admin successfully.');
+        return redirect()->back()->with('success', 'Manuscript received and forwarded to Research Director successfully.');
     }
 }

@@ -14,6 +14,11 @@
                         <option value="">All Roles</option>
                         <option value="researcher" {{ request('role') == 'researcher' ? 'selected' : '' }}>Researcher</option>
                         <option value="reviewer" {{ request('role') == 'reviewer' ? 'selected' : '' }}>Reviewer</option>
+                        <option value="coordinator" {{ request('role') == 'coordinator' ? 'selected' : '' }}>College Coordinator</option>
+                        <option value="dean" {{ request('role') == 'dean' ? 'selected' : '' }}>College Dean</option>
+                        <option value="vprei" {{ request('role') == 'vprei' ? 'selected' : '' }}>VPREI</option>
+                        <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Support Staff (Receiving)</option>
+                        <option value="recording_staff" {{ request('role') == 'recording_staff' ? 'selected' : '' }}>Support Staff (Recording)</option>
                         <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                         <option value="super_admin" {{ request('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                     </select>

@@ -16,6 +16,8 @@
         "spatie/laravel-activitylog": "4.0"
     },
     "require-dev": {
+        "carbonphp/carbon-doctrine-types": "^2.1",
+        "doctrine/dbal": "^3.8",
         "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/breeze": "^1.10",

@@ -43,7 +43,7 @@
                             <label class="form-label fw-semibold text-muted small uppercase">Current Document</label>
                             <div class="bg-light p-3 rounded-3 d-flex justify-content-between align-items-center">
                                 <span class="small text-muted"><i class="bi bi-file-earmark-pdf me-2"></i> {{ basename($proposal->document_path) }}</span>
-                                <a href="{{ \Storage::url($proposal->document_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-3">View</a>
+                                <a href="{{ route('file.serve', ['path' => $proposal->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary px-3">View</a>
                             </div>
                         </div>
 

@@ -499,6 +499,8 @@
                             <option value="researcher"      {{ old('role') == 'researcher'       ? 'selected' : '' }}>Researcher</option>
                             <option value="reviewer"        {{ old('role') == 'reviewer'         ? 'selected' : '' }}>Reviewer / Evaluator</option>
                             <option value="coordinator"     {{ old('role') == 'coordinator'      ? 'selected' : '' }}>College Coordinator</option>
+                            <option value="dean"            {{ old('role') == 'dean'             ? 'selected' : '' }}>College Dean</option>
+                            <option value="vprei"           {{ old('role') == 'vprei'            ? 'selected' : '' }}>VP for Research (VPREI)</option>
                             <option value="staff"           {{ old('role') == 'staff'            ? 'selected' : '' }}>Support Staff (Receiving)</option>
                             <option value="recording_staff" {{ old('role') == 'recording_staff'  ? 'selected' : '' }}>Support Staff (Recording)</option>
                             <option value="admin"           {{ old('role') == 'admin'            ? 'selected' : '' }}>Administrator</option>
@@ -546,7 +548,7 @@
         }
 
         // Show approval notice for roles that require it
-        const approvalRoles = ['staff', 'recording_staff', 'admin'];
+        const approvalRoles = ['staff', 'recording_staff', 'admin', 'dean', 'vprei'];
         function checkRole(select) {
             const notice = document.getElementById('approvalNotice');
             notice.style.display = approvalRoles.includes(select.value) ? 'flex' : 'none';

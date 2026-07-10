@@ -71,6 +71,20 @@
             </a>
         @endif
 
+        @if(auth()->user()->role === 'dean')
+            <a href="{{ route('dean.dashboard') }}" class="sidebar-link {{ request()->routeIs('dean.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-bank2"></i>
+                <span>Dean Noting</span>
+            </a>
+        @endif
+
+        @if(auth()->user()->role === 'vprei')
+            <a href="{{ route('vprei.dashboard') }}" class="sidebar-link {{ request()->routeIs('vprei.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-award-fill"></i>
+                <span>VPREI Approvals</span>
+            </a>
+        @endif
+
         @if(auth()->user()->role === 'researcher')
             <a href="{{ route('proposal.index') }}" class="sidebar-link {{ request()->routeIs('proposal.index') ? 'active' : '' }}">
                 <i class="bi bi-folder-fill"></i>

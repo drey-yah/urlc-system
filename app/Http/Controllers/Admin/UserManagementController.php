@@ -17,11 +17,12 @@ class UserManagementController extends Controller
     public function updateRole(Request $request, $id)
     {
         $request->validate([
-            'role' => 'required|in:admin,reviewer,researcher,coordinator,staff,recording_staff',
+            'role' => 'required|in:admin,reviewer,researcher,coordinator,staff,recording_staff,dean,vprei',
         ]);
 
         $user = User::findOrFail($id);
         $user->role = $request->role;
+        $user->is_approved = \DB::raw('true');
         $user->save();
 
         return redirect()->back()->with('success', "Role for {$user->name} updated to {$user->role} successfully.");

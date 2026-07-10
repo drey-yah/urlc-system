@@ -84,6 +84,10 @@
                                             'approved' => 'badge-approved',
                                             'pending' => 'badge-pending',
                                             'revision_required' => 'badge-in-review',
+                                            'accepted_for_in_house_review' => 'badge-in-review',
+                                            'noted_by_dean' => 'badge-in-review',
+                                            'final_copy_noted_by_dean' => 'badge-in-review',
+                                            'endorsed_to_vprei' => 'badge-in-review',
                                             default => 'badge-pending'
                                         };
                                     @endphp

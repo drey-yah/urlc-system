@@ -56,6 +56,19 @@ class ResearchMilestoneController extends Controller
             'status' => $request->status,
         ]);
 
+        // When a milestone is approved, notify the researcher (and collaborators) that the research is completed
+        if ($request->status === 'approved') {
+            $proposal = $milestone->proposal()->with(['user', 'collaborators'])->firstOrFail();
+
+            // Notify the lead researcher
+            $proposal->user->notify(new \App\Notifications\ResearchCompletedNotification($proposal, $milestone));
+
+            // Notify each collaborator as well
+            foreach ($proposal->collaborators as $collaborator) {
+                $collaborator->notify(new \App\Notifications\ResearchCompletedNotification($proposal, $milestone));
+            }
+        }
+
         return redirect()->back()->with('success', 'Milestone status updated successfully.');
     }
 }

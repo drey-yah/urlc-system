@@ -31,6 +31,10 @@ Route::get('/redirect', function () {
         return redirect('/reviewer');
     } elseif ($role == 'coordinator') {
         return redirect('/coordinator');
+    } elseif ($role == 'dean') {
+        return redirect('/dean');
+    } elseif ($role == 'vprei') {
+        return redirect('/vprei');
     } elseif ($role == 'staff') {
         return redirect('/staff');
     } elseif ($role == 'recording_staff') {
@@ -78,6 +82,7 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
     Route::get('/proposal/{id}/edit', [ResearchProposalController::class, 'edit'])->name('proposal.edit');
     Route::put('/proposal/{id}/update', [ResearchProposalController::class, 'update'])->name('proposal.update');
     Route::delete('/proposal/{id}', [ResearchProposalController::class, 'destroy'])->name('proposal.destroy');
+    Route::post('/proposal/{id}/submit-final-copy', [ResearchProposalController::class, 'submitFinalCopy'])->name('proposal.submitFinalCopy');
 });
 
 // Shared Proposal Routes (All authenticated users)
@@ -100,6 +105,27 @@ Route::middleware(['auth'])->group(function () {
 
     // Milestones
     Route::post('/proposal/{id}/milestones', [\App\Http\Controllers\ResearchMilestoneController::class, 'store'])->name('milestones.store');
+
+    // Secure File Serving — generates a signed S3/Supabase URL for private bucket files
+    Route::get('/files/serve', function (\Illuminate\Http\Request $request) {
+        $path = $request->query('path');
+
+        if (!$path) {
+            abort(404, 'File path not provided.');
+        }
+
+        $disk = \Storage::disk(config('filesystems.default', 'public'));
+
+        try {
+            // For S3/Supabase: generate a 60-minute temporary signed URL
+            $url = $disk->temporaryUrl($path, now()->addMinutes(60));
+        } catch (\Exception $e) {
+            // Fallback for local disk (does not support temporaryUrl)
+            $url = $disk->url($path);
+        }
+
+        return redirect($url);
+    })->name('file.serve');
     
     // PDF Generation
     Route::get('/proposal/{id}/notice-of-acceptance', [\App\Http\Controllers\ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');
@@ -145,6 +171,7 @@ Route::middleware(['auth', 'role:reviewer'])->group(function () {
 Route::middleware(['auth', 'role:coordinator'])->group(function () {
     Route::get('/coordinator/proposals', [\App\Http\Controllers\CoordinatorController::class, 'index'])->name('coordinator.proposals');
     Route::post('/coordinator/proposals/{id}/endorse', [\App\Http\Controllers\CoordinatorController::class, 'endorse'])->name('coordinator.proposals.endorse');
+    Route::post('/coordinator/proposals/{id}/submit-to-unit', [\App\Http\Controllers\CoordinatorController::class, 'submitToResearchUnit'])->name('coordinator.proposals.submitToUnit');
 });
 
 /*
@@ -164,6 +191,29 @@ Route::middleware(['auth', 'role:recording_staff'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Dean Proposal Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:dean', 'approved'])->group(function () {
+    Route::get('/dean', [\App\Http\Controllers\DeanController::class, 'dashboard'])->name('dean.dashboard');
+    Route::post('/dean/proposals/{id}/note-endorsement', [\App\Http\Controllers\DeanController::class, 'noteEndorsement'])->name('dean.noteEndorsement');
+    Route::post('/dean/proposals/{id}/note-final', [\App\Http\Controllers\DeanController::class, 'noteFinalCopy'])->name('dean.noteFinal');
+});
+
+/*
+|--------------------------------------------------------------------------
+| VPREI Proposal Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
+    Route::get('/vprei', [\App\Http\Controllers\VpreiController::class, 'dashboard'])->name('vprei.dashboard');
+    Route::post('/vprei/proposals/{id}/approve', [\App\Http\Controllers\VpreiController::class, 'approve'])->name('vprei.approve');
+});
+
+/*
+|--------------------------------------------------------------------------
 | 🔥 Admin Proposal Routes
 |--------------------------------------------------------------------------
 */
@@ -179,6 +229,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Reviewer Assignment
     Route::post('/admin/proposals/{id}/assign', [ResearchProposalController::class, 'assignReviewer'])->name('admin.proposals.assign');
+
+    // Director Review & Endorsement Actions
+    Route::post('/admin/proposals/{id}/accept-in-house', [ResearchProposalController::class, 'acceptForInHouseReview'])->name('admin.proposals.acceptInHouse');
+    Route::post('/admin/proposals/{id}/endorse-vprei', [ResearchProposalController::class, 'endorseToVprei'])->name('admin.proposals.endorseVprei');
 
     // Milestones Status Update
     Route::patch('/admin/milestones/{id}/status', [\App\Http\Controllers\ResearchMilestoneController::class, 'updateStatus'])->name('admin.milestones.updateStatus');
