@@ -14,6 +14,7 @@
                             <th>Current Role</th>
                             <th>Status</th>
                             <th>Assign New Role</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -53,6 +54,36 @@
                                     </select>
                                     <button type="submit" class="btn btn-sm btn-primary">Update</button>
                                 </form>
+                            </td>
+                            <td>
+                                @if($user->id !== auth()->id() && !$user->isSuperAdmin())
+                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ $user->id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade" id="deleteUserModal{{ $user->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                                                <div class="modal-header border-0 px-4 pt-4 pb-0">
+                                                    <h5 class="fw-bold text-danger">Remove User?</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-4 text-start">
+                                                    <p class="mb-0">Are you sure you want to remove <strong>{{ $user->name }}</strong> from the system? This action cannot be undone and will delete all associated data.</p>
+                                                </div>
+                                                <div class="modal-footer border-0 p-4 pt-0">
+                                                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger px-4">Delete User</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

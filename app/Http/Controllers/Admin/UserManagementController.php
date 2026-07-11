@@ -27,4 +27,21 @@ class UserManagementController extends Controller
 
         return redirect()->back()->with('success', "Role for {$user->name} updated to {$user->role} successfully.");
     }
+
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'Cannot delete your own account.');
+        }
+
+        if ($user->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'Cannot delete a Super Admin.');
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', "User {$user->name} has been deleted successfully.");
+    }
 }
