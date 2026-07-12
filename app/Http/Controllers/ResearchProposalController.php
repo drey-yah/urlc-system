@@ -455,8 +455,8 @@ class ResearchProposalController extends Controller
             abort(403);
         }
 
-        if ($proposal->status !== 'final_copy_noted_by_dean') {
-            return redirect()->back()->with('error', 'Only final copies noted by the Dean can be endorsed to the VPREI.');
+        if ($proposal->status !== 'funds_certified') {
+            return redirect()->back()->with('error', 'Only proposals certified by the Budget Officer for availability of funds can be endorsed to the VPREI.');
         }
 
         $proposal->update([

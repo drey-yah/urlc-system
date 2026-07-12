@@ -35,6 +35,8 @@ Route::get('/redirect', function () {
         return redirect('/dean');
     } elseif ($role == 'vprei') {
         return redirect('/vprei');
+    } elseif ($role == 'budget_officer') {
+        return redirect('/budget');
     } elseif ($role == 'staff') {
         return redirect('/staff');
     } elseif ($role == 'recording_staff') {
@@ -210,6 +212,17 @@ Route::middleware(['auth', 'role:dean', 'approved'])->group(function () {
 Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
     Route::get('/vprei', [\App\Http\Controllers\VpreiController::class, 'dashboard'])->name('vprei.dashboard');
     Route::post('/vprei/proposals/{id}/approve', [\App\Http\Controllers\VpreiController::class, 'approve'])->name('vprei.approve');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Budget Officer Proposal Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:budget_officer', 'approved'])->group(function () {
+    Route::get('/budget', [\App\Http\Controllers\BudgetOfficerController::class, 'dashboard'])->name('budget.dashboard');
+    Route::post('/budget/proposals/{id}/certify', [\App\Http\Controllers\BudgetOfficerController::class, 'certify'])->name('budget.certify');
 });
 
 /*

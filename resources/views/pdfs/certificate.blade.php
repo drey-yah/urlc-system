@@ -178,7 +178,12 @@
     @endphp
 
     <div class="header">
-        <img class="logo" src="{{ public_path('logo.png') }}" alt="UA Logo">
+        <svg class="logo" viewBox="0 0 100 100" style="width: 85px; height: 85px; margin-bottom: 5px;">
+            <circle cx="50" cy="50" r="48" fill="#0d6efd" stroke="#ffc107" stroke-width="3" />
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#ffffff" stroke-dasharray="3 3" stroke-width="1" />
+            <text x="50" y="58" font-family="'Times New Roman', Times, serif" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle">UA</text>
+            <text x="50" y="78" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffc107" text-anchor="middle" letter-spacing="2">RESU</text>
+        </svg>
         <div class="inst-country">Republic of the Philippines</div>
         <div class="inst-name">University of Antique</div>
         <div class="inst-location">Sibalom, Antique</div>

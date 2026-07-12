@@ -23,7 +23,7 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                <span class="badge {{ $user->role == 'admin' ? 'bg-danger' : ($user->role == 'dean' ? 'bg-primary' : ($user->role == 'vprei' ? 'bg-dark' : ($user->role == 'reviewer' ? 'bg-info' : 'bg-success'))) }}">
+                                <span class="badge {{ $user->role == 'admin' ? 'bg-danger' : ($user->role == 'dean' ? 'bg-primary' : ($user->role == 'vprei' ? 'bg-dark' : ($user->role == 'reviewer' ? 'bg-info' : ($user->role == 'budget_officer' ? 'bg-warning text-dark' : 'bg-success')))) }}">
                                     {{ ucfirst(str_replace('_', ' ', $user->role)) }}
                                 </span>
                             </td>
@@ -48,6 +48,7 @@
                                         <option value="coordinator" {{ $user->role == 'coordinator' ? 'selected' : '' }}>Coordinator</option>
                                         <option value="dean" {{ $user->role == 'dean' ? 'selected' : '' }}>Dean</option>
                                         <option value="vprei" {{ $user->role == 'vprei' ? 'selected' : '' }}>VPREI</option>
+                                        <option value="budget_officer" {{ $user->role == 'budget_officer' ? 'selected' : '' }}>Budget Officer</option>
                                         <option value="staff" {{ $user->role == 'staff' ? 'selected' : '' }}>Staff (Receiving)</option>
                                         <option value="recording_staff" {{ $user->role == 'recording_staff' ? 'selected' : '' }}>Staff (Recording)</option>
                                         <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>

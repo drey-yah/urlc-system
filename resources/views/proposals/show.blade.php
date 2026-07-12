@@ -29,6 +29,8 @@
                         'pending', 'pending_coordinator_endorsement' => '#F59E0B',
                         'endorsed_by_coordinator', 'revision_required' => '#3B82F6',
                         'rejected', 'final_rejected' => '#EF4444',
+                        'funds_certified' => '#8B5CF6',
+                        'final_copy_noted_by_dean' => '#6366F1',
                         default => '#6B7280'
                     };
                 @endphp
@@ -67,9 +69,11 @@
             $showActionsCard = true;
         } elseif ($userRole === 'staff' && $proposal->status === 'submitted_to_research_unit') {
             $showActionsCard = true;
-        } elseif (($userRole === 'admin' || auth()->user()->isSuperAdmin()) && ($proposal->status === 'pending_director_review' || $proposal->status === 'final_copy_noted_by_dean')) {
+        } elseif (($userRole === 'admin' || auth()->user()->isSuperAdmin()) && ($proposal->status === 'pending_director_review' || $proposal->status === 'funds_certified')) {
             $showActionsCard = true;
         } elseif ($userRole === 'vprei' && $proposal->status === 'endorsed_to_vprei') {
+            $showActionsCard = true;
+        } elseif ($userRole === 'budget_officer' && $proposal->status === 'final_copy_noted_by_dean') {
             $showActionsCard = true;
         } elseif ($userId === $proposal->user_id && $proposal->status === 'approved') {
             $showActionsCard = true;
@@ -147,7 +151,7 @@
                             <i class="bi bi-card-checklist fs-6"></i> Accept for In-House Review
                         </button>
                     </form>
-                @elseif($proposal->status === 'final_copy_noted_by_dean')
+                @elseif($proposal->status === 'funds_certified')
                     <form action="{{ route('admin.proposals.endorseVprei', $proposal->id) }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Endorse this revised proposal to the VPREI for final approval?');">
@@ -155,6 +159,16 @@
                         </button>
                     </form>
                 @endif
+            @endif
+
+            <!-- Budget Officer Actions -->
+            @if($userRole === 'budget_officer' && $proposal->status === 'final_copy_noted_by_dean')
+                <form action="{{ route('budget.certify', $proposal->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Certify this research proposal for availability of funds?');">
+                        <i class="bi bi-cash-stack fs-6"></i> Certify Availability of Funds
+                    </button>
+                </form>
             @endif
 
             <!-- VPREI Actions -->
