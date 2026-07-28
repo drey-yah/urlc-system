@@ -47,11 +47,6 @@
                                     <textarea name="abstract" class="form-control border-0 bg-light py-3 px-4 rounded-4" rows="4" placeholder="Provide a concise summary of your research..." required></textarea>
                                 </div>
 
-                                <div class="mb-4">
-                                    <label class="form-label small fw-bold text-muted text-uppercase">Rationale</label>
-                                    <textarea name="rationale" class="form-control border-0 bg-light py-3 px-4 rounded-4" rows="4" placeholder="Why is this research being conducted? What is the core motivation?" required></textarea>
-                                </div>
-
                                 <div class="mb-0">
                                     <label class="form-label small fw-bold text-muted text-uppercase">Upload Proposal Document (PDF)</label>
                                     <div class="p-4 bg-light rounded-4 text-center border-2 border-dashed border-primary position-relative">

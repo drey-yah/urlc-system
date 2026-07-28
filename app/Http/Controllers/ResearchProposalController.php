@@ -10,8 +10,8 @@ class ResearchProposalController extends Controller
     // Researcher: View own proposals
     public function index()
     {
-        $leadProposals = auth()->user()->leadProposals()->with('collaborators')->latest()->get();
-        $collaboratedProposals = auth()->user()->collaboratedProposals()->with(['user', 'collaborators'])->latest()->get();
+        $leadProposals = auth()->user()->leadProposals()->with(['collaborators', 'milestones'])->latest()->get();
+        $collaboratedProposals = auth()->user()->collaboratedProposals()->with(['user', 'collaborators', 'milestones'])->latest()->get();
         
         return view('researcher.my_proposals', compact('leadProposals', 'collaboratedProposals'));
     }
@@ -33,7 +33,7 @@ class ResearchProposalController extends Controller
         $request->validate([
             'title' => 'required',
             'abstract' => 'required',
-            'rationale' => 'required',
+            'rationale' => 'nullable|string',
             'research_field' => 'nullable|string',
             'document' => $isDraft ? 'nullable|file|mimes:pdf|max:20480' : 'required|file|mimes:pdf|max:20480',
             'collaborators' => 'nullable|array',
@@ -58,7 +58,7 @@ class ResearchProposalController extends Controller
             'proposal_code' => $proposalCode,
             'title' => $request->title,
             'abstract' => $request->abstract,
-            'rationale' => $request->rationale,
+            'rationale' => $request->rationale ?? null,
             'research_field' => $request->research_field,
             'document_path' => $filePath, // Kept for backwards compatibility
             'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
@@ -219,7 +219,7 @@ class ResearchProposalController extends Controller
 
     public function show($id)
     {
-        $proposal = ResearchProposal::with(['user', 'collaborators', 'assignments'])->findOrFail($id);
+        $proposal = ResearchProposal::with(['user', 'collaborators', 'assignments', 'milestones'])->findOrFail($id);
         
         // Authorization check
         if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id()) {
@@ -269,7 +269,7 @@ class ResearchProposalController extends Controller
         $request->validate([
             'title' => 'required',
             'abstract' => 'required',
-            'rationale' => 'required',
+            'rationale' => 'nullable|string',
             'research_field' => 'nullable|string',
             'document' => 'nullable|file|mimes:pdf|max:20480',
             'collaborators' => 'nullable|array',
@@ -304,7 +304,7 @@ class ResearchProposalController extends Controller
         $proposal->update([
             'title' => $request->title,
             'abstract' => $request->abstract,
-            'rationale' => $request->rationale,
+            'rationale' => $request->rationale ?? $proposal->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath, // Update main path for backwards compatibility
             'status' => $isDraft ? 'draft' : $newStatus,

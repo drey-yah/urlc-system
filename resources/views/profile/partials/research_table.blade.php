@@ -5,7 +5,6 @@
                 <tr>
                     <th class="ps-4 py-3 border-0">Proposal Code</th>
                     <th class="py-3 border-0">Title</th>
-                    <th class="py-3 border-0">Rationale</th>
                     <th class="py-3 border-0">{{ $type === 'lead' ? 'Collaborators' : 'Lead Researcher' }}</th>
                     <th class="pe-4 py-3 border-0 text-end">File</th>
                 </tr>
@@ -19,11 +18,6 @@
                         <td class="py-3">
                             <div class="fw-bold text-primary">{{ $proposal->title }}</div>
                             <div class="text-muted small italic">{{ $proposal->research_field }}</div>
-                        </td>
-                        <td>
-                            <div class="text-muted small text-truncate" style="max-width: 250px;">
-                                {{ $proposal->rationale ?? 'No rationale provided' }}
-                            </div>
                         </td>
                         <td>
                             @if($type === 'lead')
@@ -56,7 +50,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted small italic">
+                        <td colspan="4" class="text-center py-5 text-muted small italic">
                             No research projects found.
                         </td>
                     </tr>

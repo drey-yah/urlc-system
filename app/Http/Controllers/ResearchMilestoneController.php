@@ -20,6 +20,8 @@ class ResearchMilestoneController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'start_date' => 'nullable|date',
+            'target_date' => 'nullable|date|after_or_equal:start_date',
             'document' => 'nullable|file|mimes:pdf,doc,docx|max:20480',
         ]);
 
@@ -32,6 +34,8 @@ class ResearchMilestoneController extends Controller
             'research_proposal_id' => $proposal->id,
             'title' => $request->title,
             'description' => $request->description,
+            'start_date' => $request->start_date,
+            'target_date' => $request->target_date,
             'document_path' => $filePath,
             'status' => 'pending',
         ]);

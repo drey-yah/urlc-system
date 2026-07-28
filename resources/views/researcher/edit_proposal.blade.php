@@ -34,11 +34,6 @@
                             <textarea name="abstract" class="form-control bg-light border-0 py-2 px-3" rows="4" required>{{ $proposal->abstract }}</textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small uppercase">Rationale</label>
-                            <textarea name="rationale" class="form-control bg-light border-0 py-2 px-3" rows="4" required>{{ $proposal->rationale }}</textarea>
-                        </div>
-
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-muted small uppercase">Current Document</label>
                             <div class="bg-light p-3 rounded-3 d-flex justify-content-between align-items-center">

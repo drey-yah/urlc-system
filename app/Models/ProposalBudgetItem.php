@@ -5,23 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ResearchMilestone extends Model
+class ProposalBudgetItem extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'research_proposal_id',
-        'title',
-        'description',
-        'start_date',
-        'target_date',
-        'document_path',
-        'status',
+        'category_type',
+        'category_group',
+        'item_name',
+        'funding_agency',
+        'equivalent_teaching_unit',
+        'existing_resources',
+        'amount',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'target_date' => 'date',
+        'amount' => 'decimal:2',
     ];
 
     public function proposal()

@@ -20,6 +20,7 @@ class ResearchProposal extends Model
         'rationale',
         'research_field',
         'status',
+        'total_budget',
         'current_phase',
         'phase_updated_at',
         'review_comments',
@@ -69,5 +70,11 @@ class ResearchProposal extends Model
     public function documents()
     {
         return $this->hasMany(ProposalDocument::class);
+    }
+
+    // Relationship: Proposal has many budget items (Line Item Budget)
+    public function budgetItems()
+    {
+        return $this->hasMany(ProposalBudgetItem::class);
     }
 }

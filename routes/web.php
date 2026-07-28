@@ -97,9 +97,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/announcements/{id}/like', [\App\Http\Controllers\AnnouncementInteractionController::class, 'like'])->name('announcements.like');
     Route::post('/announcements/{id}/comment', [\App\Http\Controllers\AnnouncementInteractionController::class, 'comment'])->name('announcements.comment');
 
-    // Email Templates Preview
+    // Messaging Module (Gmail style)
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
+    Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::post('/messages/{id}/reply', [\App\Http\Controllers\MessageController::class, 'reply'])->name('messages.reply');
+    Route::delete('/messages/{id}', [\App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
     Route::get('/email-templates', function() {
-        return view('emails.templates');
+        return redirect()->route('messages.index');
     })->name('email.templates');
 
     // Repository
@@ -107,6 +111,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Milestones
     Route::post('/proposal/{id}/milestones', [\App\Http\Controllers\ResearchMilestoneController::class, 'store'])->name('milestones.store');
+
+    // Line Item Budget
+    Route::post('/proposal/{id}/budget-items', [\App\Http\Controllers\ProposalBudgetItemController::class, 'store'])->name('budget_items.store');
+    Route::delete('/budget-items/{id}', [\App\Http\Controllers\ProposalBudgetItemController::class, 'destroy'])->name('budget_items.destroy');
 
     // Secure File Serving — generates a signed S3/Supabase URL for private bucket files
     Route::get('/files/serve', function (\Illuminate\Http\Request $request) {

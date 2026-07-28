@@ -108,14 +108,19 @@
             <span>Announcements</span>
         </a>
 
+        <button type="button" class="sidebar-link w-100 border-0 bg-transparent text-start" data-bs-toggle="modal" data-bs-target="#submissionGuidelinesModal">
+            <i class="bi bi-book-half"></i>
+            <span>Submission Guidelines</span>
+        </button>
+
         <a href="{{ route('repository.index') }}" class="sidebar-link {{ request()->routeIs('repository.index') ? 'active' : '' }}">
             <i class="bi bi-journal-bookmark-fill"></i>
             <span>Research Repository</span>
         </a>
 
-        <a href="{{ route('email.templates') }}" class="sidebar-link {{ request()->routeIs('email.templates') ? 'active' : '' }}">
-            <i class="bi bi-envelope-paper-fill"></i>
-            <span>Email Templates</span>
+        <a href="{{ route('messages.index') }}" class="sidebar-link {{ request()->routeIs('messages.index') ? 'active' : '' }}">
+            <i class="bi bi-envelope-fill"></i>
+            <span>Messages</span>
         </a>
 
         <!-- Notifications (Collapsible or just a link) -->
@@ -147,3 +152,79 @@
         </form>
     </div>
 </aside>
+
+<!-- Global Submission Guidelines Modal -->
+<div class="modal fade" id="submissionGuidelinesModal" tabindex="-1" aria-labelledby="submissionGuidelinesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-primary" id="submissionGuidelinesModalLabel">
+                    <i class="bi bi-book-half me-2"></i> Research Proposal Submission Guidelines
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Proposal Phases Overview -->
+                <div class="bg-primary bg-opacity-10 p-4 rounded-4 mb-4">
+                    <h6 class="fw-bold text-primary mb-3">Proposal Lifecycle & Phases</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="bg-white p-3 rounded-3 shadow-xs">
+                                <small class="text-primary fw-bold text-uppercase d-block mb-1">Phase 1</small>
+                                <p class="small mb-0 text-muted">Initial proposal submission with research objectives and preliminary data.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-white p-3 rounded-3 shadow-xs">
+                                <small class="text-primary fw-bold text-uppercase d-block mb-1">Phase 2-4</small>
+                                <p class="small mb-0 text-muted">Detailed methodology, work plan (Gantt chart), and line-item budget execution.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-white p-3 rounded-3 shadow-xs">
+                                <small class="text-primary fw-bold text-uppercase d-block mb-1">Phase 5</small>
+                                <p class="small mb-0 text-muted">Final manuscript submission with research outcomes and terminal report.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guidelines Steps -->
+                <h6 class="fw-bold text-dark mb-3">Step-by-Step Submission Process</h6>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3">
+                        <div class="badge bg-primary rounded-circle p-2 px-3 fw-bold">1</div>
+                        <div>
+                            <strong class="text-dark d-block mb-1">Prepare Your Proposal</strong>
+                            <p class="small text-muted mb-0">Ensure research objectives are clearly defined, aligned with institutional thrusts, and include required documentation.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3">
+                        <div class="badge bg-primary rounded-circle p-2 px-3 fw-bold">2</div>
+                        <div>
+                            <strong class="text-dark d-block mb-1">Submit Through Portal</strong>
+                            <p class="small text-muted mb-0">Navigate to 'Submit Proposal' from the sidebar, fill out the required details, upload your manuscript PDF, and save as draft or submit.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3">
+                        <div class="badge bg-primary rounded-circle p-2 px-3 fw-bold">3</div>
+                        <div>
+                            <strong class="text-dark d-block mb-1">Review & Endorsement Process</strong>
+                            <p class="small text-muted mb-0">Your proposal goes through College Dean noting, Coordinator endorsement, Reviewer evaluation, and Budget certification.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 p-3 bg-light rounded-3">
+                        <div class="badge bg-primary rounded-circle p-2 px-3 fw-bold">4</div>
+                        <div>
+                            <strong class="text-dark d-block mb-1">Automated Tracking & Notifications</strong>
+                            <p class="small text-muted mb-0">Track real-time status changes and receive email updates at each phase of approval.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pb-4 px-4">
+                <button type="button" class="btn btn-secondary px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Close Guidelines</button>
+            </div>
+        </div>
+    </div>
+</div>

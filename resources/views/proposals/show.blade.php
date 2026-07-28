@@ -356,71 +356,470 @@
         </div>
     @endif
 
-    <!-- Implementation Milestones -->
-    @if($proposal->current_phase >= 4)
-    <div class="card border-0 shadow-sm mb-4">
+    <!-- Line Item Budget (LIB) Section -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-calculator-fill text-success"></i> Line Item Budget (LIB)
+                </h3>
+                <p class="text-muted small mb-0">Detailed breakdown of Maintenance & Operating Expenses (MOOE) and Capital Outlay (CO).</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-success bg-opacity-10 text-success px-4 py-2 rounded-pill fw-bold fs-6">
+                    Grand Total: ₱{{ number_format($proposal->total_budget ?? $proposal->budgetItems->sum('amount'), 2) }}
+                </div>
+                @if(auth()->id() == $proposal->user_id)
+                    <button type="button" class="btn btn-success btn-sm px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addBudgetItemModal">
+                        <i class="bi bi-plus-circle-fill"></i> Add Budget Entry
+                    </button>
+                @endif
+            </div>
+        </div>
+
         <div class="card-body p-4 p-lg-5">
-            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
-                <i class="bi bi-bar-chart-steps text-success"></i> Implementation Progress
-            </h3>
+            @php
+                $mooeItems = $proposal->budgetItems->where('category_type', 'mooe');
+                $coItems = $proposal->budgetItems->where('category_type', 'co');
+                $subtotalMOOE = $mooeItems->sum('amount');
+                $subtotalCO = $coItems->sum('amount');
+                $grandTotal = $subtotalMOOE + $subtotalCO;
+            @endphp
+
+            <div class="table-responsive border rounded-4 bg-white shadow-sm mb-3">
+                <table class="table table-bordered align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead class="table-light text-center align-middle">
+                        <tr>
+                            <th rowspan="2" style="width: 240px;" class="py-3">Particulars / Category</th>
+                            <th rowspan="2" class="py-3">Details</th>
+                            <th rowspan="2" style="width: 140px;" class="py-3">Funding Agency / Org</th>
+                            <th colspan="3" class="py-2 bg-primary bg-opacity-10 text-primary fw-bold">University of Antique</th>
+                            <th rowspan="2" style="width: 130px;" class="py-3 bg-light">Total (₱)</th>
+                            @if(auth()->id() == $proposal->user_id)
+                                <th rowspan="2" style="width: 60px;" class="py-3">Action</th>
+                            @endif
+                        </tr>
+                        <tr>
+                            <th style="width: 120px;" class="small py-2">Equivalent Teaching Unit</th>
+                            <th style="width: 120px;" class="small py-2">Existing Resources</th>
+                            <th style="width: 140px;" class="small py-2 fw-bold text-success">Proposed Expenditures</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Section I: MOOE -->
+                        <tr class="table-secondary fw-bold">
+                            <td colspan="{{ auth()->id() == $proposal->user_id ? 8 : 7 }}" class="py-2.5 ps-3 text-dark">
+                                I. Maintenance and Other Operating Expenses (MOOE)
+                            </td>
+                        </tr>
+
+                        @php
+                            $groups = [
+                                'supplies' => 'A. Supplies and Materials Expenses',
+                                'semi_expandable' => 'B. Semi-Expandable Expenses',
+                                'travel' => 'C. Travelling Expenses (Local)',
+                                'transportation' => 'D. Transportation',
+                                'professional_services' => 'E. Other Professional Services',
+                                'other_mooe' => 'F. Other MOOE',
+                            ];
+                        @endphp
+
+                        @foreach($groups as $groupKey => $groupLabel)
+                            @php
+                                $groupItems = $mooeItems->where('category_group', $groupKey);
+                            @endphp
+                            @if($groupItems->isNotEmpty())
+                                <tr>
+                                    <td colspan="{{ auth()->id() == $proposal->user_id ? 8 : 7 }}" class="bg-light fw-semibold text-muted py-2 ps-4">
+                                        {{ $groupLabel }}
+                                    </td>
+                                </tr>
+                                @foreach($groupItems as $item)
+                                    <tr>
+                                        <td class="ps-5 text-dark fw-medium">{{ $item->item_name }}</td>
+                                        <td class="text-muted">{{ $item->item_name }}</td>
+                                        <td class="text-center"><span class="badge bg-light text-dark border">{{ $item->funding_agency ?? '—' }}</span></td>
+                                        <td class="text-center text-muted">{{ $item->equivalent_teaching_unit ?? '—' }}</td>
+                                        <td class="text-center text-muted">{{ $item->existing_resources ?? '—' }}</td>
+                                        <td class="text-end fw-bold text-dark">₱{{ number_format($item->amount, 2) }}</td>
+                                        <td class="text-end fw-bold text-success bg-light">₱{{ number_format($item->amount, 2) }}</td>
+                                        @if(auth()->id() == $proposal->user_id)
+                                            <td class="text-center">
+                                                <form action="{{ route('budget_items.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Delete this budget entry?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="Delete Entry">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            @endif
+                        @endforeach
+
+                        @if($mooeItems->isEmpty())
+                            <tr>
+                                <td colspan="{{ auth()->id() == $proposal->user_id ? 8 : 7 }}" class="text-center py-3 text-muted italic small">No MOOE items listed yet.</td>
+                            </tr>
+                        @endif
+
+                        <!-- Sub-total for MOOE -->
+                        <tr class="table-warning fw-bold">
+                            <td colspan="5" class="py-2.5 text-end text-dark">Sub-total for MOOE:</td>
+                            <td class="text-end text-dark">₱{{ number_format($subtotalMOOE, 2) }}</td>
+                            <td class="text-end text-dark">₱{{ number_format($subtotalMOOE, 2) }}</td>
+                            @if(auth()->id() == $proposal->user_id) <td></td> @endif
+                        </tr>
+
+                        <!-- Section II: Capital Outlay -->
+                        <tr class="table-secondary fw-bold">
+                            <td colspan="{{ auth()->id() == $proposal->user_id ? 8 : 7 }}" class="py-2.5 ps-3 text-dark">
+                                II. Capital Outlay (CO)
+                            </td>
+                        </tr>
+
+                        @if($coItems->isNotEmpty())
+                            @foreach($coItems as $item)
+                                <tr>
+                                    <td class="ps-4 text-dark fw-medium">{{ $item->item_name }}</td>
+                                    <td class="text-muted">{{ $item->item_name }}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">{{ $item->funding_agency ?? '—' }}</span></td>
+                                    <td class="text-center text-muted">{{ $item->equivalent_teaching_unit ?? '—' }}</td>
+                                    <td class="text-center text-muted">{{ $item->existing_resources ?? '—' }}</td>
+                                    <td class="text-end fw-bold text-dark">₱{{ number_format($item->amount, 2) }}</td>
+                                    <td class="text-end fw-bold text-success bg-light">₱{{ number_format($item->amount, 2) }}</td>
+                                    @if(auth()->id() == $proposal->user_id)
+                                        <td class="text-center">
+                                            <form action="{{ route('budget_items.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Delete this budget entry?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="Delete Entry">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="{{ auth()->id() == $proposal->user_id ? 8 : 7 }}" class="text-center py-3 text-muted italic small">No Capital Outlay items listed yet.</td>
+                            </tr>
+                        @endif
+
+                        <!-- Sub-total for Capital Outlay -->
+                        <tr class="table-warning fw-bold">
+                            <td colspan="5" class="py-2.5 text-end text-dark">Sub-total for CO:</td>
+                            <td class="text-end text-dark">₱{{ number_format($subtotalCO, 2) }}</td>
+                            <td class="text-end text-dark">₱{{ number_format($subtotalCO, 2) }}</td>
+                            @if(auth()->id() == $proposal->user_id) <td></td> @endif
+                        </tr>
+
+                        <!-- GRAND TOTAL -->
+                        <tr class="table-success fw-bold fs-6">
+                            <td colspan="5" class="py-3 text-end text-uppercase text-dark">GRAND TOTAL:</td>
+                            <td class="text-end text-success fs-5">₱{{ number_format($grandTotal, 2) }}</td>
+                            <td class="text-end text-success fs-5">₱{{ number_format($grandTotal, 2) }}</td>
+                            @if(auth()->id() == $proposal->user_id) <td></td> @endif
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal: Add Budget Entry -->
+    @if(auth()->id() == $proposal->user_id)
+    <div class="modal fade" id="addBudgetItemModal" tabindex="-1" aria-labelledby="addBudgetItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-success" id="addBudgetItemModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i> Add Line Item Budget Entry
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('budget_items.store', $proposal->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Expenditure Type</label>
+                            <select name="category_type" class="form-select bg-light border-0 py-2 px-3 rounded-3" required>
+                                <option value="mooe">Section I: Maintenance & Other Operating Expenses (MOOE)</option>
+                                <option value="co">Section II: Capital Outlay (CO)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Budget Category</label>
+                            <select name="category_group" class="form-select bg-light border-0 py-2 px-3 rounded-3" required>
+                                <option value="supplies">A. Supplies and Materials Expenses</option>
+                                <option value="semi_expandable">B. Semi-Expandable Expenses</option>
+                                <option value="travel">C. Travelling Expenses (Local)</option>
+                                <option value="transportation">D. Transportation</option>
+                                <option value="professional_services">E. Other Professional Services</option>
+                                <option value="other_mooe">F. Other MOOE</option>
+                                <option value="capital_outlay">II. Capital Outlay (CO - Equipment/Hardware)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Item Description / Details</label>
+                            <textarea name="item_name" class="form-control bg-light border-0 py-2 px-3 rounded-3" rows="2" placeholder="e.g. Bookpaper [A4;80gsm] @ Php 315 x 2 reams" required></textarea>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted uppercase">Funding Agency / Org</label>
+                                <input type="text" name="funding_agency" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="e.g. RESU">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted uppercase">Proposed Amount (₱)</label>
+                                <input type="number" step="0.01" min="0" name="amount" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="e.g. 630.00" required>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-0">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted uppercase">Equivalent Teaching Unit</label>
+                                <input type="text" name="equivalent_teaching_unit" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="Optional">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted uppercase">Existing Resources</label>
+                                <input type="text" name="existing_resources" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="Optional">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pb-4 px-4">
+                        <button type="button" class="btn btn-light px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success px-4 rounded-pill fw-bold shadow-sm">Save Budget Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Work Plan & Gantt Chart Matrix Section -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-bar-chart-line-fill text-primary"></i> 12-Month Research Work Plan (Gantt Chart)
+                </h3>
+                <p class="text-muted small mb-0">Visual Gantt chart timeline mapping project phases from inception to final submission.</p>
+            </div>
+            @if(auth()->id() == $proposal->user_id)
+                <button type="button" class="btn btn-primary btn-sm px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addMilestoneModal">
+                    <i class="bi bi-plus-circle-fill"></i> Add Work Plan Phase
+                </button>
+            @endif
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+            @php
+                $months = [
+                    ['num' => 'M1', 'label' => 'Jan'],
+                    ['num' => 'M2', 'label' => 'Feb'],
+                    ['num' => 'M3', 'label' => 'Mar'],
+                    ['num' => 'M4', 'label' => 'Apr'],
+                    ['num' => 'M5', 'label' => 'May'],
+                    ['num' => 'M6', 'label' => 'Jun'],
+                    ['num' => 'M7', 'label' => 'Jul'],
+                    ['num' => 'M8', 'label' => 'Aug'],
+                    ['num' => 'M9', 'label' => 'Sep'],
+                    ['num' => 'M10', 'label' => 'Oct'],
+                    ['num' => 'M11', 'label' => 'Nov'],
+                    ['num' => 'M12', 'label' => 'Dec'],
+                ];
+            @endphp
 
             @if($proposal->milestones && $proposal->milestones->count() > 0)
-                <div class="mb-4">
-                    @foreach($proposal->milestones as $milestone)
-                        <div class="border rounded p-3 mb-3 bg-light">
-                            <div class="d-flex justify-content-between">
-                                <strong>{{ $milestone->title }}</strong>
-                                <span class="badge bg-{{ $milestone->status == 'approved' ? 'success' : ($milestone->status == 'rejected' ? 'danger' : 'warning') }}">
-                                    {{ ucfirst($milestone->status) }}
-                                </span>
-                            </div>
-                            <p class="text-muted small mt-2">{{ $milestone->description }}</p>
-                            @if($milestone->document_path)
-                                <a href="{{ route('file.serve', ['path' => $milestone->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">View Attachment</a>
-                            @endif
-
-                            @if(in_array(auth()->user()->role, ['admin', 'super_admin', 'reviewer']) && $milestone->status == 'pending')
-                                <form action="{{ route('admin.milestones.updateStatus', $milestone->id) }}" method="POST" class="mt-3 d-inline-block">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                                </form>
-                                <form action="{{ route('admin.milestones.updateStatus', $milestone->id) }}" method="POST" class="mt-3 d-inline-block">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="status" value="rejected">
-                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
-                                </form>
-                            @endif
+                <div class="gantt-matrix-container border rounded-4 p-4 bg-white shadow-sm overflow-x-auto">
+                    <!-- Gantt Header (Timeline Month Columns) -->
+                    <div class="gantt-header d-flex align-items-center border-bottom pb-3 mb-2" style="min-width: 950px;">
+                        <div class="gantt-phase-col fw-bold text-uppercase text-secondary small" style="width: 260px; flex-shrink: 0;">
+                            Phase / Activity Name
                         </div>
-                    @endforeach
+                        <div class="gantt-timeline-header d-flex flex-grow-1 text-center">
+                            @foreach($months as $m)
+                                <div style="width: 8.333%;" class="border-start px-1">
+                                    <span class="d-block fw-bold text-dark small">{{ $m['num'] }}</span>
+                                    <span class="text-muted fw-semibold" style="font-size: 0.72rem;">{{ $m['label'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Gantt Body Rows -->
+                    <div class="gantt-body" style="min-width: 950px;">
+                        @foreach($proposal->milestones as $milestone)
+                            @php
+                                $mCount = $proposal->milestones->count();
+                                if ($milestone->start_date && $milestone->target_date) {
+                                    $startDate = \Carbon\Carbon::parse($milestone->start_date);
+                                    $targetDate = \Carbon\Carbon::parse($milestone->target_date);
+                                    
+                                    $mStartIdx = (int)$startDate->format('n');
+                                    $mEndIdx = (int)$targetDate->format('n');
+                                    if ($mEndIdx < $mStartIdx) {
+                                        $mEndIdx = $mStartIdx;
+                                    }
+                                } elseif ($milestone->start_date) {
+                                    $startDate = \Carbon\Carbon::parse($milestone->start_date);
+                                    $mStartIdx = (int)$startDate->format('n');
+                                    $mEndIdx = min(12, $mStartIdx + 1);
+                                } else {
+                                    $createdMonth = (int)($proposal->created_at ? $proposal->created_at->format('n') : 1);
+                                    $mStartIdx = min(12, max(1, $createdMonth + $loop->index));
+                                    $mEndIdx = min(12, $mStartIdx);
+                                }
+                                
+                                $leftPercent = (($mStartIdx - 1) / 12) * 100;
+                                $widthPercent = max(8.333, (($mEndIdx - $mStartIdx + 1) / 12) * 100);
+                                if ($leftPercent + $widthPercent > 100) {
+                                    $widthPercent = 100 - $leftPercent;
+                                }
+
+                                $barGradient = match($milestone->status) {
+                                    'approved' => 'linear-gradient(135deg, #10B981, #059669)',
+                                    'rejected' => 'linear-gradient(135deg, #EF4444, #DC2626)',
+                                    default => 'linear-gradient(135deg, #3B82F6, #1D4ED8)'
+                                };
+
+                                $statusBadge = match($milestone->status) {
+                                    'approved' => 'bg-success text-white',
+                                    'rejected' => 'bg-danger text-white',
+                                    default => 'bg-warning text-dark'
+                                };
+                            @endphp
+
+                            <div class="gantt-row d-flex align-items-center py-3 border-bottom position-relative">
+                                <!-- Left Column: Phase Title & Description -->
+                                <div class="gantt-phase-col pe-3" style="width: 260px; flex-shrink: 0;">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="fw-bold text-dark text-truncate" title="{{ $milestone->title }}">{{ $milestone->title }}</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge {{ $statusBadge }} px-2 py-0.5 rounded-pill" style="font-size: 0.65rem;">{{ ucfirst($milestone->status) }}</span>
+                                        @if($milestone->document_path)
+                                            <a href="{{ route('file.serve', ['path' => $milestone->document_path]) }}" target="_blank" class="text-primary small" style="font-size: 0.75rem;" title="View Attachment">
+                                                <i class="bi bi-paperclip"></i> File
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Track with Horizontal Gantt Bar -->
+                                <div class="gantt-track-col flex-grow-1 position-relative d-flex align-items-center" 
+                                     style="height: 42px; background-size: 8.333% 100%; background-image: linear-gradient(to right, #f1f5f9 1px, transparent 1px);">
+                                    
+                                    <!-- Horizontal Bar -->
+                                    <div class="gantt-bar rounded-pill shadow-sm d-flex align-items-center justify-content-between px-3 text-white position-absolute"
+                                         style="left: {{ $leftPercent }}%; width: {{ $widthPercent }}%; height: 32px; background: {{ $barGradient }}; transition: all 0.3s ease;"
+                                         data-bs-toggle="tooltip" data-bs-html="true" 
+                                         title="<strong>{{ $milestone->title }}</strong><br>{{ $milestone->description }}">
+                                        
+                                        <span class="small fw-bold text-truncate me-2" style="font-size: 0.75rem;">
+                                            {{ $milestone->title }}
+                                        </span>
+                                        <span class="badge bg-white text-dark rounded-pill shadow-xs" style="font-size: 0.65rem;">
+                                            {{ $months[$mStartIdx-1]['num'] }}@if($mEndIdx > $mStartIdx)-{{ $months[$mEndIdx-1]['num'] }}@endif
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Reviewer/Admin Actions inline -->
+                                @if(in_array(auth()->user()->role, ['admin', 'super_admin', 'reviewer']) && $milestone->status == 'pending')
+                                    <div class="ms-3 d-flex gap-1 flex-shrink-0">
+                                        <form action="{{ route('admin.milestones.updateStatus', $milestone->id) }}" method="POST" class="d-inline">
+                                            @csrf @method('PATCH')
+                                            <input type="hidden" name="status" value="approved">
+                                            <button type="submit" class="btn btn-xs btn-success py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;" title="Approve Phase">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.milestones.updateStatus', $milestone->id) }}" method="POST" class="d-inline">
+                                            @csrf @method('PATCH')
+                                            <input type="hidden" name="status" value="rejected">
+                                            <button type="submit" class="btn btn-xs btn-outline-danger py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;" title="Reject Phase">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Gantt Legend -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mt-4 pt-3 border-top small text-muted">
+                        <div class="d-flex align-items-center gap-4">
+                            <span class="fw-bold text-uppercase" style="font-size: 0.75rem;">Legend:</span>
+                            <span class="d-flex align-items-center gap-2"><span class="rounded-pill d-inline-block" style="width: 12px; height: 12px; background: linear-gradient(135deg, #10B981, #059669);"></span> Approved / Completed</span>
+                            <span class="d-flex align-items-center gap-2"><span class="rounded-pill d-inline-block" style="width: 12px; height: 12px; background: linear-gradient(135deg, #3B82F6, #1D4ED8);"></span> Pending Review</span>
+                            <span class="d-flex align-items-center gap-2"><span class="rounded-pill d-inline-block" style="width: 12px; height: 12px; background: linear-gradient(135deg, #EF4444, #DC2626);"></span> Revision Required</span>
+                        </div>
+                        <div class="text-muted italic" style="font-size: 0.75rem;">
+                            <i class="bi bi-info-circle me-1"></i> M1 to M12 represent Month 1 through Month 12 of the research duration.
+                        </div>
+                    </div>
                 </div>
             @else
-                <p class="text-muted small">No milestones reported yet.</p>
+                <div class="text-center py-5 bg-light rounded-4 border">
+                    <i class="bi bi-kanban text-muted display-5 d-block mb-3"></i>
+                    <h6 class="fw-bold text-muted mb-1">No Work Plan Phases Created Yet</h6>
+                    <p class="text-muted small mb-3">Add research phases (e.g., Literature review, Proposal, Ethics, Data collection, Analysis, Final submission) to populate the Gantt Chart.</p>
+                    @if(auth()->id() == $proposal->user_id)
+                        <button type="button" class="btn btn-primary btn-sm px-4 py-2 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addMilestoneModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add First Work Plan Phase
+                        </button>
+                    @endif
+                </div>
             @endif
+        </div>
+    </div>
 
-            <!-- Add New Milestone Form (Only for Researcher) -->
-            @if(auth()->id() == $proposal->user_id && $proposal->current_phase < 5)
-                <hr>
-                <h5 class="fw-bold mt-4 mb-3">Submit Progress Report</h5>
+    <!-- Modal: Add Work Plan Item -->
+    @if(auth()->id() == $proposal->user_id)
+    <div class="modal fade" id="addMilestoneModal" tabindex="-1" aria-labelledby="addMilestoneModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-primary" id="addMilestoneModalLabel">
+                        <i class="bi bi-calendar-plus me-2"></i> Add Work Plan Phase / Milestone
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <form action="{{ route('milestones.store', $proposal->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="mb-3">
-                        <label class="form-label">Title/Milestone Name</label>
-                        <input type="text" name="title" class="form-control" required>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Phase / Activity Title</label>
+                            <input type="text" name="title" class="form-control bg-light border-0 py-2 px-3 rounded-3" placeholder="e.g. Data Collection & Field Work" required>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted uppercase">Start Date</label>
+                                <input type="date" name="start_date" class="form-control bg-light border-0 py-2 px-3 rounded-3">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-muted uppercase">Target Date</label>
+                                <input type="date" name="target_date" class="form-control bg-light border-0 py-2 px-3 rounded-3">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Phase Description & Deliverables</label>
+                            <textarea name="description" class="form-control bg-light border-0 py-2 px-3 rounded-3" rows="3" placeholder="Describe key activities, methodology, and deliverables..." required></textarea>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label small fw-bold text-muted uppercase">Supporting Document (Optional PDF)</label>
+                            <input type="file" name="document" class="form-control bg-light border-0 py-2 px-3 rounded-3" accept=".pdf,.doc,.docx">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description of Progress</label>
-                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    <div class="modal-footer border-top-0 pb-4 px-4">
+                        <button type="button" class="btn btn-light px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm">Save Work Plan Phase</button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Supporting Document (Optional)</label>
-                        <input type="file" name="document" class="form-control" accept=".pdf,.doc,.docx">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit Report</button>
                 </form>
-            @endif
+            </div>
         </div>
     </div>
     @endif
