@@ -37,8 +37,24 @@ class CoordinatorController extends Controller
             })
             ->latest()
             ->get();
+
+        // All Department Proposals
+        $allDeptProposals = ResearchProposal::with(['user'])
+            ->whereHas('user', function($q) use ($department) {
+                $q->where('department', $department);
+            })
+            ->latest()
+            ->get();
+
+        $stats = [
+            'total_dept' => $allDeptProposals->count(),
+            'awaiting_endorsement' => $proposals->count(),
+            'pending_dean' => $allDeptProposals->where('status', 'pending_dean_noting')->count(),
+            'ready_for_unit' => $notedProposals->count(),
+            'approved_completed' => $allDeptProposals->whereIn('status', ['approved', 'final_approved', 'completed'])->count(),
+        ];
             
-        return view('coordinator.dashboard', compact('proposals', 'notedProposals', 'department'));
+        return view('coordinator.dashboard', compact('proposals', 'notedProposals', 'allDeptProposals', 'department', 'stats'));
     }
 
     public function endorse(Request $request, $id)

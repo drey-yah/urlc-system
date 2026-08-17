@@ -15,7 +15,22 @@ class VpreiController extends Controller
             ->latest()
             ->get();
 
-        return view('vprei.dashboard', compact('proposals'));
+        // Proposals given final approval by VPREI
+        $approvedProposals = ResearchProposal::with(['user', 'documents'])
+            ->whereIn('status', ['final_approved', 'completed'])
+            ->latest()
+            ->get();
+
+        $allProposals = ResearchProposal::with(['user'])->latest()->get();
+
+        $stats = [
+            'total_reviews' => $allProposals->count(),
+            'pending_approval' => $proposals->count(),
+            'final_approved' => $approvedProposals->count(),
+            'active_ongoing' => $allProposals->where('current_phase', '>=', 4)->count(),
+        ];
+
+        return view('vprei.dashboard', compact('proposals', 'approvedProposals', 'allProposals', 'stats'));
     }
 
     public function approve(Request $request, $id)

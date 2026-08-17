@@ -19,8 +19,24 @@ class StaffController extends Controller
             ->where('status', 'submitted_to_research_unit')
             ->latest()
             ->get();
+
+        // Proposals already routed / processed
+        $routedProposals = ResearchProposal::with(['user', 'documents'])
+            ->whereIn('status', ['pending_director_review', 'accepted_for_in_house_review', 'under_review', 'approved', 'final_approved'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $allProposals = ResearchProposal::with(['user'])->latest()->get();
+
+        $stats = [
+            'pending_receiving' => $proposals->count(),
+            'routed_to_director' => $allProposals->whereIn('status', ['pending_director_review', 'accepted_for_in_house_review'])->count(),
+            'under_review' => $allProposals->where('status', 'under_review')->count(),
+            'total_received' => $allProposals->whereNotIn('status', ['draft', 'pending_coordinator_endorsement', 'pending_dean_noting', 'submitted_to_research_unit'])->count(),
+        ];
             
-        return view('staff.dashboard', compact('proposals'));
+        return view('staff.dashboard', compact('proposals', 'routedProposals', 'allProposals', 'stats'));
     }
 
     public function forward(Request $request, $id)

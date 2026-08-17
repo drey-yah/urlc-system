@@ -33,7 +33,22 @@ class DeanController extends Controller
             ->latest()
             ->get();
 
-        return view('dean.dashboard', compact('pendingNoting', 'finalNoting', 'department'));
+        // All College Proposals
+        $allCollegeProposals = ResearchProposal::with(['user'])
+            ->whereHas('user', function($q) use ($department) {
+                $q->where('department', $department);
+            })
+            ->latest()
+            ->get();
+
+        $stats = [
+            'total_college' => $allCollegeProposals->count(),
+            'pending_noting' => $pendingNoting->count(),
+            'final_noting' => $finalNoting->count(),
+            'approved_college' => $allCollegeProposals->whereIn('status', ['approved', 'final_approved', 'completed'])->count(),
+        ];
+
+        return view('dean.dashboard', compact('pendingNoting', 'finalNoting', 'allCollegeProposals', 'department', 'stats'));
     }
 
     public function noteEndorsement(Request $request, $id)

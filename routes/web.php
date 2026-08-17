@@ -53,16 +53,68 @@ Route::get('/redirect', function () {
 */
 
 Route::get('/admin', function () {
-    return view('admin.dashboard');
-})->middleware(['auth', 'role:admin', 'approved']);
+    $stats = [
+        'total_proposals' => \App\Models\ResearchProposal::count(),
+        'pending_proposals' => \App\Models\ResearchProposal::whereIn('status', [
+            'pending', 'submitted', 'pending_director_review', 'accepted_for_in_house_review', 
+            'under_review', 'endorsed_to_vprei', 'pending_budget_certification', 
+            'funds_certified', 'final_copy_submitted'
+        ])->count(),
+        'approved_proposals' => \App\Models\ResearchProposal::whereIn('status', ['approved', 'final_approved', 'ongoing', 'completed'])->count(),
+        'total_users' => \App\Models\User::count(),
+        'active_announcements' => \App\Models\Announcement::count(),
+    ];
+
+    $recentProposals = \App\Models\ResearchProposal::with('user')->latest()->take(5)->get();
+    $recentUsers = \App\Models\User::latest()->take(5)->get();
+
+    return view('admin.dashboard', compact('stats', 'recentProposals', 'recentUsers'));
+})->middleware(['auth', 'role:admin', 'approved'])->name('admin.dashboard');
 
 Route::get('/reviewer', function () {
-    return view('reviewer.dashboard');
-})->middleware(['auth', 'role:reviewer', 'approved']);
+    $assignedProposalIds = \DB::table('proposal_assignments')
+        ->where('user_id', auth()->id())
+        ->pluck('research_proposal_id');
+
+    $proposals = \App\Models\ResearchProposal::with(['user', 'milestones'])
+        ->whereIn('id', $assignedProposalIds)
+        ->latest()
+        ->get();
+
+    $stats = [
+        'assigned' => $proposals->count(),
+        'pending_review' => $proposals->whereIn('status', ['pending', 'submitted', 'under_review', 'accepted_for_in_house_review'])->count(),
+        'evaluated' => $proposals->whereIn('status', ['approved', 'rejected', 'revision_required', 'approved_with_revisions', 'final_approved', 'final_rejected'])->count(),
+        'completed' => $proposals->where('status', 'completed')->count(),
+    ];
+
+    $recentAssigned = $proposals->take(5);
+
+    return view('reviewer.dashboard', compact('stats', 'recentAssigned'));
+})->middleware(['auth', 'role:reviewer', 'approved'])->name('reviewer.dashboard');
 
 Route::get('/researcher', function () {
-    return view('researcher.dashboard');
-})->middleware(['auth', 'role:researcher', 'approved']);
+    $leadProposals = auth()->user()->leadProposals()->with(['collaborators'])->latest()->get();
+    $collaboratedProposals = auth()->user()->collaboratedProposals()->with(['user', 'collaborators'])->latest()->get();
+    $allProposals = $leadProposals->merge($collaboratedProposals)->sortByDesc('created_at');
+
+    $stats = [
+        'total' => $allProposals->count(),
+        'under_review' => $allProposals->whereIn('status', [
+            'pending', 'submitted', 'pending_director_review', 'accepted_for_in_house_review', 
+            'under_review', 'endorsed_to_vprei', 'pending_budget_certification', 
+            'funds_certified', 'final_copy_submitted'
+        ])->count(),
+        'action_required' => $allProposals->whereIn('status', ['revision_required', 'returned_for_revision', 'approved_with_revisions'])->count(),
+        'approved' => $allProposals->whereIn('status', ['approved', 'final_approved', 'ongoing', 'completed'])->count(),
+        'drafts' => $allProposals->where('status', 'draft')->count(),
+    ];
+
+    $recentProposals = $allProposals->take(5);
+    $recentAnnouncements = \App\Models\Announcement::latest()->take(3)->get();
+
+    return view('researcher.dashboard', compact('stats', 'recentProposals', 'recentAnnouncements'));
+})->middleware(['auth', 'role:researcher', 'approved'])->name('researcher.dashboard');
 
 Route::get('/coordinator', [\App\Http\Controllers\CoordinatorController::class, 'dashboard'])
     ->middleware(['auth', 'role:coordinator', 'approved'])->name('coordinator.dashboard');

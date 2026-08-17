@@ -21,7 +21,16 @@ class BudgetOfficerController extends Controller
             ->latest()
             ->get();
 
-        return view('budget.dashboard', compact('pendingCertification', 'certifiedProposals'));
+        $allProposals = ResearchProposal::with(['user'])->latest()->get();
+
+        $stats = [
+            'total_processed' => $certifiedProposals->count() + $pendingCertification->count(),
+            'pending_certification' => $pendingCertification->count(),
+            'certified_funds' => $certifiedProposals->count(),
+            'active_funded' => $allProposals->whereIn('status', ['final_approved', 'completed'])->count(),
+        ];
+
+        return view('budget.dashboard', compact('pendingCertification', 'certifiedProposals', 'allProposals', 'stats'));
     }
 
     public function certify(Request $request, $id)
