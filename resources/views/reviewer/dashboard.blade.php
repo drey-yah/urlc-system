@@ -132,7 +132,7 @@
                                         </td>
                                         <td class="pe-4 py-3 text-end">
                                             <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                                                <i class="bi bi-search me-1"></i> Review
+                                                <i class="bi bi-search me-1"></i> View Proposal
                                             </a>
                                         </td>
                                     </tr>

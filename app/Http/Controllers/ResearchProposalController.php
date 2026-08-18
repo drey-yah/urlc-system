@@ -351,8 +351,26 @@ class ResearchProposalController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        if (!in_array($proposal->status, ['approved', 'final_approved', 'ongoing', 'completed', 'archived'])) {
-            abort(403, 'This proposal has not been fully approved yet.');
+        $allowedStatuses = [
+            'accepted_for_in_house_review',
+            'under_review',
+            'revision_required',
+            'returned_for_revision',
+            'approved_with_revisions',
+            'approved',
+            'final_copy_submitted',
+            'final_copy_noted_by_dean',
+            'pending_budget_certification',
+            'funds_certified',
+            'endorsed_to_vprei',
+            'final_approved',
+            'ongoing',
+            'completed',
+            'archived'
+        ];
+
+        if (!in_array($proposal->status, $allowedStatuses)) {
+            abort(403, 'This proposal has not been accepted for in-house review yet.');
         }
 
         $pdf = \PDF::loadView('pdfs.notice', compact('proposal'));
