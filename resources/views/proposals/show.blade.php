@@ -337,6 +337,374 @@
     </div>
     @endif
 
+    <!-- Phase 2: Implementation, Monitoring & Evaluation Workspace -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-diagram-3-fill text-success"></i> Phase 2: Implementation, Monitoring & Evaluation Workspace
+                </h3>
+                <p class="text-muted small mb-0">Multi-step document sign-off & submission hub for Activity Designs, Purchase Requests, Monitoring Forms, and Terminal Reports.</p>
+            </div>
+            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-4 py-2 fw-bold">Phase 2 Active</span>
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+            <div class="row g-4">
+                <!-- 1. Activity Design & Budget Clearance (Steps 1 & 2) -->
+                <div class="col-md-6">
+                    <div class="card border border-light-subtle rounded-4 h-100 shadow-xs">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold">Step 1 & 2</span>
+                                <h6 class="fw-bold text-dark mb-0">Activity Design & Budget</h6>
+                            </div>
+                            <p class="text-muted small mb-3">Submission and sign-off for Activity Design (HRU-FM-021) and Proposed Budgetary Requirement (BU-FM-006).</p>
+                            
+                            @php
+                                $latestActivity = $proposal->activityDesigns->last();
+                            @endphp
+
+                            @if($latestActivity)
+                                <div class="bg-light p-3 rounded-3 mb-3 border">
+                                    <div class="fw-bold text-dark small">{{ $latestActivity->activity_title }}</div>
+                                    <div class="text-muted fs-7">Venue: {{ $latestActivity->venue ?? 'N/A' }} | Date: {{ $latestActivity->target_date ? $latestActivity->target_date->format('M d, Y') : 'N/A' }}</div>
+                                    <div class="fw-bold text-success fs-7 mt-1">Proposed Budget: ₱{{ number_format($latestActivity->proposed_budget, 2) }}</div>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        @if($latestActivity->activity_design_file)
+                                            <a href="{{ route('file.serve', ['path' => $latestActivity->activity_design_file]) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill">
+                                                <i class="bi bi-file-earmark-pdf"></i> View HRU-FM-021
+                                            </a>
+                                        @endif
+                                        @if($latestActivity->budget_requirement_file)
+                                            <a href="{{ route('file.serve', ['path' => $latestActivity->budget_requirement_file]) }}" target="_blank" class="btn btn-xs btn-outline-success rounded-pill">
+                                                <i class="bi bi-file-earmark-pdf"></i> View BU-FM-006
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <div class="mt-2 pt-2 border-top">
+                                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 small">
+                                            Status: {{ strtoupper(str_replace('_', ' ', $latestActivity->status)) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons for Officials -->
+                                @if(auth()->user()->role === 'admin' && !$latestActivity->director_noted)
+                                    <form action="{{ route('admin.phase2.noteActivity', $latestActivity->id) }}" method="POST" class="mb-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill shadow-sm" onclick="return confirm('Note Activity Design as Research Director?');">
+                                            <i class="bi bi-check-circle me-1"></i> Director Note (HRU-FM-021)
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if(auth()->user()->role === 'budget_officer' && $latestActivity->director_noted && !$latestActivity->budget_officer_noted)
+                                    <form action="{{ route('budget.phase2.noteActivity', $latestActivity->id) }}" method="POST" class="mb-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill shadow-sm" onclick="return confirm('Note Budgetary Requirement as Budget Officer?');">
+                                            <i class="bi bi-cash-stack me-1"></i> Budget Officer Note (BU-FM-006)
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if(auth()->user()->role === 'vprei' && $latestActivity->budget_officer_noted && !$latestActivity->vprei_approved)
+                                    <form action="{{ route('vprei.phase2.approveActivity', $latestActivity->id) }}" method="POST" class="mb-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill shadow-sm" onclick="return confirm('Approve Activity Design as VPREI?');">
+                                            <i class="bi bi-award me-1"></i> VPREI Approve Activity Design
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                <p class="text-muted fs-7 italic mb-3">No Activity Design submitted yet.</p>
+                            @endif
+
+                            <!-- Researcher Upload Form -->
+                            @if(auth()->id() == $proposal->user_id)
+                                <button class="btn btn-sm btn-outline-primary w-100 rounded-pill" data-bs-toggle="collapse" data-bs-target="#activityDesignForm">
+                                    <i class="bi bi-upload me-1"></i> Submit Activity Design & Budget
+                                </button>
+                                <div class="collapse mt-3" id="activityDesignForm">
+                                    <form action="{{ route('activity_design.store', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="mb-2">
+                                            <input type="text" name="activity_title" class="form-control form-control-sm" placeholder="Activity Title" required>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <input type="text" name="venue" class="form-control form-control-sm" placeholder="Venue">
+                                            </div>
+                                            <div class="col-6">
+                                                <input type="date" name="target_date" class="form-control form-control-sm">
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="number" step="0.01" min="0" name="proposed_budget" class="form-control form-control-sm" placeholder="Proposed Budget (₱)" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-7 fw-bold mb-1">Signed HRU-FM-021 (PDF)</label>
+                                            <input type="file" name="activity_design_file" class="form-control form-control-sm" accept=".pdf">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fs-7 fw-bold mb-1">Signed BU-FM-006 (PDF)</label>
+                                            <input type="file" name="budget_requirement_file" class="form-control form-control-sm" accept=".pdf">
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Upload & Submit</button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Purchase Request (Steps 3 & 4) -->
+                <div class="col-md-6">
+                    <div class="card border border-light-subtle rounded-4 h-100 shadow-xs">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-bold">Step 3 & 4</span>
+                                <h6 class="fw-bold text-dark mb-0">Purchase Request (PR)</h6>
+                            </div>
+                            <p class="text-muted small mb-3">Procurement flow for supplies, materials, and equipment.</p>
+
+                            @php
+                                $latestPR = $proposal->purchaseRequests->last();
+                            @endphp
+
+                            @if($latestPR)
+                                <div class="bg-light p-3 rounded-3 mb-3 border">
+                                    <div class="fw-bold text-dark small">PR #{{ $latestPR->id }} {{ $latestPR->pr_number ? '('.$latestPR->pr_number.')' : '' }}</div>
+                                    <div class="text-muted fs-7">Purpose: {{ $latestPR->purpose }}</div>
+                                    <div class="fw-bold text-success fs-7 mt-1">Total Amount: ₱{{ number_format($latestPR->total_amount, 2) }}</div>
+                                    @if($latestPR->document_path)
+                                        <div class="mt-2">
+                                            <a href="{{ route('file.serve', ['path' => $latestPR->document_path]) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill">
+                                                <i class="bi bi-file-earmark-pdf"></i> View Signed PR PDF
+                                            </a>
+                                        </div>
+                                    @endif
+                                    <div class="mt-2 pt-2 border-top">
+                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 small">
+                                            Status: {{ strtoupper(str_replace('_', ' ', $latestPR->status)) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons for Officials -->
+                                @if(auth()->user()->role === 'admin' && !$latestPR->director_countersigned)
+                                    <form action="{{ route('admin.phase2.countersignPR', $latestPR->id) }}" method="POST" class="mb-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill shadow-sm" onclick="return confirm('Countersign Purchase Request as Director?');">
+                                            <i class="bi bi-pencil-square me-1"></i> Director Countersign PR
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if(auth()->user()->role === 'sao_finance' && $latestPR->director_countersigned && !$latestPR->finance_approved)
+                                    <form action="{{ route('finance.pr.approve', $latestPR->id) }}" method="POST" class="mb-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill shadow-sm" onclick="return confirm('Approve PR for procurement as Finance Officer?');">
+                                            <i class="bi bi-check-circle me-1"></i> Approve Procurement PR
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                <p class="text-muted fs-7 italic mb-3">No Purchase Request created yet.</p>
+                            @endif
+
+                            <!-- Researcher Upload Form -->
+                            @if(auth()->id() == $proposal->user_id)
+                                <button class="btn btn-sm btn-outline-success w-100 rounded-pill" data-bs-toggle="collapse" data-bs-target="#prForm">
+                                    <i class="bi bi-upload me-1"></i> Submit Purchase Request
+                                </button>
+                                <div class="collapse mt-3" id="prForm">
+                                    <form action="{{ route('purchase_request.store', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="mb-2">
+                                            <input type="text" name="purpose" class="form-control form-control-sm" placeholder="PR Purpose / Materials Description" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="number" step="0.01" min="0" name="total_amount" class="form-control form-control-sm" placeholder="Total PR Amount (₱)" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fs-7 fw-bold mb-1">Upload Signed PR PDF</label>
+                                            <input type="file" name="document_path" class="form-control form-control-sm" accept=".pdf">
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Upload PR</button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Research Project Monitoring Form (Step 7) -->
+                <div class="col-md-6">
+                    <div class="card border border-light-subtle rounded-4 h-100 shadow-xs">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-bold">Step 7</span>
+                                <h6 class="fw-bold text-dark mb-0">Project Monitoring (RESU-FM-014)</h6>
+                            </div>
+                            <p class="text-muted small mb-3">Periodic progress monitoring and evaluation by College Research Coordinator.</p>
+
+                            @php
+                                $latestMonitoring = $proposal->projectMonitorings->last();
+                            @endphp
+
+                            @if($latestMonitoring)
+                                <div class="bg-light p-3 rounded-3 mb-3 border">
+                                    <div class="fw-bold text-dark small">Period: {{ $latestMonitoring->period_covered }}</div>
+                                    <div class="text-muted fs-7">{{ $latestMonitoring->progress_summary }}</div>
+                                    @if($latestMonitoring->monitoring_form_path)
+                                        <div class="mt-2">
+                                            <a href="{{ route('file.serve', ['path' => $latestMonitoring->monitoring_form_path]) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill">
+                                                <i class="bi bi-file-earmark-pdf"></i> View RESU-FM-014 PDF
+                                            </a>
+                                        </div>
+                                    @endif
+                                    <div class="mt-2 pt-2 border-top">
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 small">
+                                            Status: {{ strtoupper($latestMonitoring->status) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if(auth()->user()->role === 'coordinator' && !$latestMonitoring->coordinator_verified)
+                                    <form action="{{ route('coordinator.phase2.verify', $latestMonitoring->id) }}" method="POST" class="mb-2">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill shadow-sm" onclick="return confirm('Verify monitoring form as College Coordinator?');">
+                                            <i class="bi bi-check-circle me-1"></i> Coordinator Verify (RESU-FM-014)
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                <p class="text-muted fs-7 italic mb-3">No Monitoring Form submitted yet.</p>
+                            @endif
+
+                            @if(auth()->id() == $proposal->user_id)
+                                <button class="btn btn-sm btn-outline-warning text-dark w-100 rounded-pill" data-bs-toggle="collapse" data-bs-target="#monitoringForm">
+                                    <i class="bi bi-upload me-1"></i> Submit Monitoring Form (RESU-FM-014)
+                                </button>
+                                <div class="collapse mt-3" id="monitoringForm">
+                                    <form action="{{ route('monitoring.store', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="mb-2">
+                                            <input type="text" name="period_covered" class="form-control form-control-sm" placeholder="Period Covered (e.g. Q1 2026)" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <textarea name="progress_summary" class="form-control form-control-sm" rows="2" placeholder="Brief Progress Summary"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fs-7 fw-bold mb-1">Signed RESU-FM-014 (PDF)</label>
+                                            <input type="file" name="monitoring_form_path" class="form-control form-control-sm" accept=".pdf">
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark w-100 rounded-pill">Submit Form</button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Terminal Report & Completion (Steps 8-11) -->
+                <div class="col-md-6">
+                    <div class="card border border-light-subtle rounded-4 h-100 shadow-xs">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-purple bg-opacity-10 text-purple rounded-pill px-3 py-1 fw-bold" style="color: #8B5CF6;">Steps 8-11</span>
+                                <h6 class="fw-bold text-dark mb-0">Terminal Report & Completion</h6>
+                            </div>
+                            <p class="text-muted small mb-3">Terminal Report (RESU-FM-017), Panel Evaluation (RESU-FM-001), & Completion Certificate (RESU-FM-028).</p>
+
+                            @php
+                                $terminal = $proposal->terminalReport;
+                            @endphp
+
+                            @if($terminal)
+                                <div class="bg-light p-3 rounded-3 mb-3 border">
+                                    <div class="fw-bold text-dark small">Status: {{ strtoupper(str_replace('_', ' ', $terminal->status)) }}</div>
+                                    @if($terminal->evaluator_score)
+                                        <div class="fw-bold text-success fs-7 mt-1">Evaluator Score: {{ $terminal->evaluator_score }} / 100</div>
+                                    @endif
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        @if($terminal->terminal_report_file)
+                                            <a href="{{ route('file.serve', ['path' => $terminal->terminal_report_file]) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill">
+                                                <i class="bi bi-file-earmark-pdf"></i> View RESU-FM-017
+                                            </a>
+                                        @endif
+                                        @if($terminal->full_paper_file)
+                                            <a href="{{ route('file.serve', ['path' => $terminal->full_paper_file]) }}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill">
+                                                <i class="bi bi-file-earmark-text"></i> View Full Paper
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if(auth()->user()->role === 'reviewer' && $terminal->status === 'submitted_to_unit')
+                                    <button class="btn btn-sm btn-primary w-100 rounded-pill mb-2" data-bs-toggle="collapse" data-bs-target="#evaluateTerminalForm">
+                                        <i class="bi bi-pencil-square me-1"></i> Submit Panel Evaluation (RESU-FM-001)
+                                    </button>
+                                    <div class="collapse mb-3" id="evaluateTerminalForm">
+                                        <form action="{{ route('reviewer.phase2.evaluate', $terminal->id) }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="mb-2">
+                                                <input type="number" step="0.1" min="0" max="100" name="evaluator_score" class="form-control form-control-sm" placeholder="Evaluation Score (0-100)" required>
+                                            </div>
+                                            <div class="mb-2">
+                                                <textarea name="evaluator_comments" class="form-control form-control-sm" rows="2" placeholder="Evaluator Feedback / Comments"></textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-7 fw-bold mb-1">Upload RESU-FM-001 (PDF)</label>
+                                                <input type="file" name="evaluation_form_file" class="form-control form-control-sm" accept=".pdf">
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Submit Evaluation</button>
+                                        </form>
+                                    </div>
+                                @endif
+
+                                @if(auth()->user()->role === 'admin' && $terminal->status === 'final_report_submitted')
+                                    <form action="{{ route('admin.phase2.issueCompletion', $terminal->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill shadow-sm" onclick="return confirm('Issue Certificate of Research Completion (RESU-FM-028) and complete project?');">
+                                            <i class="bi bi-award-fill me-1"></i> Issue Certificate of Completion (RESU-FM-028)
+                                        </button>
+                                    </form>
+                                @endif
+                            @else
+                                <p class="text-muted fs-7 italic mb-3">No Terminal Report submitted yet.</p>
+                            @endif
+
+                            @if(auth()->id() == $proposal->user_id)
+                                <button class="btn btn-sm btn-outline-purple text-purple w-100 rounded-pill" style="color: #8B5CF6; border-color: #8B5CF6;" data-bs-toggle="collapse" data-bs-target="#terminalForm">
+                                    <i class="bi bi-upload me-1"></i> Submit Terminal Report (RESU-FM-017)
+                                </button>
+                                <div class="collapse mt-3" id="terminalForm">
+                                    <form action="{{ route('terminal_report.store', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="mb-2">
+                                            <textarea name="executive_summary" class="form-control form-control-sm" rows="2" placeholder="Executive Summary"></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-7 fw-bold mb-1">Signed RESU-FM-017 (PDF)</label>
+                                            <input type="file" name="terminal_report_file" class="form-control form-control-sm" accept=".pdf">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fs-7 fw-bold mb-1">Full Research Manuscript (PDF)</label>
+                                            <input type="file" name="full_paper_file" class="form-control form-control-sm" accept=".pdf">
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">Submit Terminal Report</button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Phase 6: Final Manuscript Submission -->
     @if(auth()->id() == $proposal->user_id && $proposal->current_phase >= 5 && $proposal->status !== 'archived')
         <div class="card border-0 shadow-sm mb-4">

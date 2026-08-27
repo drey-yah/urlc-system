@@ -13,18 +13,19 @@
         <style>
             body {
                 background-color: #EBF5FF;
-                height: 100vh;
+                min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                padding: 2rem 0;
             }
             .landing-card {
                 background: white;
                 border-radius: 24px;
                 padding: 3rem;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                max-width: 1000px;
-                width: 90%;
+                max-width: 1200px;
+                width: 95%;
             }
             .role-card {
                 border-radius: 16px;
@@ -68,39 +69,67 @@
             <div class="landing-card mx-auto">
                 <h2 class="h4 fw-bold mb-5">Select Your Role</h2>
                 <div class="row g-4 justify-content-center">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <a href="{{ route('login') }}" class="role-card btn-researcher">
                             <i class="bi bi-person role-icon"></i>
                             <h3 class="h5 fw-bold mb-2">Researcher</h3>
                             <p class="small mb-0 opacity-75">Submit and track your research proposals</p>
                         </a>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <a href="{{ route('login') }}" class="role-card btn-reviewer">
                             <i class="bi bi-person-check role-icon"></i>
                             <h3 class="h5 fw-bold mb-2">Reviewer</h3>
-                            <p class="small mb-0 opacity-75">Review and provide feedback on proposals</p>
+                            <p class="small mb-0 opacity-75">Review and evaluate research proposals</p>
                         </a>
                     </div>
-                    <div class="col-md-4">
-                        <a href="{{ route('login') }}" class="role-card btn-admin">
-                            <i class="bi bi-shield-check role-icon"></i>
-                            <h3 class="h5 fw-bold mb-2">Administrator</h3>
-                            <p class="small mb-0 opacity-75">Manage system and announcements</p>
-                        </a>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <a href="{{ route('login') }}" class="role-card" style="background-color: #F59E0B;">
                             <i class="bi bi-person-badge role-icon"></i>
                             <h3 class="h5 fw-bold mb-2">Coordinator</h3>
                             <p class="small mb-0 opacity-75">Endorse proposals from your department</p>
                         </a>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #6366F1;">
+                            <i class="bi bi-building role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">College Dean</h3>
+                            <p class="small mb-0 opacity-75">Review and note college research proposals</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
                         <a href="{{ route('login') }}" class="role-card" style="background-color: #0ea5e9;">
                             <i class="bi bi-inbox role-icon"></i>
                             <h3 class="h5 fw-bold mb-2">Support Staff</h3>
-                            <p class="small mb-0 opacity-75">Receive and route endorsed proposals</p>
+                            <p class="small mb-0 opacity-75">Receive and verify proposal compliance</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #d97706;">
+                            <i class="bi bi-cash-coin role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Budget Officer</h3>
+                            <p class="small mb-0 opacity-75">Evaluate line-item budget allocations</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #059669;">
+                            <i class="bi bi-bank role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Finance Officer</h3>
+                            <p class="small mb-0 opacity-75">Approve purchase requests & procurement</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #1e293b;">
+                            <i class="bi bi-award role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">VPREI</h3>
+                            <p class="small mb-0 opacity-75">Grant executive approval & NTP clearance</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ route('login') }}" class="role-card btn-admin">
+                            <i class="bi bi-shield-check role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">Administrator</h3>
+                            <p class="small mb-0 opacity-75">Manage system roles & announcements</p>
                         </a>
                     </div>
                 </div>

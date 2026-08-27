@@ -77,4 +77,25 @@ class ResearchProposal extends Model
     {
         return $this->hasMany(ProposalBudgetItem::class);
     }
+
+    // Phase 2 Relationships
+    public function activityDesigns()
+    {
+        return $this->hasMany(ActivityDesign::class);
+    }
+
+    public function purchaseRequests()
+    {
+        return $this->hasMany(PurchaseRequest::class);
+    }
+
+    public function projectMonitorings()
+    {
+        return $this->hasMany(ProjectMonitoring::class);
+    }
+
+    public function terminalReport()
+    {
+        return $this->hasOne(TerminalReport::class);
+    }
 }

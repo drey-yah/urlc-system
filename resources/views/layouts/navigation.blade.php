@@ -92,6 +92,13 @@
             </a>
         @endif
 
+        @if(auth()->user()->role === 'sao_finance')
+            <a href="{{ route('finance.dashboard') }}" class="sidebar-link {{ request()->routeIs('finance.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-bank"></i>
+                <span>Procurement PRs</span>
+            </a>
+        @endif
+
         @if(auth()->user()->role === 'researcher')
             <a href="{{ route('proposal.index') }}" class="sidebar-link {{ request()->routeIs('proposal.index') ? 'active' : '' }}">
                 <i class="bi bi-folder-fill"></i>
@@ -123,16 +130,45 @@
             <span>Messages</span>
         </a>
 
-        <!-- Notifications (Collapsible or just a link) -->
-        <div class="mt-4 pt-4 border-top">
-            <h6 class="text-muted small fw-bold px-3 mb-3 text-uppercase">Notifications</h6>
-            @forelse(auth()->user()->unreadNotifications->take(3) as $notification)
-                <a href="{{ $notification->data['proposal_id'] ?? false ? route('proposal.show', $notification->data['proposal_id']) : route('announcements.index') }}" class="sidebar-link py-2" style="font-size: 0.8rem;">
-                    <i class="bi bi-dot text-primary fs-4"></i>
-                    <span class="text-truncate">{{ $notification->data['title'] }}</span>
+        <!-- Notifications & Activity Log History Section -->
+        <div class="mt-4 pt-3 border-top px-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted small fw-bold mb-0 text-uppercase d-flex align-items-center gap-2">
+                    <i class="bi bi-bell-fill text-warning"></i> Notifications
+                    @if(auth()->user()->unreadNotifications->count() > 0)
+                        <span class="badge bg-danger rounded-pill fs-7">{{ auth()->user()->unreadNotifications->count() }}</span>
+                    @endif
+                </h6>
+                @if(auth()->user()->unreadNotifications->count() > 0)
+                    <form action="{{ route('notifications.markRead') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-link p-0 text-muted text-decoration-none" style="font-size: 0.7rem;" title="Mark all as read">
+                            Mark all read
+                        </button>
+                    </form>
+                @endif
+            </div>
+
+            @forelse(auth()->user()->notifications->take(6) as $notification)
+                @php
+                    $isUnread = is_null($notification->read_at);
+                @endphp
+                <a href="{{ isset($notification->data['proposal_id']) && $notification->data['proposal_id'] ? route('proposal.show', $notification->data['proposal_id']) : route('announcements.index') }}" 
+                   class="d-flex align-items-start gap-2 p-2 rounded-3 text-decoration-none transition-all mb-1 {{ $isUnread ? 'bg-primary bg-opacity-10 border-start border-primary border-3' : 'hover-bg-light opacity-75' }}" 
+                   style="font-size: 0.78rem;">
+                    <div class="overflow-hidden w-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-bold text-truncate text-dark" style="line-height: 1.2;">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                            @if($isUnread)
+                                <span class="badge bg-primary rounded-circle p-1" title="Unread"></span>
+                            @endif
+                        </div>
+                        <div class="text-muted text-truncate" style="font-size: 0.7rem;">{{ $notification->data['message'] ?? '' }}</div>
+                        <div class="text-muted" style="font-size: 0.65rem;">{{ $notification->created_at->diffForHumans() }}</div>
+                    </div>
                 </a>
             @empty
-                <p class="text-muted x-small px-3 italic">No new notifications</p>
+                <p class="text-muted x-small italic mb-0 text-center py-2" style="font-size: 0.72rem;">No notification history yet</p>
             @endforelse
         </div>
     </nav>

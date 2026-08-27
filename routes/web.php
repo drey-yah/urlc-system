@@ -37,6 +37,8 @@ Route::get('/redirect', function () {
         return redirect('/vprei');
     } elseif ($role == 'budget_officer') {
         return redirect('/budget');
+    } elseif ($role == 'sao_finance') {
+        return redirect('/finance');
     } elseif ($role == 'staff') {
         return redirect('/staff');
     } elseif ($role == 'recording_staff') {
@@ -137,6 +139,12 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
     Route::put('/proposal/{id}/update', [ResearchProposalController::class, 'update'])->name('proposal.update');
     Route::delete('/proposal/{id}', [ResearchProposalController::class, 'destroy'])->name('proposal.destroy');
     Route::post('/proposal/{id}/submit-final-copy', [ResearchProposalController::class, 'submitFinalCopy'])->name('proposal.submitFinalCopy');
+
+    // Phase 2 Implementation Routes (Researcher Submissions)
+    Route::post('/proposal/{id}/activity-design', [\App\Http\Controllers\ActivityDesignController::class, 'store'])->name('activity_design.store');
+    Route::post('/proposal/{id}/purchase-request', [\App\Http\Controllers\PurchaseRequestController::class, 'store'])->name('purchase_request.store');
+    Route::post('/proposal/{id}/monitoring', [\App\Http\Controllers\ProjectMonitoringController::class, 'store'])->name('monitoring.store');
+    Route::post('/proposal/{id}/terminal-report', [\App\Http\Controllers\TerminalReportController::class, 'store'])->name('terminal_report.store');
 });
 
 // Shared Proposal Routes (All authenticated users)
@@ -161,6 +169,12 @@ Route::middleware(['auth'])->group(function () {
     // Repository
     Route::get('/repository', [\App\Http\Controllers\RepositoryController::class, 'index'])->name('repository.index');
 
+    // Notifications
+    Route::post('/notifications/mark-read', function () {
+        auth()->user()->unreadNotifications->markAsRead();
+        return redirect()->back();
+    })->name('notifications.markRead');
+
     // Milestones
     Route::post('/proposal/{id}/milestones', [\App\Http\Controllers\ResearchMilestoneController::class, 'store'])->name('milestones.store');
 
@@ -168,7 +182,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/proposal/{id}/budget-items', [\App\Http\Controllers\ProposalBudgetItemController::class, 'store'])->name('budget_items.store');
     Route::delete('/budget-items/{id}', [\App\Http\Controllers\ProposalBudgetItemController::class, 'destroy'])->name('budget_items.destroy');
 
-    // Secure File Serving — generates a signed S3/Supabase URL for private bucket files
+    // Secure File Serving — serves files seamlessly from Supabase S3 or local public storage
     Route::get('/files/serve', function (\Illuminate\Http\Request $request) {
         $path = $request->query('path');
 
@@ -176,17 +190,26 @@ Route::middleware(['auth'])->group(function () {
             abort(404, 'File path not provided.');
         }
 
-        $disk = \Storage::disk(config('filesystems.default', 'public'));
-
-        try {
-            // For S3/Supabase: generate a 60-minute temporary signed URL
-            $url = $disk->temporaryUrl($path, now()->addMinutes(60));
-        } catch (\Exception $e) {
-            // Fallback for local disk (does not support temporaryUrl)
-            $url = $disk->url($path);
+        // 1. Check local public storage first if file exists locally
+        $publicDisk = \Storage::disk('public');
+        if ($publicDisk->exists($path)) {
+            return response()->file($publicDisk->path($path));
         }
 
-        return redirect($url);
+        // 2. Check default cloud storage disk (Supabase S3)
+        $defaultDiskName = config('filesystems.default', 'public');
+        if ($defaultDiskName !== 'public') {
+            $defaultDisk = \Storage::disk($defaultDiskName);
+            if ($defaultDisk->exists($path)) {
+                try {
+                    return redirect($defaultDisk->temporaryUrl($path, now()->addMinutes(60)));
+                } catch (\Exception $e) {
+                    return redirect($defaultDisk->url($path));
+                }
+            }
+        }
+
+        abort(404, 'Uploaded file not found on storage server.');
     })->name('file.serve');
     
     // PDF Generation
@@ -222,6 +245,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:reviewer'])->group(function () {
     Route::get('/reviewer/proposals', [ResearchProposalController::class, 'reviewerIndex'])->name('reviewer.proposals');
     Route::post('/reviewer/proposals/{id}/update-status', [ResearchProposalController::class, 'updateStatus'])->name('reviewer.proposals.updateStatus');
+    Route::post('/phase2/terminal-report/{id}/evaluate', [\App\Http\Controllers\TerminalReportController::class, 'evaluate'])->name('reviewer.phase2.evaluate');
 });
 
 /*
@@ -234,6 +258,7 @@ Route::middleware(['auth', 'role:coordinator'])->group(function () {
     Route::get('/coordinator/proposals', [\App\Http\Controllers\CoordinatorController::class, 'index'])->name('coordinator.proposals');
     Route::post('/coordinator/proposals/{id}/endorse', [\App\Http\Controllers\CoordinatorController::class, 'endorse'])->name('coordinator.proposals.endorse');
     Route::post('/coordinator/proposals/{id}/submit-to-unit', [\App\Http\Controllers\CoordinatorController::class, 'submitToResearchUnit'])->name('coordinator.proposals.submitToUnit');
+    Route::post('/phase2/monitoring/{id}/coordinator-verify', [\App\Http\Controllers\ProjectMonitoringController::class, 'coordinatorVerify'])->name('coordinator.phase2.verify');
 });
 
 /*
@@ -272,6 +297,7 @@ Route::middleware(['auth', 'role:dean', 'approved'])->group(function () {
 Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
     Route::get('/vprei', [\App\Http\Controllers\VpreiController::class, 'dashboard'])->name('vprei.dashboard');
     Route::post('/vprei/proposals/{id}/approve', [\App\Http\Controllers\VpreiController::class, 'approve'])->name('vprei.approve');
+    Route::post('/phase2/activity-design/{id}/vprei-approve', [\App\Http\Controllers\ActivityDesignController::class, 'vpreiApprove'])->name('vprei.phase2.approveActivity');
 });
 
 /*
@@ -283,6 +309,19 @@ Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
 Route::middleware(['auth', 'role:budget_officer', 'approved'])->group(function () {
     Route::get('/budget', [\App\Http\Controllers\BudgetOfficerController::class, 'dashboard'])->name('budget.dashboard');
     Route::post('/budget/proposals/{id}/certify', [\App\Http\Controllers\BudgetOfficerController::class, 'certify'])->name('budget.certify');
+    Route::post('/phase2/activity-design/{id}/budget-note', [\App\Http\Controllers\ActivityDesignController::class, 'budgetNote'])->name('budget.phase2.noteActivity');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Finance Officer Routes (Phase 2 Procurement Approval)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:sao_finance', 'approved'])->group(function () {
+    Route::get('/finance', [\App\Http\Controllers\FinanceOfficerController::class, 'dashboard'])->name('finance.dashboard');
+    Route::post('/finance/pr/{id}/approve', [\App\Http\Controllers\FinanceOfficerController::class, 'approvePR'])->name('finance.pr.approve');
+    Route::post('/finance/pr/{id}/reject', [\App\Http\Controllers\FinanceOfficerController::class, 'rejectPR'])->name('finance.pr.reject');
 });
 
 /*
@@ -307,6 +346,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Director Review & Endorsement Actions
     Route::post('/admin/proposals/{id}/accept-in-house', [ResearchProposalController::class, 'acceptForInHouseReview'])->name('admin.proposals.acceptInHouse');
     Route::post('/admin/proposals/{id}/endorse-vprei', [ResearchProposalController::class, 'endorseToVprei'])->name('admin.proposals.endorseVprei');
+
+    // Phase 2 Director Approvals
+    Route::post('/phase2/activity-design/{id}/director-note', [\App\Http\Controllers\ActivityDesignController::class, 'directorNote'])->name('admin.phase2.noteActivity');
+    Route::post('/phase2/purchase-request/{id}/director-countersign', [\App\Http\Controllers\PurchaseRequestController::class, 'directorCountersign'])->name('admin.phase2.countersignPR');
+    Route::post('/phase2/terminal-report/{id}/issue-completion', [\App\Http\Controllers\TerminalReportController::class, 'issueCompletion'])->name('admin.phase2.issueCompletion');
 
     // Milestones Status Update
     Route::patch('/admin/milestones/{id}/status', [\App\Http\Controllers\ResearchMilestoneController::class, 'updateStatus'])->name('admin.milestones.updateStatus');

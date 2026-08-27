@@ -107,6 +107,11 @@ class User extends Authenticatable
         return $this->role === 'budget_officer';
     }
 
+    public function isSaoFinance()
+    {
+        return $this->role === 'sao_finance';
+    }
+
     public function leadProposals()
     {
         return $this->hasMany(\App\Models\ResearchProposal::class);

@@ -504,6 +504,7 @@
                             <option value="staff"           {{ old('role') == 'staff'            ? 'selected' : '' }}>Support Staff (Receiving)</option>
                             <option value="recording_staff" {{ old('role') == 'recording_staff'  ? 'selected' : '' }}>Support Staff (Recording)</option>
                             <option value="budget_officer"  {{ old('role') == 'budget_officer'   ? 'selected' : '' }}>Budget Officer</option>
+                            <option value="sao_finance"     {{ old('role') == 'sao_finance'      ? 'selected' : '' }}>Finance Officer</option>
                             <option value="admin"           {{ old('role') == 'admin'            ? 'selected' : '' }}>Administrator</option>
                         </select>
                         <i class="bi bi-shield-check input-icon"></i>
@@ -549,7 +550,7 @@
         }
 
         // Show approval notice for roles that require it
-        const approvalRoles = ['staff', 'recording_staff', 'admin', 'dean', 'vprei', 'budget_officer'];
+        const approvalRoles = ['staff', 'recording_staff', 'admin', 'dean', 'vprei', 'budget_officer', 'sao_finance'];
         function checkRole(select) {
             const notice = document.getElementById('approvalNotice');
             notice.style.display = approvalRoles.includes(select.value) ? 'flex' : 'none';
