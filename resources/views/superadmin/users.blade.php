@@ -17,6 +17,7 @@
                         <option value="coordinator" {{ request('role') == 'coordinator' ? 'selected' : '' }}>College Coordinator</option>
                         <option value="dean" {{ request('role') == 'dean' ? 'selected' : '' }}>College Dean</option>
                         <option value="vprei" {{ request('role') == 'vprei' ? 'selected' : '' }}>VPREI</option>
+                        <option value="president" {{ request('role') == 'president' ? 'selected' : '' }}>SUC President</option>
                         <option value="budget_officer" {{ request('role') == 'budget_officer' ? 'selected' : '' }}>Budget Officer</option>
                         <option value="sao_finance" {{ request('role') == 'sao_finance' ? 'selected' : '' }}>Finance Officer</option>
                         <option value="staff" {{ request('role') == 'staff' ? 'selected' : '' }}>Support Staff (Receiving)</option>

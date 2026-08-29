@@ -85,6 +85,13 @@
             </a>
         @endif
 
+        @if(auth()->user()->role === 'president')
+            <a href="{{ route('president.dashboard') }}" class="sidebar-link {{ request()->routeIs('president.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-person-workspace"></i>
+                <span>President Authorization</span>
+            </a>
+        @endif
+
         @if(auth()->user()->role === 'budget_officer')
             <a href="{{ route('budget.dashboard') }}" class="sidebar-link {{ request()->routeIs('budget.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-cash-stack"></i>

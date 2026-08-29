@@ -126,6 +126,13 @@
                         </a>
                     </div>
                     <div class="col-md-3">
+                        <a href="{{ route('login') }}" class="role-card" style="background-color: #4f46e5;">
+                            <i class="bi bi-person-workspace role-icon"></i>
+                            <h3 class="h5 fw-bold mb-2">SUC President</h3>
+                            <p class="small mb-0 opacity-75">Authorize presentation of research outputs</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
                         <a href="{{ route('login') }}" class="role-card btn-admin">
                             <i class="bi bi-shield-check role-icon"></i>
                             <h3 class="h5 fw-bold mb-2">Administrator</h3>

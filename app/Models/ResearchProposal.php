@@ -98,4 +98,10 @@ class ResearchProposal extends Model
     {
         return $this->hasOne(TerminalReport::class);
     }
+
+    // Phase 3 Relationships
+    public function researchPresentations()
+    {
+        return $this->hasMany(ResearchPresentation::class);
+    }
 }

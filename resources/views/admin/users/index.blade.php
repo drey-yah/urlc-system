@@ -23,8 +23,8 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
-                                <span class="badge {{ $user->role == 'admin' ? 'bg-danger' : ($user->role == 'dean' ? 'bg-primary' : ($user->role == 'vprei' ? 'bg-dark' : ($user->role == 'reviewer' ? 'bg-info' : ($user->role == 'budget_officer' ? 'bg-warning text-dark' : ($user->role == 'sao_finance' ? 'bg-success' : 'bg-secondary'))))) }}">
-                                    {{ $user->role == 'sao_finance' ? 'Finance Officer' : ucfirst(str_replace('_', ' ', $user->role)) }}
+                                <span class="badge {{ $user->role == 'admin' ? 'bg-danger' : ($user->role == 'president' ? 'bg-purple text-white' : ($user->role == 'dean' ? 'bg-primary' : ($user->role == 'vprei' ? 'bg-dark' : ($user->role == 'reviewer' ? 'bg-info' : ($user->role == 'budget_officer' ? 'bg-warning text-dark' : ($user->role == 'sao_finance' ? 'bg-success' : 'bg-secondary')))))) }}" style="{{ $user->role == 'president' ? 'background-color: #8B5CF6;' : '' }}">
+                                    {{ $user->role == 'sao_finance' ? 'Finance Officer' : ($user->role == 'president' ? 'SUC President' : ucfirst(str_replace('_', ' ', $user->role))) }}
                                 </span>
                             </td>
                             <td>
@@ -48,6 +48,7 @@
                                         <option value="coordinator" {{ $user->role == 'coordinator' ? 'selected' : '' }}>Coordinator</option>
                                         <option value="dean" {{ $user->role == 'dean' ? 'selected' : '' }}>Dean</option>
                                         <option value="vprei" {{ $user->role == 'vprei' ? 'selected' : '' }}>VPREI</option>
+                                        <option value="president" {{ $user->role == 'president' ? 'selected' : '' }}>SUC President</option>
                                         <option value="budget_officer" {{ $user->role == 'budget_officer' ? 'selected' : '' }}>Budget Officer</option>
                                         <option value="sao_finance" {{ $user->role == 'sao_finance' ? 'selected' : '' }}>Finance Officer</option>
                                         <option value="staff" {{ $user->role == 'staff' ? 'selected' : '' }}>Staff (Receiving)</option>

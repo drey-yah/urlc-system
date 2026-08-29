@@ -35,6 +35,8 @@ Route::get('/redirect', function () {
         return redirect('/dean');
     } elseif ($role == 'vprei') {
         return redirect('/vprei');
+    } elseif ($role == 'president') {
+        return redirect('/president');
     } elseif ($role == 'budget_officer') {
         return redirect('/budget');
     } elseif ($role == 'sao_finance') {
@@ -182,6 +184,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/proposal/{id}/budget-items', [\App\Http\Controllers\ProposalBudgetItemController::class, 'store'])->name('budget_items.store');
     Route::delete('/budget-items/{id}', [\App\Http\Controllers\ProposalBudgetItemController::class, 'destroy'])->name('budget_items.destroy');
 
+    // Phase 3: Presentation & Dissemination Routes
+    Route::post('/proposal/{id}/presentation', [\App\Http\Controllers\ResearchPresentationController::class, 'store'])->name('presentation.store');
+    Route::post('/presentation/{id}/acceptance', [\App\Http\Controllers\ResearchPresentationController::class, 'uploadAcceptance'])->name('presentation.uploadAcceptance');
+    Route::post('/presentation/{id}/file', [\App\Http\Controllers\ResearchPresentationController::class, 'uploadPresentation'])->name('presentation.uploadPresentation');
+    Route::post('/presentation/{id}/recommend', [\App\Http\Controllers\ResearchPresentationController::class, 'recommendToPresident'])->name('presentation.recommend');
+    Route::post('/presentation/{id}/approve', [\App\Http\Controllers\ResearchPresentationController::class, 'presidentApprove'])->name('presentation.approve');
+    Route::post('/presentation/{id}/certificate', [\App\Http\Controllers\ResearchPresentationController::class, 'uploadCertificate'])->name('presentation.uploadCertificate');
+
     // Secure File Serving — serves files seamlessly from Supabase S3 or local public storage
     Route::get('/files/serve', function (\Illuminate\Http\Request $request) {
         $path = $request->query('path');
@@ -298,6 +308,17 @@ Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
     Route::get('/vprei', [\App\Http\Controllers\VpreiController::class, 'dashboard'])->name('vprei.dashboard');
     Route::post('/vprei/proposals/{id}/approve', [\App\Http\Controllers\VpreiController::class, 'approve'])->name('vprei.approve');
     Route::post('/phase2/activity-design/{id}/vprei-approve', [\App\Http\Controllers\ActivityDesignController::class, 'vpreiApprove'])->name('vprei.phase2.approveActivity');
+});
+
+/*
+|--------------------------------------------------------------------------
+| SUC President Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:president', 'approved'])->group(function () {
+    Route::get('/president', [\App\Http\Controllers\PresidentController::class, 'dashboard'])->name('president.dashboard');
+    Route::post('/president/approve-presentation/{id}', [\App\Http\Controllers\PresidentController::class, 'approvePresentation'])->name('president.approvePresentation');
 });
 
 /*

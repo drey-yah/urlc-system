@@ -705,6 +705,291 @@
         </div>
     </div>
 
+    <!-- Phase 3: Research Dissemination & Presentation Workspace (Appendix B) -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
+                    <i class="bi bi-easel-fill" style="color: #8B5CF6;"></i> Phase 3: Research Dissemination & Presentation Workspace (Appendix B)
+                </h3>
+                <p class="text-muted fs-7 mb-0">Full authorization workflow for Oral & Poster Presentation of Research Outputs, Sponsoring Agency Acceptance, and SUC President Sign-off.</p>
+            </div>
+            @if($proposal->current_phase >= 2)
+                <span class="badge bg-purple bg-opacity-10 rounded-pill px-3 py-2 fw-medium fs-7" style="color: #8B5CF6;">
+                    <i class="bi bi-broadcast me-1"></i> Phase 3 Active
+                </span>
+            @endif
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+            @forelse($proposal->researchPresentations as $pres)
+                <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
+                    <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span class="badge {{ $pres->presentation_type === 'oral' ? 'bg-primary' : 'bg-info' }} text-white text-uppercase me-2 fw-bold fs-7">
+                                {{ strtoupper($pres->presentation_type) }} PRESENTATION
+                            </span>
+                            <strong class="text-dark fs-6">{{ $pres->presentation_title }}</strong>
+                        </div>
+                        <div>
+                            @if($pres->status === 'completed')
+                                <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Presented & Completed</span>
+                            @elseif($pres->status === 'approved_by_president')
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2"><i class="bi bi-award-fill me-1"></i> Approved by SUC President</span>
+                            @elseif($pres->status === 'recommended_to_president')
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2"><i class="bi bi-hand-thumbs-up me-1"></i> Endorsed to President</span>
+                            @elseif($pres->status === 'agency_rejected')
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i> Rejected by Agency</span>
+                            @else
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> In Progress ({{ strtoupper(str_replace('_', ' ', $pres->status)) }})</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="text-muted fs-7">Sponsoring Organization / Agency</div>
+                                <div class="fw-bold text-dark">{{ $pres->sponsoring_agency }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-muted fs-7">Conference / Event Name</div>
+                                <div class="fw-semibold text-dark">{{ $pres->conference_name }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-muted fs-7">Event Date & Venue</div>
+                                <div class="fw-medium text-dark">
+                                    {{ $pres->event_date ? $pres->event_date->format('M d, Y') : 'Date TBD' }} 
+                                    {{ $pres->venue ? '('.$pres->venue.')' : '' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid of Steps 1-6 -->
+                        <div class="row g-3">
+                            <!-- Step 1 & 2: Agency Acceptance -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">1. Agency Letter of Acceptance</h6>
+                                        @if($pres->acceptance_letter_path)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Uploaded</span>
+                                        @endif
+                                    </div>
+                                    @if($pres->acceptance_letter_path)
+                                        <a href="{{ route('file.serve', ['path' => $pres->acceptance_letter_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-2">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i> View Acceptance Letter
+                                        </a>
+                                    @else
+                                        <p class="text-muted fs-7 italic mb-2">No acceptance letter uploaded yet.</p>
+                                        @if(auth()->id() == $proposal->user_id)
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="collapse" data-bs-target="#acceptanceForm{{ $pres->id }}">
+                                                <i class="bi bi-upload me-1"></i> Upload Acceptance Result
+                                            </button>
+                                            <div class="collapse mt-2" id="acceptanceForm{{ $pres->id }}">
+                                                <form action="{{ route('presentation.uploadAcceptance', $pres->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <select name="decision" class="form-select form-select-sm" required>
+                                                            <option value="accepted">Accepted for Presentation</option>
+                                                            <option value="rejected">Rejected by Sponsoring Agency</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold mb-1">Letter of Acceptance (PDF/Image)</label>
+                                                        <input type="file" name="acceptance_letter_file" class="form-control form-control-sm">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">Submit Result</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Full Paper / Poster Presentation File -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">2. Presentation Slides / Poster Deck</h6>
+                                        @if($pres->presentation_file_path)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Uploaded</span>
+                                        @endif
+                                    </div>
+                                    @if($pres->presentation_file_path)
+                                        <a href="{{ route('file.serve', ['path' => $pres->presentation_file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-2">
+                                            <i class="bi bi-file-earmark-slides me-1"></i> View Presentation File
+                                        </a>
+                                    @else
+                                        <p class="text-muted fs-7 italic mb-2">No presentation slides/poster uploaded yet.</p>
+                                        @if(auth()->id() == $proposal->user_id)
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="collapse" data-bs-target="#presentationFileForm{{ $pres->id }}">
+                                                <i class="bi bi-upload me-1"></i> Upload Slides / Poster
+                                            </button>
+                                            <div class="collapse mt-2" id="presentationFileForm{{ $pres->id }}">
+                                                <form action="{{ route('presentation.uploadPresentation', $pres->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold mb-1">Slides / Poster Deck (PDF/PPT/PPTX)</label>
+                                                        <input type="file" name="presentation_file" class="form-control form-control-sm" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">Upload Slides</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 4 & 5: Director Recommendation & SUC President Approval -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <h6 class="fw-bold text-dark mb-2 fs-7 text-uppercase">3. Director & SUC President Sign-Off</h6>
+                                    
+                                    <!-- Recommendation Status -->
+                                    <div class="mb-2">
+                                        @if($pres->director_recommended)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fs-7">
+                                                <i class="bi bi-check-circle me-1"></i> Recommended by Director on {{ $pres->director_recommended_at ? $pres->director_recommended_at->format('M d, Y') : '' }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fs-7">
+                                                <i class="bi bi-clock me-1"></i> Awaiting Director Recommendation
+                                            </span>
+                                            @if(in_array(auth()->user()->role, ['admin', 'vprei', 'president']) && $pres->acceptance_letter_path)
+                                                <form action="{{ route('presentation.recommend', $pres->id) }}" method="POST" class="mt-2">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 shadow-sm" onclick="return confirm('Recommend this presentation to the SUC President?');">
+                                                        <i class="bi bi-hand-thumbs-up me-1"></i> Recommend to SUC President
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+                                    </div>
+
+                                    <!-- President Approval Status -->
+                                    <div>
+                                        @if($pres->president_approved)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fs-7">
+                                                <i class="bi bi-award-fill me-1"></i> Approved by SUC President on {{ $pres->president_approved_at ? $pres->president_approved_at->format('M d, Y') : '' }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1 fs-7">
+                                                <i class="bi bi-clock me-1"></i> Awaiting SUC President Approval
+                                            </span>
+                                            @if(in_array(auth()->user()->role, ['admin', 'vprei', 'president']) && $pres->director_recommended)
+                                                <form action="{{ route('presentation.approve', $pres->id) }}" method="POST" class="mt-2">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill w-100 shadow-sm" onclick="return confirm('Officially approve this research output presentation as SUC President?');">
+                                                        <i class="bi bi-check-circle me-1"></i> Approve for Oral/Poster Presentation
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 6: Presentation Execution & Certificate -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">4. Certificate of Presentation</h6>
+                                        @if($pres->certificate_path)
+                                            <span class="badge bg-success rounded-pill px-2 py-1 fs-7"><i class="bi bi-check-lg me-1"></i> Completed</span>
+                                        @endif
+                                    </div>
+                                    @if($pres->certificate_path)
+                                        <a href="{{ route('file.serve', ['path' => $pres->certificate_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill mt-2">
+                                            <i class="bi bi-award me-1"></i> View Presentation Certificate
+                                        </a>
+                                    @else
+                                        <p class="text-muted fs-7 italic mb-2">No certificate uploaded yet.</p>
+                                        @if(auth()->id() == $proposal->user_id && $pres->president_approved)
+                                            <button class="btn btn-sm btn-outline-success rounded-pill" data-bs-toggle="collapse" data-bs-target="#certForm{{ $pres->id }}">
+                                                <i class="bi bi-upload me-1"></i> Upload Certificate of Presentation
+                                            </button>
+                                            <div class="collapse mt-2" id="certForm{{ $pres->id }}">
+                                                <form action="{{ route('presentation.uploadCertificate', $pres->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold mb-1">Certificate of Presentation (PDF/Image)</label>
+                                                        <input type="file" name="certificate_file" class="form-control form-control-sm" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Upload Certificate</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-4 bg-light rounded-4 border mb-3">
+                    <i class="bi bi-easel fs-2 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-2 fw-medium">No oral or poster presentation details logged for this research output yet.</p>
+                </div>
+            @endforelse
+
+            <!-- Researcher New Presentation Submission Form -->
+            @if(auth()->id() == $proposal->user_id)
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="collapse" data-bs-target="#newPresentationForm">
+                    <i class="bi bi-plus-circle me-2"></i> Log Research Output for Oral/Poster Presentation
+                </button>
+                <div class="collapse mt-3" id="newPresentationForm">
+                    <div class="card border rounded-4 p-4 bg-light">
+                        <h6 class="fw-bold text-dark mb-3">Log Presentation & Conference Details</h6>
+                        <form action="{{ route('presentation.store', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Presentation Title</label>
+                                    <input type="text" name="presentation_title" class="form-control" value="{{ $proposal->title }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Presentation Type</label>
+                                    <select name="presentation_type" class="form-select" required>
+                                        <option value="oral">Oral Presentation</option>
+                                        <option value="poster">Poster Presentation</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Sponsoring Organization / Agency</label>
+                                    <input type="text" name="sponsoring_agency" class="form-control" placeholder="e.g. DOST, NRCP, PSSN" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Conference / Event Name</label>
+                                    <input type="text" name="conference_name" class="form-control" placeholder="e.g. 15th National Research Conference" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Event Date</label>
+                                    <input type="date" name="event_date" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Venue / Location</label>
+                                    <input type="text" name="venue" class="form-control" placeholder="e.g. Manila, Philippines / Hybrid">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Letter of Acceptance (Optional at this stage)</label>
+                                    <input type="file" name="acceptance_letter_file" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Presentation Slides / Poster Deck (Optional at this stage)</label>
+                                    <input type="file" name="presentation_file" class="form-control">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success rounded-pill px-4">
+                                <i class="bi bi-send me-1"></i> Log Presentation & Start Phase 3 Flow
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Phase 6: Final Manuscript Submission -->
     @if(auth()->id() == $proposal->user_id && $proposal->current_phase >= 5 && $proposal->status !== 'archived')
         <div class="card border-0 shadow-sm mb-4">

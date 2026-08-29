@@ -112,6 +112,11 @@ class User extends Authenticatable
         return $this->role === 'sao_finance';
     }
 
+    public function isPresident()
+    {
+        return $this->role === 'president';
+    }
+
     public function leadProposals()
     {
         return $this->hasMany(\App\Models\ResearchProposal::class);
