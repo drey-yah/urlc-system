@@ -104,4 +104,10 @@ class ResearchProposal extends Model
     {
         return $this->hasMany(ResearchPresentation::class);
     }
+
+    // Phase 4 Relationships
+    public function researchPublications()
+    {
+        return $this->hasMany(ResearchPublication::class);
+    }
 }

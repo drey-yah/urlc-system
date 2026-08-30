@@ -219,7 +219,7 @@ class ResearchProposalController extends Controller
 
     public function show($id)
     {
-        $proposal = ResearchProposal::with(['user', 'collaborators', 'assignments', 'milestones'])->findOrFail($id);
+        $proposal = ResearchProposal::with(['user', 'collaborators', 'assignments', 'milestones', 'researchPresentations', 'researchPublications'])->findOrFail($id);
         
         // Authorization check
         if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id()) {

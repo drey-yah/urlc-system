@@ -192,6 +192,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/presentation/{id}/approve', [\App\Http\Controllers\ResearchPresentationController::class, 'presidentApprove'])->name('presentation.approve');
     Route::post('/presentation/{id}/certificate', [\App\Http\Controllers\ResearchPresentationController::class, 'uploadCertificate'])->name('presentation.uploadCertificate');
 
+    // Phase 4: Publication of Research Outputs Routes (Appendix C)
+    Route::post('/proposal/{id}/publication/intent', [\App\Http\Controllers\ResearchPublicationController::class, 'storeIntent'])->name('publication.storeIntent');
+    Route::post('/publication/{id}/screen-ip', [\App\Http\Controllers\ResearchPublicationController::class, 'screenIp'])->name('publication.screenIp');
+    Route::post('/publication/{id}/ip-proof', [\App\Http\Controllers\ResearchPublicationController::class, 'uploadIpRegistration'])->name('publication.uploadIpRegistration');
+    Route::post('/publication/{id}/journal-submission', [\App\Http\Controllers\ResearchPublicationController::class, 'logJournalSubmission'])->name('publication.logJournalSubmission');
+    Route::post('/publication/{id}/archive-copy', [\App\Http\Controllers\ResearchPublicationController::class, 'archivePublishedCopy'])->name('publication.archivePublishedCopy');
+
     // Secure File Serving — serves files seamlessly from Supabase S3 or local public storage
     Route::get('/files/serve', function (\Illuminate\Http\Request $request) {
         $path = $request->query('path');

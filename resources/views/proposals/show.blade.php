@@ -990,6 +990,279 @@
         </div>
     </div>
 
+    <!-- Phase 4: Publication of Research Outputs Workspace (Appendix C) -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
+                    <i class="bi bi-journal-check text-success"></i> Phase 4: Publication of Research Outputs Workspace (Appendix C)
+                </h3>
+                <p class="text-muted fs-7 mb-0">Letter of intent submission, IP screening/clearance by VPREI & IEDC, refereed journal submission tracking, and final publication archiving.</p>
+            </div>
+            @if($proposal->current_phase >= 3 || $proposal->researchPublications->count() > 0)
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-medium fs-7">
+                    <i class="bi bi-journal-bookmark-fill me-1"></i> Phase 4 Active
+                </span>
+            @endif
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+            @forelse($proposal->researchPublications as $pub)
+                <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
+                    <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span class="badge bg-dark text-white text-uppercase me-2 fw-bold fs-7">
+                                {{ $pub->indexing_agency ?? 'REFEREED JOURNAL' }}
+                            </span>
+                            <strong class="text-dark fs-6">{{ $pub->journal_title }}</strong>
+                            @if($pub->issn_number)
+                                <span class="text-muted fs-7 ms-2">(ISSN: {{ $pub->issn_number }})</span>
+                            @endif
+                        </div>
+                        <div>
+                            @if($pub->status === 'published_and_archived')
+                                <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-patch-check-fill me-1"></i> Published & Archived</span>
+                            @elseif($pub->status === 'submitted_to_journal')
+                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2"><i class="bi bi-send-check me-1"></i> Submitted to Journal</span>
+                            @elseif($pub->status === 'approved_for_publication')
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Approved for Publication</span>
+                            @elseif($pub->status === 'ip_registration_required')
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2"><i class="bi bi-exclamation-triangle me-1"></i> IP Registration Required</span>
+                            @else
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> Intent Submitted (IP Screening)</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <!-- Step 1: Letter of Intent to Publish -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">1. Letter of Intent to Publish</h6>
+                                        @if($pub->intent_letter_path)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Submitted</span>
+                                        @endif
+                                    </div>
+                                    <p class="text-muted fs-7 mb-2">Official letter of intent to publish in a refereed/indexed journal.</p>
+                                    @if($pub->intent_letter_path)
+                                        <a href="{{ route('file.serve', ['path' => $pub->intent_letter_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i> View Letter of Intent
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 2: IP Potential Screening & Clearance -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">2. IP Potential & VPREI Clearance</h6>
+                                        @if($pub->vprei_approved)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Approved</span>
+                                        @endif
+                                    </div>
+
+                                    @if($pub->vprei_approved)
+                                        <div class="alert alert-success py-2 px-3 mb-0 fs-7 rounded-3 border-0">
+                                            <i class="bi bi-check-circle-fill me-1"></i> <strong>IP Cleared & VPREI Authorized</strong> on {{ $pub->vprei_approved_at ? $pub->vprei_approved_at->format('M d, Y') : '' }}.
+                                            @if($pub->has_ip_potential)
+                                                <div class="mt-1"><small class="badge bg-warning text-dark">IP Registered</small></div>
+                                            @endif
+                                        </div>
+                                        @if($pub->ip_registration_file_path)
+                                            <a href="{{ route('file.serve', ['path' => $pub->ip_registration_file_path]) }}" target="_blank" class="btn btn-sm btn-link text-decoration-none p-0 mt-2 fs-7">
+                                                <i class="bi bi-shield-check me-1"></i> View IP Registration Evidence
+                                            </a>
+                                        @endif
+                                    @elseif($pub->status === 'ip_registration_required')
+                                        <div class="alert alert-warning py-2 px-3 mb-2 fs-7 rounded-3 border-0">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>IP Potential Detected!</strong> Please submit proof of Intellectual Property (IP) Registration application.
+                                        </div>
+                                        @if(auth()->id() == $proposal->user_id)
+                                            <button class="btn btn-sm btn-warning rounded-pill text-dark fw-bold" data-bs-toggle="collapse" data-bs-target="#ipProofForm{{ $pub->id }}">
+                                                <i class="bi bi-upload me-1"></i> Submit IP Registration Proof
+                                            </button>
+                                            <div class="collapse mt-2" id="ipProofForm{{ $pub->id }}">
+                                                <form action="{{ route('publication.uploadIpRegistration', $pub->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold">IP Application File (PDF/Image)</label>
+                                                        <input type="file" name="ip_registration_file" class="form-control form-control-sm" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-dark w-100 rounded-pill">Upload Proof & Request Clearance</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @else
+                                        <p class="text-muted fs-7 mb-2 italic">Awaiting IP Screening review by VPREI, Research Director & IEDC.</p>
+                                        @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator']))
+                                            <button class="btn btn-sm btn-outline-dark rounded-pill" data-bs-toggle="collapse" data-bs-target="#ipScreenForm{{ $pub->id }}">
+                                                <i class="bi bi-shield-lock me-1"></i> Perform IP Screening
+                                            </button>
+                                            <div class="collapse mt-2" id="ipScreenForm{{ $pub->id }}">
+                                                <form action="{{ route('publication.screenIp', $pub->id) }}" method="POST" class="p-3 bg-white border rounded-3">
+                                                    @csrf
+                                                    <label class="form-label fs-7 fw-bold mb-2 text-dark">Does this output have Intellectual Property (IP) Potential?</label>
+                                                    <div class="d-flex gap-3 mb-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="has_ip_potential" value="1" id="ipYes{{ $pub->id }}" required>
+                                                            <label class="form-check-label fs-7 fw-semibold text-warning" for="ipYes{{ $pub->id }}">
+                                                                YES (Require IP Registration)
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="has_ip_potential" value="0" id="ipNo{{ $pub->id }}" required>
+                                                            <label class="form-check-label fs-7 fw-semibold text-success" for="ipNo{{ $pub->id }}">
+                                                                NO (Approve for Journal)
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <input type="text" name="ip_notes" class="form-control form-control-sm" placeholder="Review notes / comments (optional)">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">Save Screening Decision</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Journal Submission Proof -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">3. Journal Submission Proof</h6>
+                                        @if($pub->submission_proof_path)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Submitted</span>
+                                        @endif
+                                    </div>
+                                    @if($pub->submission_proof_path)
+                                        <a href="{{ route('file.serve', ['path' => $pub->submission_proof_path]) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill mt-1">
+                                            <i class="bi bi-file-earmark-check me-1"></i> View Submission Receipt
+                                        </a>
+                                    @else
+                                        <p class="text-muted fs-7 italic mb-2">No journal submission proof logged yet.</p>
+                                        @if(auth()->id() == $proposal->user_id && $pub->vprei_approved)
+                                            <button class="btn btn-sm btn-outline-info rounded-pill" data-bs-toggle="collapse" data-bs-target="#journalSubForm{{ $pub->id }}">
+                                                <i class="bi bi-upload me-1"></i> Log Proof of Journal Submission
+                                            </button>
+                                            <div class="collapse mt-2" id="journalSubForm{{ $pub->id }}">
+                                                <form action="{{ route('publication.logJournalSubmission', $pub->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold">Submission Proof / Receipt (PDF/Image)</label>
+                                                        <input type="file" name="submission_proof" class="form-control form-control-sm" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-info text-white w-100 rounded-pill">Log Journal Submission</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Final Published Copy & Archival -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">4. Refereed Published Journal Copy</h6>
+                                        @if($pub->published_copy_path)
+                                            <span class="badge bg-success rounded-pill px-2 py-1 fs-7"><i class="bi bi-archive-fill me-1"></i> Archived</span>
+                                        @endif
+                                    </div>
+                                    @if($pub->published_copy_path)
+                                        <div class="d-flex flex-column gap-2 mt-1">
+                                            <a href="{{ route('file.serve', ['path' => $pub->published_copy_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill">
+                                                <i class="bi bi-journal-text me-1"></i> View Published Journal PDF
+                                            </a>
+                                            @if($pub->doi_link)
+                                                <a href="{{ $pub->doi_link }}" target="_blank" class="btn btn-sm btn-link text-decoration-none p-0 fs-7">
+                                                    <i class="bi bi-link-45deg me-1"></i> DOI Link: {{ $pub->doi_link }}
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <p class="text-muted fs-7 italic mb-2">No final published copy uploaded to Research Center yet.</p>
+                                        @if(auth()->id() == $proposal->user_id && $pub->vprei_approved)
+                                            <button class="btn btn-sm btn-outline-success rounded-pill" data-bs-toggle="collapse" data-bs-target="#pubCopyForm{{ $pub->id }}">
+                                                <i class="bi bi-upload me-1"></i> Submit Published Copy to Research Center
+                                            </button>
+                                            <div class="collapse mt-2" id="pubCopyForm{{ $pub->id }}">
+                                                <form action="{{ route('publication.archivePublishedCopy', $pub->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold">Published Journal Copy (PDF)</label>
+                                                        <input type="file" name="published_copy" class="form-control form-control-sm" accept=".pdf" required>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold">DOI / Journal Article URL (Optional)</label>
+                                                        <input type="url" name="doi_link" class="form-control form-control-sm" placeholder="https://doi.org/10.xxxx/xxxx">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Archive Published Copy</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-4 bg-light rounded-4 border mb-3">
+                    <i class="bi bi-journal-bookmark fs-2 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-2 fw-medium">No publication intents logged for this research output yet.</p>
+                </div>
+            @endforelse
+
+            <!-- Researcher New Intent to Publish Form -->
+            @if(auth()->id() == $proposal->user_id)
+                <button class="btn btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="collapse" data-bs-target="#newIntentForm">
+                    <i class="bi bi-plus-circle me-2"></i> Submit Letter of Intent to Publish (Appendix C)
+                </button>
+                <div class="collapse mt-3" id="newIntentForm">
+                    <div class="card border rounded-4 p-4 bg-light">
+                        <h6 class="fw-bold text-dark mb-3">Submit Letter of Intent to Publish in Refereed Journal</h6>
+                        <form action="{{ route('publication.storeIntent', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Target Refereed / Indexed Journal Title</label>
+                                    <input type="text" name="journal_title" class="form-control" placeholder="e.g. Philippine Journal of Science" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">ISSN / e-ISSN Number (Optional)</label>
+                                    <input type="text" name="issn_number" class="form-control" placeholder="e.g. 0031-7683">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Indexing / Accreditation Category</label>
+                                    <select name="indexing_agency" class="form-select" required>
+                                        <option value="CHED Accredited Journal">CHED Accredited Journal</option>
+                                        <option value="Scopus Indexed">Scopus Indexed</option>
+                                        <option value="Web of Science (WoS)">Web of Science (WoS)</option>
+                                        <option value="ASEAN Citation Index (ACI)">ASEAN Citation Index (ACI)</option>
+                                        <option value="International Refereed Journal">International Refereed Journal</option>
+                                        <option value="National Refereed Journal">National Refereed Journal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fs-7 fw-bold">Letter of Intent to Publish (PDF/Doc)</label>
+                                    <input type="file" name="intent_letter" class="form-control" accept=".pdf,.doc,.docx" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success rounded-pill px-4">
+                                <i class="bi bi-send me-1"></i> Submit Intent & Start Appendix C Workflow
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Phase 6: Final Manuscript Submission -->
     @if(auth()->id() == $proposal->user_id && $proposal->current_phase >= 5 && $proposal->status !== 'archived')
         <div class="card border-0 shadow-sm mb-4">
