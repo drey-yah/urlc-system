@@ -1268,7 +1268,7 @@
         <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                    <i class="bi bi-people-fill text-primary"></i> Appendix D: Conduct of Local Research Forum Workspace
+                    <i class="bi bi-people-fill text-primary"></i> Phase 5: Conduct of Local Research Forum Workspace (Appendix D)
                 </h3>
                 <p class="text-muted fs-7 mb-0">Internal University In-House Colloquium workflow: Call for papers, College Coordinator endorsement, Notice of Acceptance, and presentation certificates.</p>
             </div>
