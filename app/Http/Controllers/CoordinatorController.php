@@ -46,15 +46,30 @@ class CoordinatorController extends Controller
             ->latest()
             ->get();
 
+        // Appendix D: Local Research Forum Submissions for this department
+        $forumSubmissions = \App\Models\LocalForumSubmission::with(['proposal.user', 'forum', 'user'])
+            ->where(function($q) use ($department) {
+                $q->whereHas('user', function($u) use ($department) {
+                    $u->where('department', $department);
+                })->orWhereHas('proposal.user', function($u) use ($department) {
+                    $u->where('department', $department);
+                });
+            })
+            ->latest()
+            ->get();
+
+        $pendingForumSubmissions = $forumSubmissions->where('coordinator_endorsed', false);
+
         $stats = [
             'total_dept' => $allDeptProposals->count(),
             'awaiting_endorsement' => $proposals->count(),
             'pending_dean' => $allDeptProposals->where('status', 'pending_dean_noting')->count(),
             'ready_for_unit' => $notedProposals->count(),
             'approved_completed' => $allDeptProposals->whereIn('status', ['approved', 'final_approved', 'completed'])->count(),
+            'pending_forum_endorsements' => $pendingForumSubmissions->count(),
         ];
             
-        return view('coordinator.dashboard', compact('proposals', 'notedProposals', 'allDeptProposals', 'department', 'stats'));
+        return view('coordinator.dashboard', compact('proposals', 'notedProposals', 'allDeptProposals', 'forumSubmissions', 'pendingForumSubmissions', 'department', 'stats'));
     }
 
     public function endorse(Request $request, $id)

@@ -199,6 +199,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/publication/{id}/journal-submission', [\App\Http\Controllers\ResearchPublicationController::class, 'logJournalSubmission'])->name('publication.logJournalSubmission');
     Route::post('/publication/{id}/archive-copy', [\App\Http\Controllers\ResearchPublicationController::class, 'archivePublishedCopy'])->name('publication.archivePublishedCopy');
 
+    // Appendix D: Conduct of Local Research Forum Routes
+    Route::post('/local-forum/create', [\App\Http\Controllers\LocalResearchForumController::class, 'createForum'])->name('local_forum.create');
+    Route::post('/proposal/{id}/local-forum/submit', [\App\Http\Controllers\LocalResearchForumController::class, 'submitPaper'])->name('local_forum.submit');
+    Route::post('/local-forum/{id}/endorse', [\App\Http\Controllers\LocalResearchForumController::class, 'endorseSubmission'])->name('local_forum.endorse');
+    Route::post('/local-forum/{id}/accept', [\App\Http\Controllers\LocalResearchForumController::class, 'issueNoticeOfAcceptance'])->name('local_forum.accept');
+    Route::post('/local-forum/{id}/certificate', [\App\Http\Controllers\LocalResearchForumController::class, 'uploadCertificate'])->name('local_forum.certificate');
+
     // Secure File Serving — serves files seamlessly from Supabase S3 or local public storage
     Route::get('/files/serve', function (\Illuminate\Http\Request $request) {
         $path = $request->query('path');

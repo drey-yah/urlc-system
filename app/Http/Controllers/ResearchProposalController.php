@@ -219,7 +219,12 @@ class ResearchProposalController extends Controller
 
     public function show($id)
     {
-        $proposal = ResearchProposal::with(['user', 'collaborators', 'assignments', 'milestones', 'researchPresentations', 'researchPublications'])->findOrFail($id);
+        $proposal = ResearchProposal::with([
+            'user', 'collaborators', 'assignments', 'milestones',
+            'researchPresentations', 'researchPublications', 'localForumSubmissions.forum'
+        ])->findOrFail($id);
+
+        $openForums = \App\Models\LocalResearchForum::where('status', 'open')->latest()->get();
         
         // Authorization check
         if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id()) {
@@ -236,7 +241,7 @@ class ResearchProposalController extends Controller
             }
         }
 
-        return view('proposals.show', compact('proposal'));
+        return view('proposals.show', compact('proposal', 'openForums'));
     }
 
     // Researcher: Show edit form for revision

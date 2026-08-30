@@ -110,4 +110,10 @@ class ResearchProposal extends Model
     {
         return $this->hasMany(ResearchPublication::class);
     }
+
+    // Appendix D: Local Research Forum Submissions
+    public function localForumSubmissions()
+    {
+        return $this->hasMany(LocalForumSubmission::class);
+    }
 }

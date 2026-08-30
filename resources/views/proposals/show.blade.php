@@ -1263,6 +1263,270 @@
         </div>
     </div>
 
+    <!-- Appendix D: Conduct of Local Research Forum Workspace -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
+                    <i class="bi bi-people-fill text-primary"></i> Appendix D: Conduct of Local Research Forum Workspace
+                </h3>
+                <p class="text-muted fs-7 mb-0">Internal University In-House Colloquium workflow: Call for papers, College Coordinator endorsement, Notice of Acceptance, and presentation certificates.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator', 'super_admin']))
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" data-bs-toggle="collapse" data-bs-target="#createForumModal">
+                        <i class="bi bi-megaphone me-1"></i> Launch Call for Papers
+                    </button>
+                @endif
+                @if($proposal->localForumSubmissions->count() > 0)
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-medium fs-7">
+                        <i class="bi bi-calendar-event-fill me-1"></i> Forum Active
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        <!-- Launch Call for Papers Form (Collapse) -->
+        <div class="collapse px-4 px-lg-5 pt-3" id="createForumModal">
+            <div class="card border rounded-4 p-4 bg-light">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-megaphone-fill me-2 text-primary"></i> Launch New Local Research Forum Event (Research Director)</h6>
+                <form action="{{ route('local_forum.create') }}" method="POST">
+                    @csrf
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-bold">Forum Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. 2026 Annual SUC In-House Research Forum" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-bold">Forum Theme (Optional)</label>
+                            <input type="text" name="theme" class="form-control" placeholder="e.g. Innovating for Sustainable Regional Development">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fs-7 fw-bold">Event Date</label>
+                            <input type="date" name="event_date" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fs-7 fw-bold">Venue / Location</label>
+                            <input type="text" name="venue" class="form-control" placeholder="e.g. University Convention Center / Online">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fs-7 fw-bold">Submission Deadline</label>
+                            <input type="date" name="submission_deadline" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fs-7 fw-bold">Guidelines & Mechanics</label>
+                            <textarea name="guidelines" class="form-control" rows="2" placeholder="Enter submission guidelines or instructions for faculty researchers..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-broadcast me-1"></i> Launch & Disseminate Call for Papers
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card-body p-4 p-lg-5">
+            @forelse($proposal->localForumSubmissions as $sub)
+                <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
+                    <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span class="badge bg-primary text-white text-uppercase me-2 fw-bold fs-7">
+                                LOCAL FORUM SUBMISSION
+                            </span>
+                            <strong class="text-dark fs-6">{{ $sub->paper_title }}</strong>
+                            <div class="fs-7 text-muted">Forum Event: <strong>{{ $sub->forum->title ?? 'University Research Forum' }}</strong></div>
+                        </div>
+                        <div>
+                            @if($sub->status === 'presented_and_completed')
+                                <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-award-fill me-1"></i> Presented & Certified</span>
+                            @elseif($sub->status === 'accepted_by_director')
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Notice of Acceptance Issued</span>
+                            @elseif($sub->status === 'endorsed_by_coordinator')
+                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2"><i class="bi bi-hand-thumbs-up me-1"></i> Endorsed by College Coordinator</span>
+                            @else
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i> Submitted to College Coordinator</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <!-- Step 1 & 2: College Research Coordinator Endorsement -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">1. College Coordinator Endorsement</h6>
+                                        @if($sub->coordinator_endorsed)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Endorsed</span>
+                                        @endif
+                                    </div>
+
+                                    @if($sub->coordinator_endorsed)
+                                        <div class="alert alert-success py-2 px-3 mb-0 fs-7 rounded-3 border-0">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Endorsed to Research Director on {{ $sub->coordinator_endorsed_at ? $sub->coordinator_endorsed_at->format('M d, Y') : '' }}
+                                            @if($sub->coordinator)
+                                                by <strong>{{ $sub->coordinator->name }}</strong>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <p class="text-muted fs-7 mb-2 italic">Awaiting review & dissemination endorsement by College Research Coordinator.</p>
+                                        @if(in_array(auth()->user()->role, ['coordinator', 'admin', 'vprei', 'super_admin']))
+                                            <form action="{{ route('local_forum.endorse', $sub->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 shadow-sm" onclick="return confirm('Endorse this research output for presentation in the Local Forum?');">
+                                                    <i class="bi bi-hand-thumbs-up me-1"></i> Endorse Output to Research Director
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 3 & 4: Research Director Notice of Acceptance -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">2. Notice of Acceptance</h6>
+                                        @if($sub->is_accepted)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-7">Issued</span>
+                                        @endif
+                                    </div>
+
+                                    @if($sub->is_accepted)
+                                        <div class="alert alert-success py-2 px-3 mb-2 fs-7 rounded-3 border-0">
+                                            <i class="bi bi-check-circle-fill me-1"></i> <strong>Notice of Acceptance Issued</strong> on {{ $sub->accepted_at ? $sub->accepted_at->format('M d, Y') : '' }}!
+                                        </div>
+                                        @if($sub->notice_of_acceptance_path)
+                                            <a href="{{ route('file.serve', ['path' => $sub->notice_of_acceptance_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill">
+                                                <i class="bi bi-file-earmark-pdf me-1"></i> View Notice of Acceptance
+                                            </a>
+                                        @endif
+                                    @else
+                                        <p class="text-muted fs-7 mb-2 italic">Awaiting Research Director's Notice of Acceptance.</p>
+                                        @if(in_array(auth()->user()->role, ['admin', 'vprei', 'super_admin']) && $sub->coordinator_endorsed)
+                                            <button class="btn btn-sm btn-success rounded-pill w-100 shadow-sm" data-bs-toggle="collapse" data-bs-target="#noticeForm{{ $sub->id }}">
+                                                <i class="bi bi-award me-1"></i> Issue Notice of Acceptance
+                                            </button>
+                                            <div class="collapse mt-2" id="noticeForm{{ $sub->id }}">
+                                                <form action="{{ route('local_forum.accept', $sub->id) }}" method="POST" enctype="multipart/form-data">
+                                                    @csrf
+                                                    <div class="mb-2">
+                                                        <label class="form-label fs-7 fw-bold">Attach Signed Notice of Acceptance (Optional)</label>
+                                                        <input type="file" name="notice_file" class="form-control form-control-sm" accept=".pdf">
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Issue Notice to Presenter</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Step 5: Presentation Files & Certificate -->
+                            <div class="col-md-12">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase">3. Presentation Files & Certificate of Local Forum Presentation</h6>
+                                        @if($sub->certificate_path)
+                                            <span class="badge bg-success rounded-pill px-2 py-1 fs-7"><i class="bi bi-check-lg me-1"></i> Forum Completed</span>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        @if($sub->extended_abstract_path)
+                                            <a href="{{ route('file.serve', ['path' => $sub->extended_abstract_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                                <i class="bi bi-file-earmark-text me-1"></i> Extended Abstract
+                                            </a>
+                                        @endif
+                                        @if($sub->presentation_file_path)
+                                            <a href="{{ route('file.serve', ['path' => $sub->presentation_file_path]) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill">
+                                                <i class="bi bi-file-earmark-slides me-1"></i> Presentation Slides
+                                            </a>
+                                        @endif
+                                        @if($sub->certificate_path)
+                                            <a href="{{ route('file.serve', ['path' => $sub->certificate_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill">
+                                                <i class="bi bi-award-fill me-1"></i> View Presentation Certificate
+                                            </a>
+                                        @endif
+                                    </div>
+                                    @if(!$sub->certificate_path && auth()->id() == $proposal->user_id && $sub->is_accepted)
+                                        <button class="btn btn-sm btn-outline-success rounded-pill mt-1" data-bs-toggle="collapse" data-bs-target="#forumCertForm{{ $sub->id }}">
+                                            <i class="bi bi-upload me-1"></i> Upload Certificate of Local Presentation
+                                        </button>
+                                        <div class="collapse mt-2" id="forumCertForm{{ $sub->id }}">
+                                            <form action="{{ route('local_forum.certificate', $sub->id) }}" method="POST" enctype="multipart/form-data">
+                                                @csrf
+                                                <div class="mb-2">
+                                                    <label class="form-label fs-7 fw-bold">Certificate File (PDF/Image)</label>
+                                                    <input type="file" name="certificate_file" class="form-control form-control-sm" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">Upload Certificate</button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-4 bg-light rounded-4 border mb-3">
+                    <i class="bi bi-easel2 fs-2 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-2 fw-medium">No local research forum submissions logged for this research output yet.</p>
+                </div>
+            @endforelse
+
+            <!-- Researcher Submit Paper for Local Forum Form -->
+            @if(auth()->id() == $proposal->user_id)
+                @if(isset($openForums) && $openForums->count() > 0)
+                    <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="collapse" data-bs-target="#newForumSubForm">
+                        <i class="bi bi-plus-circle me-2"></i> Submit Paper to Local Research Forum (Appendix D)
+                    </button>
+                    <div class="collapse mt-3" id="newForumSubForm">
+                        <div class="card border rounded-4 p-4 bg-light">
+                            <h6 class="fw-bold text-dark mb-3">Submit Output to College Coordinator for Local Forum</h6>
+                            <form action="{{ route('local_forum.submit', $proposal->id) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fs-7 fw-bold">Select Active Local Research Forum Event</label>
+                                        <select name="local_research_forum_id" class="form-select" required>
+                                            @foreach($openForums as $of)
+                                                <option value="{{ $of->id }}">{{ $of->title }} ({{ $of->event_date ? $of->event_date->format('M d, Y') : 'TBD' }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fs-7 fw-bold">Paper / Presentation Title</label>
+                                        <input type="text" name="paper_title" class="form-control" value="{{ $proposal->title }}" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fs-7 fw-bold">Executive Abstract</label>
+                                        <textarea name="abstract" class="form-control" rows="3" required>{{ $proposal->abstract }}</textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fs-7 fw-bold">Extended Abstract File (PDF/Doc)</label>
+                                        <input type="file" name="extended_abstract_file" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fs-7 fw-bold">Presentation Slides / Poster Deck (PDF/PPT/PPTX)</label>
+                                        <input type="file" name="presentation_file" class="form-control">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                    <i class="bi bi-send me-1"></i> Submit to College Coordinator (Appendix D)
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-info py-3 px-4 rounded-4 mb-0 fs-7 border-0">
+                        <i class="bi bi-info-circle-fill me-2"></i> No active Call for Papers for Local Research Forums currently open. When the Research Director posts a call, you will be able to submit your paper here.
+                    </div>
+                @endif
+            @endif
+        </div>
+    </div>
+
     <!-- Phase 6: Final Manuscript Submission -->
     @if(auth()->id() == $proposal->user_id && $proposal->current_phase >= 5 && $proposal->status !== 'archived')
         <div class="card border-0 shadow-sm mb-4">

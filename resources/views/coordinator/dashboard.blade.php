@@ -112,6 +112,14 @@
                                     All Submissions
                                 </button>
                             </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link small py-1 px-3 fw-semibold rounded-pill" id="local-forum-tab" data-bs-toggle="tab" data-bs-target="#local-forum-queue" type="button" role="tab">
+                                    <i class="bi bi-people-fill me-1"></i> Local Forum (Appendix D)
+                                    @if(($stats['pending_forum_endorsements'] ?? 0) > 0)
+                                        <span class="badge bg-primary text-white ms-1">{{ $stats['pending_forum_endorsements'] }}</span>
+                                    @endif
+                                </button>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -302,6 +310,78 @@
                                                 <td colspan="5" class="text-center py-5 text-muted">
                                                     <i class="bi bi-folder2-open fs-2 d-block mb-2 text-secondary"></i>
                                                     No department proposals recorded.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab 4: Local Forum Submissions (Appendix D) -->
+                        <div class="tab-pane fade" id="local-forum-queue" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0 border-0">
+                                    <thead class="bg-light text-muted small text-uppercase">
+                                        <tr>
+                                            <th class="ps-4 py-3 fw-semibold border-0">Paper Title & Forum</th>
+                                            <th class="py-3 fw-semibold border-0">Researcher</th>
+                                            <th class="py-3 fw-semibold border-0">Status</th>
+                                            <th class="pe-4 py-3 fw-semibold border-0 text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="border-top-0">
+                                        @forelse($forumSubmissions as $sub)
+                                            <tr>
+                                                <td class="ps-4 py-3">
+                                                    <div class="fw-semibold text-dark text-truncate" style="max-width: 240px;" title="{{ $sub->paper_title }}">
+                                                        {{ $sub->paper_title }}
+                                                    </div>
+                                                    <div class="text-muted fs-7">
+                                                        <i class="bi bi-calendar-event me-1 text-primary"></i> {{ $sub->forum->title ?? 'Local Forum' }}
+                                                    </div>
+                                                </td>
+                                                <td class="py-3">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                                            {{ substr($sub->user->name ?? '?', 0, 1) }}
+                                                        </div>
+                                                        <span class="small text-truncate" style="max-width: 120px;">{{ $sub->user->name ?? 'Unknown' }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3">
+                                                    @if($sub->coordinator_endorsed)
+                                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-medium">
+                                                            <i class="bi bi-check-circle me-1"></i> Endorsed to Director
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-medium">
+                                                            <i class="bi bi-hourglass-split me-1"></i> Awaiting Endorsement
+                                                        </span>
+                                                    @endif
+                                                </td>
+                                                <td class="pe-4 py-3 text-end">
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <a href="{{ route('proposal.show', $sub->research_proposal_id) }}" class="btn btn-sm btn-light border rounded-pill px-3">
+                                                            View Proposal
+                                                        </a>
+                                                        @if(!$sub->coordinator_endorsed)
+                                                            <form action="{{ route('local_forum.endorse', $sub->id) }}" method="POST" class="d-inline">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" onclick="return confirm('Endorse this paper output to the Research Director for the Local Forum?');">
+                                                                    <i class="bi bi-hand-thumbs-up me-1"></i> Endorse Output
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center py-5 text-muted">
+                                                    <i class="bi bi-easel2 fs-2 d-block mb-2 text-secondary"></i>
+                                                    <p class="mb-0 fw-medium">No local forum paper submissions from your college yet.</p>
+                                                    <span class="text-muted fs-7">Submissions for Appendix D will appear here when faculty researchers apply.</span>
                                                 </td>
                                             </tr>
                                         @endforelse
