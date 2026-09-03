@@ -88,8 +88,13 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-header bg-white py-3 px-4 border-0 rounded-top-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0 text-dark">Endorsement Center</h5>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <h5 class="fw-bold mb-0 text-dark">Endorsement Center</h5>
+                            <a href="{{ route('coordinator.batch_endorsement_form') }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                <i class="bi bi-printer-fill me-1"></i> Print RESU-FM-003 Form
+                            </a>
+                        </div>
                         <ul class="nav nav-pills card-header-pills" id="coordinatorTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active small py-1 px-3 fw-semibold rounded-pill" id="awaiting-tab" data-bs-toggle="tab" data-bs-target="#awaiting-queue" type="button" role="tab">

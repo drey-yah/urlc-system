@@ -152,6 +152,8 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
 // Shared Proposal Routes (All authenticated users)
 Route::middleware(['auth'])->group(function () {
     Route::get('/proposal/{id}', [ResearchProposalController::class, 'show'])->name('proposal.show');
+    Route::get('/proposal/{id}/endorsement-form', [\App\Http\Controllers\CoordinatorController::class, 'generateEndorsementForm'])->name('proposal.endorsement_form');
+    Route::get('/proposal/{id}/resu-fm015', [\App\Http\Controllers\ResearchProposalController::class, 'exportResuFm015'])->name('proposal.resu_fm015');
     Route::post('/proposal/{id}/submit-final', [\App\Http\Controllers\ResearchProposalController::class, 'submitFinalManuscript'])->name('proposal.submitFinal');
     
     // Call for Papers (Announcements)
@@ -282,6 +284,7 @@ Route::middleware(['auth', 'role:coordinator'])->group(function () {
     Route::get('/coordinator/proposals', [\App\Http\Controllers\CoordinatorController::class, 'index'])->name('coordinator.proposals');
     Route::post('/coordinator/proposals/{id}/endorse', [\App\Http\Controllers\CoordinatorController::class, 'endorse'])->name('coordinator.proposals.endorse');
     Route::post('/coordinator/proposals/{id}/submit-to-unit', [\App\Http\Controllers\CoordinatorController::class, 'submitToResearchUnit'])->name('coordinator.proposals.submitToUnit');
+    Route::get('/coordinator/endorsement-form', [\App\Http\Controllers\CoordinatorController::class, 'generateBatchEndorsementForm'])->name('coordinator.batch_endorsement_form');
     Route::post('/phase2/monitoring/{id}/coordinator-verify', [\App\Http\Controllers\ProjectMonitoringController::class, 'coordinatorVerify'])->name('coordinator.phase2.verify');
 });
 

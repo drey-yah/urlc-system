@@ -113,4 +113,77 @@ class CoordinatorController extends Controller
 
         return redirect()->back()->with('success', 'Endorsement list submitted to Research Unit successfully.');
     }
+
+    public function generateEndorsementForm($id)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['coordinator', 'dean', 'admin', 'super_admin', 'staff'])) {
+            abort(403, 'Unauthorized. The College Research Proposal Endorsement Form (RESU-FM-003) is restricted to College Research Coordinators, Deans, and Research Administrators.');
+        }
+
+        $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+        
+        $department = $proposal->user->department ?? $user->department ?? 'Computer Studies';
+        
+        // Find coordinator name
+        $coordinator = \App\Models\User::where('role', 'coordinator')
+            ->where('department', $department)
+            ->first();
+        
+        // Find dean name
+        $dean = \App\Models\User::where('role', 'dean')
+            ->where('department', $department)
+            ->first();
+
+        $collegeName = $department;
+        $coordinatorName = $coordinator->name ?? auth()->user()->name;
+        $deanName = $dean->name ?? 'College Dean';
+
+        $proposals = collect([$proposal]);
+
+        return view('reports.endorsement_form', compact(
+            'proposals', 'proposal', 'collegeName', 'coordinatorName', 'deanName'
+        ));
+    }
+
+    public function generateBatchEndorsementForm(Request $request)
+    {
+        $department = auth()->user()->department;
+        
+        $proposals = ResearchProposal::with(['user', 'collaborators'])
+            ->whereHas('user', function($q) use ($department) {
+                $q->where('department', $department);
+            })
+            ->whereIn('status', ['pending_dean_noting', 'noted_by_dean', 'submitted_to_research_unit'])
+            ->latest()
+            ->get();
+
+        if ($proposals->isEmpty()) {
+            $proposals = ResearchProposal::with(['user', 'collaborators'])
+                ->whereHas('user', function($q) use ($department) {
+                    $q->where('department', $department);
+                })
+                ->latest()
+                ->take(5)
+                ->get();
+        }
+
+        // Find coordinator name
+        $coordinator = \App\Models\User::where('role', 'coordinator')
+            ->where('department', $department)
+            ->first();
+        
+        // Find dean name
+        $dean = \App\Models\User::where('role', 'dean')
+            ->where('department', $department)
+            ->first();
+
+        $collegeName = $department;
+        $coordinatorName = $coordinator->name ?? auth()->user()->name;
+        $deanName = $dean->name ?? 'College Dean';
+
+        return view('reports.endorsement_form', compact(
+            'proposals', 'collegeName', 'coordinatorName', 'deanName'
+        ));
+    }
 }

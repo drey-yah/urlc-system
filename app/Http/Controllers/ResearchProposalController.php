@@ -542,4 +542,13 @@ class ResearchProposalController extends Controller
 
         return redirect()->back()->with('success', 'Proposal successfully archived to the repository.');
     }
+
+    public function exportResuFm015($id)
+    {
+        $proposal = ResearchProposal::with([
+            'user', 'collaborators', 'milestones', 'budgetItems'
+        ])->findOrFail($id);
+
+        return view('reports.proposal_resu_fm015', compact('proposal'));
+    }
 }
