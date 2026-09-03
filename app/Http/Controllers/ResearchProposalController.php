@@ -220,7 +220,7 @@ class ResearchProposalController extends Controller
     public function show($id)
     {
         $proposal = ResearchProposal::with([
-            'user', 'collaborators', 'assignments', 'milestones',
+            'user', 'collaborators', 'assignments', 'milestones', 'budgetItems', 'purchaseRequests',
             'researchPresentations', 'researchPublications', 'localForumSubmissions.forum'
         ])->findOrFail($id);
 

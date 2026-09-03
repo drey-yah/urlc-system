@@ -1546,6 +1546,151 @@
         </div>
     @endif
 
+    <!-- Financial & Budget Monitoring System Widget -->
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-wallet2 text-success"></i> Financial & Budget Monitoring System
+                </h3>
+                <p class="text-muted fs-7 mb-0">Real-time expenditure tracking, line item allocation, purchase requests, and remaining fund balance.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-medium fs-7">
+                    <i class="bi bi-cash-stack me-1"></i> Funding: {{ $proposal->funding_source ?? 'University Funded (GAA/MOOE)' }}
+                </span>
+                @if($proposal->status === 'funds_certified' || $proposal->current_phase >= 2)
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-medium fs-7">
+                        <i class="bi bi-check-circle-fill me-1"></i> Funds Certified
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        <div class="card-body p-4 p-lg-5 pt-3">
+            @php
+                $subtotalMOOE = $proposal->budgetItems->where('category_type', 'mooe')->sum('amount');
+                $subtotalCO = $proposal->budgetItems->where('category_type', 'co')->sum('amount');
+                $grandTotalBudget = $subtotalMOOE + $subtotalCO;
+                if ($grandTotalBudget == 0) {
+                    $grandTotalBudget = $proposal->total_budget ?? 0;
+                }
+                
+                $totalApprovedPR = $proposal->purchaseRequests->whereIn('status', ['approved', 'disbursed', 'completed', 'certified'])->sum('estimated_cost');
+                if ($totalApprovedPR == 0 && $proposal->purchaseRequests->count() > 0) {
+                    $totalApprovedPR = $proposal->purchaseRequests->sum('estimated_cost');
+                }
+                
+                $remainingBalance = max(0, $grandTotalBudget - $totalApprovedPR);
+                $spentPercentage = $grandTotalBudget > 0 ? min(100, round(($totalApprovedPR / $grandTotalBudget) * 100, 1)) : 0;
+            @endphp
+
+            <!-- KPI Cards Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 bg-primary bg-opacity-10 p-3 rounded-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary text-white rounded-3 p-3">
+                                <i class="bi bi-bank fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-muted fs-7 fw-semibold d-block">Approved Grant / Budget</span>
+                                <h4 class="fw-bold text-primary mb-0">₱{{ number_format($grandTotalBudget, 2) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 bg-warning bg-opacity-10 p-3 rounded-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-warning text-dark rounded-3 p-3">
+                                <i class="bi bi-cart-check-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-muted fs-7 fw-semibold d-block">Total Disbursed / PR Spent</span>
+                                <h4 class="fw-bold text-warning mb-0">₱{{ number_format($totalApprovedPR, 2) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 bg-success bg-opacity-10 p-3 rounded-4 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success text-white rounded-3 p-3">
+                                <i class="bi bi-piggy-bank-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-muted fs-7 fw-semibold d-block">Remaining Available Balance</span>
+                                <h4 class="fw-bold text-success mb-0">₱{{ number_format($remainingBalance, 2) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Progress Bar -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fs-7 fw-bold text-dark"><i class="bi bi-pie-chart-fill me-1 text-primary"></i> Budget Utilization Level</span>
+                    <span class="fs-7 fw-bold {{ $spentPercentage > 85 ? 'text-danger' : 'text-primary' }}">{{ $spentPercentage }}% Spent</span>
+                </div>
+                <div class="progress" style="height: 12px; border-radius: 10px; background-color: #e9ecef;">
+                    <div class="progress-bar {{ $spentPercentage > 85 ? 'bg-danger' : ($spentPercentage > 50 ? 'bg-warning' : 'bg-success') }} progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ $spentPercentage }}%;" aria-valuenow="{{ $spentPercentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+
+            <!-- Itemized Purchase Requests & Liquidation Log -->
+            <div class="border rounded-4 bg-white overflow-hidden shadow-sm">
+                <div class="bg-light py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0 fs-7 text-uppercase"><i class="bi bi-receipt me-2 text-primary"></i> Purchase Requests & Disbursement History</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-2">PR Number</th>
+                                <th class="py-2">Item / Expense Particulars</th>
+                                <th class="py-2">Category</th>
+                                <th class="py-2">Estimated Amount</th>
+                                <th class="py-2">Status</th>
+                                <th class="pe-4 py-2 text-end">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($proposal->purchaseRequests as $pr)
+                                <tr>
+                                    <td class="ps-4 py-2 fw-bold text-primary">{{ $pr->pr_number ?? 'PR-'.$pr->id }}</td>
+                                    <td class="py-2 fw-semibold text-dark">{{ $pr->item_description }}</td>
+                                    <td class="py-2"><span class="badge bg-light text-dark border text-uppercase">{{ $pr->category ?? 'MOOE' }}</span></td>
+                                    <td class="py-2 fw-bold text-dark">₱{{ number_format($pr->estimated_cost ?? $pr->amount, 2) }}</td>
+                                    <td class="py-2">
+                                        @if($pr->status === 'approved' || $pr->status === 'disbursed')
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-medium"><i class="bi bi-check-circle me-1"></i> Approved & Disbursed</span>
+                                        @elseif($pr->status === 'pending_finance_officer')
+                                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1 fw-medium"><i class="bi bi-hourglass-split me-1"></i> Pending Finance Approval</span>
+                                        @else
+                                            <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1 fw-medium"><i class="bi bi-clock me-1"></i> Under Review</span>
+                                        @endif
+                                    </td>
+                                    <td class="pe-4 py-2 text-end text-muted fs-7">{{ $pr->created_at ? $pr->created_at->format('M d, Y') : 'N/A' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted fs-7">
+                                        <i class="bi bi-receipt-cutoff fs-3 d-block mb-1 text-secondary"></i>
+                                        No Purchase Requests logged for this proposal yet.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Line Item Budget (LIB) Section -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
