@@ -117,6 +117,13 @@
             </a>
         @endif
 
+        @if(in_array(auth()->user()->role, ['researcher', 'vprei', 'president', 'admin', 'funding_agency']) || auth()->user()->isSuperAdmin())
+            <a href="{{ route('external-funding.index') }}" class="sidebar-link {{ request()->routeIs('external-funding.*') ? 'active' : '' }}">
+                <i class="bi bi-cash-coin"></i>
+                <span>{{ auth()->user()->isFundingAgency() ? 'Agency Grant Reviews' : 'External Funding' }}</span>
+            </a>
+        @endif
+
         <a href="{{ route('announcements.index') }}" class="sidebar-link {{ request()->routeIs('announcements.index') ? 'active' : '' }}">
             <i class="bi bi-megaphone-fill"></i>
             <span>Announcements</span>

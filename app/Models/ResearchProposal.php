@@ -20,6 +20,7 @@ class ResearchProposal extends Model
         'rationale',
         'research_field',
         'status',
+        'funding_type',
         'total_budget',
         'current_phase',
         'phase_updated_at',
@@ -115,5 +116,10 @@ class ResearchProposal extends Model
     public function localForumSubmissions()
     {
         return $this->hasMany(LocalForumSubmission::class);
+    }
+
+    public function externalFundingProject()
+    {
+        return $this->hasOne(ExternalFundingProject::class);
     }
 }

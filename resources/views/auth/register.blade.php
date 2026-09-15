@@ -469,6 +469,16 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="form-label-custom" for="organization">Organization / Funding Agency</label>
+                    <div class="input-wrapper">
+                        <input id="organization" class="form-input" type="text" name="organization"
+                            value="{{ old('organization') }}" placeholder="Name of your organization" />
+                        <i class="bi bi-buildings input-icon"></i>
+                    </div>
+                    <div class="form-hint"><i class="bi bi-info-circle"></i> Required when registering as a Funding Agency.</div>
+                </div>
+
                 <!-- College / Department -->
                 <div class="form-group">
                     <label class="form-label-custom" for="department">College / Department</label>
@@ -506,6 +516,7 @@
                             <option value="recording_staff" {{ old('role') == 'recording_staff'  ? 'selected' : '' }}>Support Staff (Recording)</option>
                             <option value="budget_officer"  {{ old('role') == 'budget_officer'   ? 'selected' : '' }}>Budget Officer</option>
                             <option value="sao_finance"     {{ old('role') == 'sao_finance'      ? 'selected' : '' }}>Finance Officer</option>
+                            <option value="funding_agency"  {{ old('role') == 'funding_agency'   ? 'selected' : '' }}>Funding Agency</option>
                             <option value="admin"           {{ old('role') == 'admin'            ? 'selected' : '' }}>Administrator</option>
                         </select>
                         <i class="bi bi-shield-check input-icon"></i>
@@ -551,7 +562,7 @@
         }
 
         // Show approval notice for roles that require it
-        const approvalRoles = ['staff', 'recording_staff', 'admin', 'dean', 'vprei', 'budget_officer', 'sao_finance', 'president'];
+        const approvalRoles = ['staff', 'recording_staff', 'admin', 'dean', 'vprei', 'budget_officer', 'sao_finance', 'president', 'funding_agency'];
         function checkRole(select) {
             const notice = document.getElementById('approvalNotice');
             notice.style.display = approvalRoles.includes(select.value) ? 'flex' : 'none';

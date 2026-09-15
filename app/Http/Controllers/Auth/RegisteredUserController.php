@@ -37,10 +37,11 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff,recording_staff,dean,vprei,budget_officer,sao_finance,president'],
+            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff,recording_staff,dean,vprei,budget_officer,sao_finance,president,funding_agency'],
+            'organization' => ['nullable', 'string', 'max:255', 'required_if:role,funding_agency'],
         ]);
 
-        $is_approved = !in_array($request->role, ['admin', 'recording_staff', 'staff', 'dean', 'vprei', 'budget_officer', 'sao_finance', 'president']);
+        $is_approved = !in_array($request->role, ['admin', 'recording_staff', 'staff', 'dean', 'vprei', 'budget_officer', 'sao_finance', 'president', 'funding_agency']);
 
         $user = new User();
         $user->name = $request->name;
@@ -48,6 +49,7 @@ class RegisteredUserController extends Controller
         $user->password = Hash::make($request->password);
         $user->role = $request->role;
         $user->department = $request->department;
+        $user->organization = $request->organization;
         $user->is_approved = \DB::raw($is_approved ? 'true' : 'false');
         $user->save();
 

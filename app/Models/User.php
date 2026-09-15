@@ -27,6 +27,7 @@ class User extends Authenticatable
         'is_approved',
         'campus',
         'department',
+        'organization',
     ];
 
     /**
@@ -115,6 +116,11 @@ class User extends Authenticatable
     public function isPresident()
     {
         return $this->role === 'president';
+    }
+
+    public function isFundingAgency()
+    {
+        return $this->role === 'funding_agency';
     }
 
     public function leadProposals()

@@ -51,6 +51,7 @@
                                         <option value="president" {{ $user->role == 'president' ? 'selected' : '' }}>SUC President</option>
                                         <option value="budget_officer" {{ $user->role == 'budget_officer' ? 'selected' : '' }}>Budget Officer</option>
                                         <option value="sao_finance" {{ $user->role == 'sao_finance' ? 'selected' : '' }}>Finance Officer</option>
+                                        <option value="funding_agency" {{ $user->role == 'funding_agency' ? 'selected' : '' }}>Funding Agency</option>
                                         <option value="staff" {{ $user->role == 'staff' ? 'selected' : '' }}>Staff (Receiving)</option>
                                         <option value="recording_staff" {{ $user->role == 'recording_staff' ? 'selected' : '' }}>Staff (Recording)</option>
                                         <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>

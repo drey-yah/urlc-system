@@ -45,6 +45,8 @@ Route::get('/redirect', function () {
         return redirect('/staff');
     } elseif ($role == 'recording_staff') {
         return redirect('/recording-staff/dashboard');
+    } elseif ($role == 'funding_agency') {
+        return redirect('/external-funding');
     } else {
         return redirect('/researcher');
     }
@@ -132,7 +134,7 @@ Route::get('/staff', [\App\Http\Controllers\StaffController::class, 'dashboard']
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:researcher'])->group(function () {
+Route::middleware(['auth', 'role:researcher', 'approved'])->group(function () {
     Route::get('/proposal/create', [ResearchProposalController::class, 'create'])->name('proposal.create');
     Route::post('/proposal/store', [ResearchProposalController::class, 'store'])->name('proposal.store');
     Route::get('/proposal/my', [ResearchProposalController::class, 'index'])->name('proposal.index');
@@ -147,10 +149,15 @@ Route::middleware(['auth', 'role:researcher'])->group(function () {
     Route::post('/proposal/{id}/purchase-request', [\App\Http\Controllers\PurchaseRequestController::class, 'store'])->name('purchase_request.store');
     Route::post('/proposal/{id}/monitoring', [\App\Http\Controllers\ProjectMonitoringController::class, 'store'])->name('monitoring.store');
     Route::post('/proposal/{id}/terminal-report', [\App\Http\Controllers\TerminalReportController::class, 'store'])->name('terminal_report.store');
+
+    Route::post('/external-funding', [\App\Http\Controllers\ExternalFundingController::class, 'store'])->name('external-funding.store');
+    Route::post('/external-funding/{id}/resubmit', [\App\Http\Controllers\ExternalFundingController::class, 'resubmit'])->name('external-funding.resubmit');
+    Route::post('/external-funding/{id}/terminal-report', [\App\Http\Controllers\ExternalFundingController::class, 'submitTerminalReport'])->name('external-funding.terminal-report');
 });
 
 // Shared Proposal Routes (All authenticated users)
 Route::middleware(['auth'])->group(function () {
+    Route::get('/external-funding', [\App\Http\Controllers\ExternalFundingController::class, 'index'])->middleware('approved')->name('external-funding.index');
     Route::get('/proposal/{id}', [ResearchProposalController::class, 'show'])->name('proposal.show');
     Route::get('/proposal/{id}/endorsement-form', [\App\Http\Controllers\CoordinatorController::class, 'generateEndorsementForm'])->name('proposal.endorsement_form');
     Route::get('/proposal/{id}/resu-fm015', [\App\Http\Controllers\ResearchProposalController::class, 'exportResuFm015'])->name('proposal.resu_fm015');
@@ -336,6 +343,8 @@ Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
 Route::middleware(['auth', 'role:president', 'approved'])->group(function () {
     Route::get('/president', [\App\Http\Controllers\PresidentController::class, 'dashboard'])->name('president.dashboard');
     Route::post('/president/approve-presentation/{id}', [\App\Http\Controllers\PresidentController::class, 'approvePresentation'])->name('president.approvePresentation');
+    Route::post('/external-funding/{id}/endorse-agency', [\App\Http\Controllers\ExternalFundingController::class, 'endorseToAgency'])->name('external-funding.endorse-agency');
+    Route::post('/external-funding/{id}/agreement', [\App\Http\Controllers\ExternalFundingController::class, 'executeAgreement'])->name('external-funding.agreement');
 });
 
 /*
@@ -392,6 +401,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     // Milestones Status Update
     Route::patch('/admin/milestones/{id}/status', [\App\Http\Controllers\ResearchMilestoneController::class, 'updateStatus'])->name('admin.milestones.updateStatus');
+});
+
+Route::middleware(['auth', 'approved'])->group(function () {
+    Route::post('/external-funding/{id}/endorse-university', [\App\Http\Controllers\ExternalFundingController::class, 'endorseUniversity'])->name('external-funding.endorse-university');
+    Route::post('/external-funding/{id}/agency-decision', [\App\Http\Controllers\ExternalFundingController::class, 'recordAgencyDecision'])->name('external-funding.agency-decision');
+    Route::post('/external-funding/{id}/monitor', [\App\Http\Controllers\ExternalFundingController::class, 'markMonitoring'])->name('external-funding.monitor');
+    Route::post('/external-funding/{id}/close', [\App\Http\Controllers\ExternalFundingController::class, 'closeGrant'])->name('external-funding.close');
 });
 
 /*
