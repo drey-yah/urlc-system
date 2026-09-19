@@ -91,9 +91,133 @@ class SuperAdminController extends Controller
         return redirect()->back()->with('success', 'System settings updated successfully.');
     }
 
-    public function activityLogs()
+    public function activityLogs(Request $request)
     {
-        $logs = Activity::with('causer')->latest()->paginate(20);
-        return view('superadmin.activity_logs', compact('logs'));
+        $query = $this->buildActivityLogsQuery($request);
+
+        $logs = $query->paginate(20)->withQueryString();
+
+        $users = User::orderBy('name')->get(['id', 'name', 'email', 'role']);
+
+        $stats = [
+            'total_logs' => Activity::count(),
+            'today_logs' => Activity::whereDate('created_at', today())->count(),
+            'active_users_today' => Activity::whereDate('created_at', today())
+                ->whereNotNull('causer_id')
+                ->distinct('causer_id')
+                ->count('causer_id'),
+            'today_logins' => Activity::whereDate('created_at', today())
+                ->where(function($q) {
+                    $q->where('event', 'login')
+                      ->orWhere('description', 'like', '%logged in%');
+                })->count(),
+        ];
+
+        return view('superadmin.activity_logs', compact('logs', 'users', 'stats'));
+    }
+
+    public function exportActivityLogs(Request $request)
+    {
+        $query = $this->buildActivityLogsQuery($request);
+        $filename = 'activity_logs_' . date('Y-m-d_His') . '.csv';
+
+        return response()->streamDownload(function() use ($query) {
+            $handle = fopen('php://output', 'w');
+            // CSV Header
+            fputcsv($handle, ['ID', 'Date & Time', 'User Name', 'User Email', 'Role', 'Action / Event', 'Target Model', 'Target ID', 'Details / IP', 'Raw Properties']);
+
+            $query->chunk(200, function($logs) use ($handle) {
+                foreach ($logs as $log) {
+                    $causerName = $log->causer ? $log->causer->name : 'System';
+                    $causerEmail = $log->causer ? $log->causer->email : '-';
+                    $causerRole = $log->causer ? $log->causer->role : '-';
+                    $modelName = $log->subject_type ? class_basename($log->subject_type) : '-';
+                    $subjectId = $log->subject_id ?: '-';
+
+                    $details = '';
+                    if ($log->properties && isset($log->properties['ip'])) {
+                        $details = 'IP: ' . $log->properties['ip'];
+                        if (isset($log->properties['user_agent'])) {
+                            $details .= ' (' . substr($log->properties['user_agent'], 0, 50) . ')';
+                        }
+                    } elseif ($log->properties && isset($log->properties['attributes'])) {
+                        $details = count($log->properties['attributes']) . ' field(s) modified';
+                    }
+
+                    fputcsv($handle, [
+                        $log->id,
+                        $log->created_at->format('Y-m-d H:i:s'),
+                        $causerName,
+                        $causerEmail,
+                        $causerRole,
+                        ucfirst($log->event ?? $log->description),
+                        $modelName,
+                        $subjectId,
+                        $details,
+                        json_encode($log->properties),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+
+    private function buildActivityLogsQuery(Request $request)
+    {
+        $query = Activity::with('causer')->latest();
+
+        // Filter by user (causer)
+        if ($request->filled('user_id')) {
+            $query->where('causer_type', User::class)
+                  ->where('causer_id', $request->user_id);
+        }
+
+        // Filter by action / event
+        if ($request->filled('event')) {
+            $event = $request->event;
+            if ($event === 'login') {
+                $query->where(function($q) {
+                    $q->where('event', 'login')
+                      ->orWhere('description', 'like', '%logged in%');
+                });
+            } elseif ($event === 'logout') {
+                $query->where(function($q) {
+                    $q->where('event', 'logout')
+                      ->orWhere('description', 'like', '%logged out%');
+                });
+            } else {
+                $query->where(function($q) use ($event) {
+                    $q->where('event', $event)
+                      ->orWhere('description', $event);
+                });
+            }
+        }
+
+        // Date range filtering
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Keyword search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('log_name', 'like', "%{$search}%")
+                  ->orWhereHasMorph('causer', [User::class], function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query;
     }
 }

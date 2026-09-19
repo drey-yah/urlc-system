@@ -424,6 +424,7 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
     Route::get('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'settings'])->name('superadmin.settings');
     Route::post('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'updateSettings'])->name('superadmin.settings.update');
     Route::get('/superadmin/logs', [\App\Http\Controllers\SuperAdminController::class, 'activityLogs'])->name('superadmin.logs');
+    Route::get('/superadmin/logs/export', [\App\Http\Controllers\SuperAdminController::class, 'exportActivityLogs'])->name('superadmin.logs.export');
 });
 
 /*

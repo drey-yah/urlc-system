@@ -41,6 +41,10 @@
                 <i class="bi bi-collection-fill"></i>
                 <span>All Proposals</span>
             </a>
+            <a href="{{ route('superadmin.logs') }}" class="sidebar-link {{ request()->routeIs('superadmin.logs') ? 'active' : '' }}">
+                <i class="bi bi-journal-text"></i>
+                <span>Activity Logs</span>
+            </a>
         @endif
 
         @if(auth()->user()->role === 'reviewer')
