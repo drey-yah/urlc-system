@@ -14,11 +14,15 @@ fi
 # Ensure nginx and supervisor run and log directories exist
 mkdir -p /run/nginx /var/log/nginx /var/log/supervisor /var/run
 
-# Dynamically set Nginx listen port
-sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/http.d/default.conf
+# Dynamically set Nginx listen port: listen on $PORT and also listen on 80
+if [ "$PORT" != "80" ]; then
+    sed -i "s/listen PORT_PLACEHOLDER;/listen $PORT;\n    listen 80;/g" /etc/nginx/http.d/default.conf
+else
+    sed -i "s/listen PORT_PLACEHOLDER;/listen 80;/g" /etc/nginx/http.d/default.conf
+fi
 
 # Check nginx configuration
-echo "Testing Nginx config on port $PORT..."
+echo "Testing Nginx config on port $PORT and 80..."
 /usr/sbin/nginx -t
 
 # Test PHP-FPM configuration

@@ -64,6 +64,6 @@ RUN mkdir -p /run/nginx /var/log/nginx /var/log/supervisor \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /run/nginx /var/log/nginx \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 80
+EXPOSE 80 8080
 
 ENTRYPOINT ["/docker/entrypoint.sh"]
