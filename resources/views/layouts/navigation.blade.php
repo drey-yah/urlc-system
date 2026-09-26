@@ -1,12 +1,10 @@
 <aside class="sidebar">
     <!-- Brand -->
     <a class="sidebar-brand" href="{{ route('dashboard') }}">
-        <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
-            <i class="bi bi-file-earmark-text-fill h4 mb-0"></i>
-        </div>
+        <img src="{{ asset('logo.png') }}" alt="University of Antique Seal" class="sidebar-brand-seal">
         <div class="lh-sm">
-            <span class="fw-bold d-block" style="font-size: 1.1rem; letter-spacing: -0.02em;">URLC</span>
-            <span class="text-muted x-small" style="font-size: 0.65rem;">Research Portal</span>
+            <span class="fw-bold d-block sidebar-brand-title">URLC Portal</span>
+            <span class="sidebar-brand-sub">University of Antique</span>
         </div>
     </a>
 
@@ -149,10 +147,10 @@
         </a>
 
         <!-- Notifications & Activity Log History Section -->
-        <div class="mt-4 pt-3 border-top px-3">
+        <div class="mt-4 pt-3 px-3" style="border-top: 1px solid rgba(212, 175, 55, 0.15);">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="text-muted small fw-bold mb-0 text-uppercase d-flex align-items-center gap-2">
-                    <i class="bi bi-bell-fill text-warning"></i> Notifications
+                <h6 class="small fw-bold mb-0 text-uppercase d-flex align-items-center gap-2" style="color: var(--ua-gold); font-size: 0.72rem; letter-spacing: 0.05em;">
+                    <i class="bi bi-bell-fill"></i> Notifications
                     @if(auth()->user()->unreadNotifications->count() > 0)
                         <span class="badge bg-danger rounded-pill fs-7">{{ auth()->user()->unreadNotifications->count() }}</span>
                     @endif
@@ -160,7 +158,7 @@
                 @if(auth()->user()->unreadNotifications->count() > 0)
                     <form action="{{ route('notifications.markRead') }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-link p-0 text-muted text-decoration-none" style="font-size: 0.7rem;" title="Mark all as read">
+                        <button type="submit" class="btn btn-link p-0 text-decoration-none" style="font-size: 0.7rem; color: #D6CBC4;" title="Mark all as read">
                             Mark all read
                         </button>
                     </form>
@@ -172,21 +170,21 @@
                     $isUnread = is_null($notification->read_at);
                 @endphp
                 <a href="{{ isset($notification->data['proposal_id']) && $notification->data['proposal_id'] ? route('proposal.show', $notification->data['proposal_id']) : route('announcements.index') }}" 
-                   class="d-flex align-items-start gap-2 p-2 rounded-3 text-decoration-none transition-all mb-1 {{ $isUnread ? 'bg-primary bg-opacity-10 border-start border-primary border-3' : 'hover-bg-light opacity-75' }}" 
-                   style="font-size: 0.78rem;">
+                   class="d-flex align-items-start gap-2 p-2 rounded-3 text-decoration-none transition-all mb-1" 
+                   style="font-size: 0.78rem; {{ $isUnread ? 'background: rgba(140, 29, 44, 0.4); border-left: 3px solid var(--ua-gold);' : 'background: rgba(255, 255, 255, 0.04);' }}">
                     <div class="overflow-hidden w-100">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="fw-bold text-truncate text-dark" style="line-height: 1.2;">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                            <div class="fw-bold text-truncate text-white" style="line-height: 1.2;">{{ $notification->data['title'] ?? 'Notification' }}</div>
                             @if($isUnread)
-                                <span class="badge bg-primary rounded-circle p-1" title="Unread"></span>
+                                <span class="badge rounded-circle p-1" style="background-color: var(--ua-gold);" title="Unread"></span>
                             @endif
                         </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.7rem;">{{ $notification->data['message'] ?? '' }}</div>
-                        <div class="text-muted" style="font-size: 0.65rem;">{{ $notification->created_at->diffForHumans() }}</div>
+                        <div class="text-truncate" style="color: #D6CBC4; font-size: 0.7rem;">{{ $notification->data['message'] ?? '' }}</div>
+                        <div style="color: #8C7E77; font-size: 0.65rem;">{{ $notification->created_at->diffForHumans() }}</div>
                     </div>
                 </a>
             @empty
-                <p class="text-muted x-small italic mb-0 text-center py-2" style="font-size: 0.72rem;">No notification history yet</p>
+                <p class="x-small italic mb-0 text-center py-2" style="font-size: 0.72rem; color: #8C7E77;">No notification history yet</p>
             @endforelse
         </div>
     </nav>

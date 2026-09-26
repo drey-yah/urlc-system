@@ -4,16 +4,33 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login — {{ config('app.name', 'URLC System') }}</title>
+    <title>Sign In — URLC Research Portal | University of Antique</title>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap -->
+    <!-- Google Fonts: Inter & Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
+        :root {
+            --ua-maroon-dark: #120305;
+            --ua-maroon-bg: #1a0508;
+            --ua-maroon-panel: #24080e;
+            --ua-maroon-card: rgba(38, 12, 17, 0.72);
+            --ua-maroon-border: rgba(212, 175, 55, 0.22);
+            --ua-gold-primary: #E5A93C;
+            --ua-gold-light: #FDE047;
+            --ua-gold-accent: #D4AF37;
+            --ua-text-main: #FFFFFF;
+            --ua-text-muted: #D6CBC4;
+            --ua-crimson: #8C1D2C;
+            --ua-crimson-hover: #A32234;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -24,48 +41,50 @@
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
-            background: #0f172a;
+            background-color: var(--ua-maroon-dark);
+            color: var(--ua-text-main);
         }
 
-        /* ── LEFT PANEL ── */
+        /* ── LEFT PANEL (BRANDING) ── */
         .left-panel {
-            width: 55%;
+            width: 52%;
             min-height: 100vh;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 3rem;
+            padding: 3.5rem 3rem;
             overflow: hidden;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #1a56a0 100%);
+            background: radial-gradient(circle at 25% 20%, #4a101a 0%, #20060b 55%, #100204 100%);
+            border-right: 1px solid rgba(212, 175, 55, 0.18);
         }
 
         .left-panel::before {
             content: '';
             position: absolute;
-            width: 600px;
-            height: 600px;
+            width: 550px;
+            height: 550px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
-            top: -100px;
-            right: -100px;
-            animation: pulse 6s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(229, 169, 60, 0.12) 0%, transparent 70%);
+            top: -120px;
+            left: -80px;
+            animation: pulse-glow 7s ease-in-out infinite;
         }
 
         .left-panel::after {
             content: '';
             position: absolute;
-            width: 400px;
-            height: 400px;
+            width: 480px;
+            height: 480px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(99, 179, 237, 0.1) 0%, transparent 70%);
-            bottom: -80px;
-            left: -80px;
-            animation: pulse 8s ease-in-out infinite reverse;
+            background: radial-gradient(circle, rgba(140, 29, 44, 0.22) 0%, transparent 70%);
+            bottom: -100px;
+            right: -80px;
+            animation: pulse-glow 9s ease-in-out infinite reverse;
         }
 
-        @keyframes pulse {
+        @keyframes pulse-glow {
             0%, 100% { transform: scale(1); opacity: 0.7; }
             50% { transform: scale(1.1); opacity: 1; }
         }
@@ -75,139 +94,183 @@
             z-index: 2;
             text-align: center;
             color: #fff;
-            max-width: 480px;
+            max-width: 470px;
         }
 
-        .system-icon {
-            width: 90px;
-            height: 90px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
-            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.4);
-            font-size: 2.5rem;
-            color: white;
+        .seal-wrapper {
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .ua-seal-img {
+            width: 105px;
+            height: 105px;
+            border-radius: 50%;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 16px rgba(229, 169, 60, 0.35));
+            transition: transform 0.3s ease;
+        }
+
+        .ua-seal-img:hover {
+            transform: scale(1.05);
+        }
+
+        .inst-sublabel {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--ua-gold-primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
         }
 
         .system-title {
-            font-size: 2.2rem;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.35rem;
             font-weight: 800;
             letter-spacing: -0.5px;
             line-height: 1.2;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #fff 40%, #93c5fd);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 0.85rem;
+            color: #FFFFFF;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .system-subtitle {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.6);
-            line-height: 1.7;
-            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+            color: var(--ua-text-muted);
+            line-height: 1.65;
+            margin-bottom: 2.25rem;
         }
 
         .feature-list {
             list-style: none;
             text-align: left;
             display: inline-block;
+            margin: 0;
+            padding: 0;
         }
 
         .feature-list li {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            color: rgba(255,255,255,0.75);
-            font-size: 0.9rem;
+            color: #E2D9D0;
+            font-size: 0.88rem;
             margin-bottom: 0.85rem;
         }
 
         .feature-list li .icon-check {
-            width: 24px;
-            height: 24px;
-            background: rgba(59, 130, 246, 0.25);
+            width: 22px;
+            height: 22px;
+            background: rgba(229, 169, 60, 0.18);
+            border: 1px solid rgba(229, 169, 60, 0.4);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #60a5fa;
+            color: var(--ua-gold-primary);
             font-size: 0.75rem;
             flex-shrink: 0;
         }
 
-        /* ── RIGHT PANEL ── */
+        /* ── RIGHT PANEL (LOGIN FORM) ── */
         .right-panel {
-            width: 45%;
+            width: 48%;
             min-height: 100vh;
-            background: #ffffff;
+            background-color: #170407;
+            background-image: radial-gradient(circle at 80% 80%, #29080f 0%, #170407 60%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 3rem 3.5rem;
+            padding: 3rem 3rem;
             position: relative;
+        }
+
+        .back-nav {
+            position: absolute;
+            top: 1.5rem;
+            left: 2rem;
+        }
+
+        .back-link {
+            color: var(--ua-text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .back-link:hover {
+            color: var(--ua-gold-primary);
+            border-color: rgba(229, 169, 60, 0.3);
+            background: rgba(229, 169, 60, 0.08);
+            transform: translateX(-2px);
         }
 
         .login-box {
             width: 100%;
-            max-width: 420px;
+            max-width: 410px;
         }
 
         .login-header {
-            margin-bottom: 2.5rem;
+            margin-bottom: 2.25rem;
         }
 
         .login-header h2 {
-            font-size: 1.85rem;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2rem;
             font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.4rem;
+            color: #FFFFFF;
+            margin-bottom: 0.35rem;
         }
 
         .login-header p {
-            color: #64748b;
-            font-size: 0.95rem;
+            color: var(--ua-text-muted);
+            font-size: 0.92rem;
         }
 
         /* ── ALERTS ── */
         .alert-custom {
-            border-radius: 12px;
-            font-size: 0.875rem;
-            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            padding: 0.75rem 1rem;
             margin-bottom: 1.25rem;
-            border: none;
             display: flex;
             align-items: flex-start;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
 
         .alert-success-custom {
-            background: #f0fdf4;
-            color: #166534;
-            border-left: 4px solid #22c55e;
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
         .alert-danger-custom {
-            background: #fef2f2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.35);
         }
 
-        /* ── FORM ── */
+        /* ── FORM FIELDS ── */
         .form-group {
             margin-bottom: 1.25rem;
         }
 
         .form-label-custom {
             display: block;
-            font-size: 0.875rem;
+            font-size: 0.86rem;
             font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
+            color: #F5ECE5;
+            margin-bottom: 0.45rem;
         }
 
         .input-wrapper {
@@ -219,7 +282,7 @@
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #9ca3af;
+            color: #8C7E77;
             font-size: 1rem;
             pointer-events: none;
             transition: color 0.2s;
@@ -227,26 +290,31 @@
 
         .form-input {
             width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.85rem;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 0.95rem;
+            padding: 0.8rem 1rem 0.8rem 2.75rem;
+            border: 1.5px solid rgba(212, 175, 55, 0.22);
+            border-radius: 10px;
+            font-size: 0.93rem;
             font-family: 'Inter', sans-serif;
-            color: #111827;
-            background: #f9fafb;
+            color: #FFFFFF;
+            background: rgba(36, 10, 15, 0.65);
             transition: all 0.2s ease;
             outline: none;
         }
 
+        .form-input::placeholder {
+            color: #7D6F6A;
+        }
+
         .form-input:focus {
-            border-color: #3b82f6;
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            border-color: var(--ua-gold-primary);
+            background: rgba(45, 12, 18, 0.9);
+            box-shadow: 0 0 0 3px rgba(229, 169, 60, 0.2);
+            color: #FFFFFF;
         }
 
         .form-input:focus + .input-icon,
         .input-wrapper:focus-within .input-icon {
-            color: #3b82f6;
+            color: var(--ua-gold-primary);
         }
 
         .toggle-password {
@@ -255,7 +323,7 @@
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            color: #9ca3af;
+            color: #8C7E77;
             font-size: 1rem;
             transition: color 0.2s;
             background: none;
@@ -264,7 +332,7 @@
         }
 
         .toggle-password:hover {
-            color: #3b82f6;
+            color: var(--ua-gold-primary);
         }
 
         /* ── REMEMBER & FORGOT ── */
@@ -272,88 +340,91 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.75rem;
+            margin-bottom: 1.6rem;
         }
 
         .remember-label {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.875rem;
-            color: #374151;
+            font-size: 0.85rem;
+            color: var(--ua-text-muted);
             cursor: pointer;
         }
 
         .remember-label input[type="checkbox"] {
             width: 16px;
             height: 16px;
-            accent-color: #3b82f6;
+            accent-color: var(--ua-crimson);
             cursor: pointer;
         }
 
         .forgot-link {
-            font-size: 0.875rem;
-            color: #3b82f6;
+            font-size: 0.85rem;
+            color: var(--ua-gold-primary);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.2s;
         }
 
         .forgot-link:hover {
-            color: #1d4ed8;
+            color: var(--ua-gold-light);
+            text-decoration: underline;
         }
 
         /* ── SUBMIT BUTTON ── */
         .btn-login {
             width: 100%;
-            padding: 0.9rem;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, #8C1D2C 0%, #5E0E1B 100%);
+            color: #FFFFFF;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 10px;
+            font-size: 0.98rem;
             font-weight: 700;
             font-family: 'Inter', sans-serif;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
-            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            letter-spacing: 0.2px;
         }
 
         .btn-login:hover {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(135deg, #A32234 0%, #731221 100%);
+            border-color: var(--ua-gold-primary);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 0 16px rgba(229, 169, 60, 0.25);
             transform: translateY(-1px);
+            color: #FFFFFF;
         }
 
         .btn-login:active {
             transform: translateY(0);
         }
 
-        /* ── REGISTER LINK ── */
+        /* ── DIVIDER & REGISTER LINK ── */
+        .divider {
+            height: 1px;
+            background: rgba(212, 175, 55, 0.15);
+            margin: 1.6rem 0;
+        }
+
         .register-link {
             text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-            color: #64748b;
+            font-size: 0.88rem;
+            color: var(--ua-text-muted);
         }
 
         .register-link a {
-            color: #3b82f6;
+            color: var(--ua-gold-primary);
             font-weight: 600;
             text-decoration: none;
+            margin-left: 0.3rem;
             transition: color 0.2s;
         }
 
         .register-link a:hover {
-            color: #1d4ed8;
-        }
-
-        /* ── DIVIDER ── */
-        .divider {
-            height: 1px;
-            background: #f1f5f9;
-            margin: 1.5rem 0;
+            color: var(--ua-gold-light);
+            text-decoration: underline;
         }
 
         /* ── FOOTER ── */
@@ -361,77 +432,113 @@
             position: absolute;
             bottom: 1.5rem;
             font-size: 0.78rem;
-            color: #cbd5e1;
+            color: #7D6F6A;
             text-align: center;
         }
 
         /* ── RESPONSIVE ── */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .left-panel { width: 100%; min-height: 260px; padding: 2rem; }
-            .right-panel { width: 100%; padding: 2rem 1.5rem; }
-            .system-title { font-size: 1.6rem; }
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            .left-panel {
+                width: 100%;
+                min-height: auto;
+                padding: 2.75rem 1.5rem 2rem;
+                border-right: none;
+                border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+            }
+            .right-panel {
+                width: 100%;
+                min-height: auto;
+                padding: 3rem 1.5rem;
+            }
+            .back-nav {
+                top: 1rem;
+                left: 1rem;
+            }
+            .system-title {
+                font-size: 1.85rem;
+            }
+            .feature-list {
+                display: none;
+            }
+            .system-subtitle {
+                margin-bottom: 0;
+            }
+            .login-footer {
+                position: relative;
+                bottom: auto;
+                margin-top: 2.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- LEFT PANEL -->
+    <!-- LEFT PANEL: UNIVERSITY OF ANTIQUE BRANDING -->
     <div class="left-panel">
         <div class="left-panel-content">
-            <div class="system-icon">
-                <i class="bi bi-mortarboard-fill"></i>
+            <div class="seal-wrapper">
+                <img src="{{ asset('logo.png') }}" alt="University of Antique Seal" class="ua-seal-img">
             </div>
+            <div class="inst-sublabel">University of Antique</div>
             <h1 class="system-title">URLC Digital Platform</h1>
             <p class="system-subtitle">
-                University Research Lifecycle System — A centralized platform for managing research proposals from submission to completion.
+                University Research Lifecycle System — A centralized institutional portal for managing academic proposals from submission to completion.
             </p>
             <ul class="feature-list">
                 <li>
                     <span class="icon-check"><i class="bi bi-check-lg"></i></span>
-                    Role-Based Access Control for all users
+                    Role-Based Access Control for all 9 university offices
                 </li>
                 <li>
                     <span class="icon-check"><i class="bi bi-check-lg"></i></span>
-                    5-Phase Research Lifecycle Management
+                    5-Phase Research Lifecycle & Compliance Workflow
                 </li>
                 <li>
                     <span class="icon-check"><i class="bi bi-check-lg"></i></span>
-                    Automated Proposal Workflow and Status Tracking
+                    Automated Endorsement and NTP Approval Tracking
                 </li>
                 <li>
                     <span class="icon-check"><i class="bi bi-check-lg"></i></span>
-                    Secure Document Storage via Supabase S3
+                    Secure Cloud Storage with Pre-Signed Document Links
                 </li>
                 <li>
                     <span class="icon-check"><i class="bi bi-check-lg"></i></span>
-                    Real-Time Notifications and Feedback
+                    Real-Time Reviewer Feedback & Evaluation Matrices
                 </li>
             </ul>
         </div>
     </div>
 
-    <!-- RIGHT PANEL -->
+    <!-- RIGHT PANEL: SIGN IN FORM -->
     <div class="right-panel">
-        <div class="login-box">
+        <!-- Return to Home / Portal -->
+        <div class="back-nav">
+            <a href="{{ url('/') }}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Return to Portal
+            </a>
+        </div>
 
+        <div class="login-box">
             <div class="login-header">
-                <h2>Welcome back</h2>
-                <p>Sign in to your account to continue</p>
+                <h2>Welcome Back</h2>
+                <p>Sign in with your institutional credentials to continue</p>
             </div>
 
             {{-- Session Status --}}
             @if (session('status'))
                 <div class="alert-custom alert-success-custom">
                     <i class="bi bi-check-circle-fill"></i>
-                    {{ session('status') }}
+                    <div>{{ session('status') }}</div>
                 </div>
             @endif
 
             @if (session('error'))
                 <div class="alert-custom alert-danger-custom">
                     <i class="bi bi-exclamation-circle-fill"></i>
-                    {{ session('error') }}
+                    <div>{{ session('error') }}</div>
                 </div>
             @endif
 
@@ -449,9 +556,9 @@
             <form method="POST" action="{{ route('login') }}">
                 @csrf
 
-                <!-- Email -->
+                <!-- Email Address -->
                 <div class="form-group">
-                    <label class="form-label-custom" for="email">Email Address</label>
+                    <label class="form-label-custom" for="email">Institutional Email</label>
                     <div class="input-wrapper">
                         <input
                             id="email"
@@ -459,7 +566,7 @@
                             type="email"
                             name="email"
                             value="{{ old('email') }}"
-                            placeholder="you@example.com"
+                            placeholder="username@antiquespride.edu.ph"
                             required
                             autofocus
                         />
@@ -476,13 +583,13 @@
                             class="form-input"
                             type="password"
                             name="password"
-                            placeholder="Enter your password"
+                            placeholder="Enter your account password"
                             required
                             autocomplete="current-password"
                             style="padding-right: 3rem;"
                         />
                         <i class="bi bi-lock input-icon"></i>
-                        <button type="button" class="toggle-password" onclick="togglePassword()" id="toggleBtn">
+                        <button type="button" class="toggle-password" onclick="togglePassword()" id="toggleBtn" aria-label="Toggle password visibility">
                             <i class="bi bi-eye" id="eyeIcon"></i>
                         </button>
                     </div>
@@ -499,9 +606,9 @@
                     @endif
                 </div>
 
-                <!-- Submit -->
+                <!-- Submit Button -->
                 <button type="submit" class="btn-login" id="loginBtn">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Log In
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Portal
                 </button>
             </form>
 
@@ -509,13 +616,12 @@
 
             <div class="register-link">
                 Don't have an account?
-                <a href="{{ route('register') }}">Create one here</a>
+                <a href="{{ route('register') }}">Create an account</a>
             </div>
-
         </div>
 
         <div class="login-footer">
-            &copy; {{ date('Y') }} URLC Digital Platform. All rights reserved.
+            &copy; {{ date('Y') }} University of Antique • URLC Digital Platform
         </div>
     </div>
 
