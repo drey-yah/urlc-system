@@ -6,19 +6,19 @@
     </div>
 
     <!-- Main Header Banner -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="gradient-banner p-4 p-lg-5">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="display-6 fw-bold mb-3">{{ $proposal->title }}</h1>
-                    <div class="d-flex align-items-center gap-4 opacity-90">
-                        <span class="d-flex align-items-center gap-2">
+    <div class="card border-0 shadow-sm mb-3 mb-md-4 rounded-4 overflow-hidden">
+        <div class="gradient-banner p-3 p-md-4 p-lg-5 text-white">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                <div class="w-100">
+                    <h1 class="h3 fs-md-2 fw-bold mb-2 text-white">{{ $proposal->title }}</h1>
+                    <div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 opacity-90 text-white" style="font-size: 0.85rem;">
+                        <span class="d-inline-flex align-items-center gap-1.5 text-nowrap">
                             <i class="bi bi-person"></i> {{ $proposal->user->name }}
                         </span>
-                        <span class="d-flex align-items-center gap-2">
-                            <i class="bi bi-tag"></i> {{ $proposal->proposal_code ?? 'No Tag Yet' }}
+                        <span class="d-inline-flex align-items-center gap-1.5 text-nowrap">
+                            <i class="bi bi-tag"></i> <span class="fw-mono">{{ $proposal->proposal_code ?? 'No Tag Yet' }}</span>
                         </span>
-                        <span class="d-flex align-items-center gap-2">
+                        <span class="d-inline-flex align-items-center gap-1.5 text-nowrap">
                             <i class="bi bi-calendar3"></i> Submitted: {{ $proposal->created_at->format('Y-m-d') }}
                         </span>
                     </div>
@@ -34,16 +34,16 @@
                         default => '#6B7280'
                     };
                 @endphp
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <a href="{{ route('proposal.resu_fm015', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-dark shadow-sm">
-                        <i class="bi bi-file-earmark-text-fill text-primary me-1"></i> RESU-FM-015 Proposal Form
+                <div class="d-flex align-items-center gap-2 flex-wrap w-100 w-md-auto justify-content-start justify-content-md-end mt-2 mt-md-0">
+                    <a href="{{ route('proposal.resu_fm015', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm">
+                        <i class="bi bi-file-earmark-text-fill text-primary me-1"></i> RESU-FM-015 Form
                     </a>
                     @if(in_array(auth()->user()->role, ['coordinator', 'dean', 'admin', 'super_admin', 'staff']))
-                        <a href="{{ route('proposal.endorsement_form', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-dark shadow-sm">
-                            <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> RESU-FM-003 Endorsement Form
+                        <a href="{{ route('proposal.endorsement_form', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm">
+                            <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Endorsement Form
                         </a>
                     @endif
-                    <span class="badge py-2 px-4" style="background-color: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                    <span class="badge py-2 px-3 text-wrap text-start rounded-pill" style="background-color: rgba(255,255,255,0.22); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.35); color: white; font-size: 0.72rem; line-height: 1.2;">
                         {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
                     </span>
                 </div>
@@ -51,18 +51,18 @@
         </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm p-4">
-                <small class="text-muted fw-bold text-uppercase mb-2 d-block">Phase</small>
-                <h2 class="h3 fw-bold mb-0">Phase {{ $proposal->current_phase }}</h2>
+    <!-- Quick Stats (2-col grid on mobile) -->
+    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+        <div class="col-6">
+            <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 h-100">
+                <small class="text-muted fw-bold text-uppercase mb-1 d-block" style="font-size: 0.7rem;">Phase</small>
+                <h2 class="h5 fs-md-4 fw-bold mb-0">Phase {{ $proposal->current_phase }}</h2>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm p-4">
-                <small class="text-muted fw-bold text-uppercase mb-2 d-block">Status</small>
-                <h2 class="h3 fw-bold mb-0 text-capitalize">{{ str_replace('_', ' ', $proposal->status) }}</h2>
+        <div class="col-6">
+            <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 h-100">
+                <small class="text-muted fw-bold text-uppercase mb-1 d-block" style="font-size: 0.7rem;">Status</small>
+                <h2 class="h5 fs-md-4 fw-bold mb-0 text-capitalize text-wrap" style="font-size: 0.92rem; line-height: 1.25;">{{ str_replace('_', ' ', $proposal->status) }}</h2>
             </div>
         </div>
     </div>
@@ -101,12 +101,12 @@
             <!-- Coordinator Actions -->
             @if($userRole === 'coordinator')
                 @if($proposal->status === 'pending_coordinator_endorsement')
-                    <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-flex gap-3">
+                    <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-flex flex-wrap gap-2 gap-md-3">
                         @csrf
                         <button type="submit" name="action" value="return" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this proposal for revision?');">
                             <i class="bi bi-arrow-return-left fs-6"></i> Return for Revision
                         </button>
-                        <button type="submit" name="action" value="endorse" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to endorse this proposal?');">
+                        <button type="submit" name="action" value="endorse" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to endorse this proposal?');">
                             <i class="bi bi-check2-circle fs-6"></i> Endorse & Forward to Dean
                         </button>
                     </form>
@@ -123,12 +123,12 @@
             <!-- Dean Actions -->
             @if($userRole === 'dean')
                 @if($proposal->status === 'pending_dean_noting')
-                    <form action="{{ route('dean.noteEndorsement', $proposal->id) }}" method="POST" class="d-flex gap-3">
+                    <form action="{{ route('dean.noteEndorsement', $proposal->id) }}" method="POST" class="d-flex flex-wrap gap-2 gap-md-3">
                         @csrf
                         <button type="submit" name="action" value="return" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this endorsement?');">
                             <i class="bi bi-arrow-return-left fs-6"></i> Return to Coordinator
                         </button>
-                        <button type="submit" name="action" value="note" class="btn btn-success px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to note this endorsement?');">
+                        <button type="submit" name="action" value="note" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to note this endorsement?');">
                             <i class="bi bi-journal-check fs-6"></i> Note Endorsement
                         </button>
                     </form>
@@ -269,17 +269,17 @@
     @endif
 
     <!-- Document History Section -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 p-lg-5">
-            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-body p-3 p-md-4 p-lg-5">
+            <h3 class="h5 fw-bold d-flex align-items-center gap-2 gap-md-3 mb-3 mb-md-4">
                 <i class="bi bi-file-earmark-pdf text-danger"></i> Document History
             </h3>
             
             @if($proposal->documents && $proposal->documents->count() > 0)
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr>
+                            <tr class="text-nowrap">
                                 <th>Document Tag</th>
                                 <th>Version</th>
                                 <th>Phase</th>
@@ -290,12 +290,16 @@
                         <tbody>
                             @foreach($proposal->documents->sortByDesc('version') as $doc)
                             <tr>
-                                <td><span class="badge bg-secondary">{{ $doc->document_tag }}</span></td>
-                                <td>V{{ $doc->version }}</td>
-                                <td>Phase {{ $doc->phase }}</td>
-                                <td>{{ $doc->created_at->format('M d, Y h:i A') }}</td>
                                 <td>
-                                    <a href="{{ route('file.serve', ['path' => $doc->file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <span class="badge bg-secondary text-wrap text-break" style="max-width: 220px; font-size: 0.72rem; white-space: normal; line-height: 1.3;">
+                                        {{ $doc->document_tag }}
+                                    </span>
+                                </td>
+                                <td class="text-nowrap fw-semibold">V{{ $doc->version }}</td>
+                                <td class="text-nowrap">Phase {{ $doc->phase }}</td>
+                                <td class="text-nowrap small text-muted">{{ $doc->created_at->format('M d, Y h:i A') }}</td>
+                                <td class="text-nowrap">
+                                    <a href="{{ route('file.serve', ['path' => $doc->file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                         <i class="bi bi-download"></i> View PDF
                                     </a>
                                 </td>
@@ -306,39 +310,39 @@
                 </div>
             @elseif($proposal->document_path)
                 <!-- Fallback for old proposals -->
-                <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 p-3 border rounded-3 bg-light">
                     <div>
                         <h6 class="mb-0 fw-bold">Original Proposal Document</h6>
                         <small class="text-muted">Legacy Upload</small>
                     </div>
-                    <a href="{{ route('file.serve', ['path' => $proposal->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4">
+                    <a href="{{ route('file.serve', ['path' => $proposal->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4 rounded-pill">
                         View PDF
                     </a>
                 </div>
             @else
-                <p class="text-muted mb-0">No documents uploaded.</p>
+                <p class="text-muted mb-0 small">No documents uploaded.</p>
             @endif
         </div>
     </div>
 
     <!-- Official Documents (Notice & Certificate) -->
     @if(in_array($proposal->status, ['accepted_for_in_house_review', 'revision_required', 'approved', 'final_copy_submitted', 'final_copy_noted_by_dean', 'endorsed_to_vprei', 'final_approved', 'ongoing', 'completed', 'archived']))
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
+    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+        <div class="card-body p-3 p-md-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
-            <div class="d-flex gap-3">
-                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary">
+            <div class="d-flex flex-wrap gap-2 gap-md-3">
+                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold">
                     <i class="bi bi-download"></i> In-House Review Acceptance Form
                 </a>
                 
                 @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
-                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-info text-white">
+                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-info text-white rounded-pill px-3 py-2 fw-semibold">
                     <i class="bi bi-download"></i> Notice to Proceed
                 </a>
                 @endif
                 
                 @if($proposal->current_phase >= 5)
-                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success">
+                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold">
                     <i class="bi bi-download"></i> Certificate of Completion
                 </a>
                 @endif
@@ -349,18 +353,30 @@
 
     <!-- Phase 2: Implementation, Monitoring & Evaluation Workspace -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-diagram-3-fill text-success"></i> Phase 2: Implementation, Monitoring & Evaluation Workspace
-                </h3>
-                <p class="text-muted small mb-0">Multi-step document sign-off & submission hub for Activity Designs, Purchase Requests, Monitoring Forms, and Terminal Reports.</p>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 2 ? '' : 'collapsed' }}"
+             data-bs-toggle="collapse" 
+             data-bs-target="#phase2WorkspaceCollapse" 
+             role="button" 
+             aria-expanded="{{ $proposal->current_phase == 2 ? 'true' : 'false' }}">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                <div>
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-diagram-3-fill text-success"></i> Phase 2: Implementation, Monitoring & Evaluation Workspace
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Multi-step document sign-off & submission hub for Activity Designs, Purchase Requests, Monitoring Forms, and Terminal Reports.</p>
+                </div>
             </div>
-            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-4 py-2 fw-bold">Phase 2 Active</span>
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+                <span class="badge {{ $proposal->current_phase == 2 ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap">
+                    {{ $proposal->current_phase == 2 ? 'Phase 2 Active' : 'Phase 2' }}
+                </span>
+            </div>
         </div>
 
-        <div class="card-body p-4 p-lg-5">
-            <div class="row g-4">
+        <div class="collapse {{ $proposal->current_phase == 2 ? 'show' : '' }}" id="phase2WorkspaceCollapse">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
+                <div class="row g-4">
                 <!-- 1. Activity Design & Budget Clearance (Steps 1 & 2) -->
                 <div class="col-md-6">
                     <div class="card border border-light-subtle rounded-4 h-100 shadow-xs">
@@ -714,24 +730,33 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- Phase 3: Research Dissemination & Presentation Workspace (Appendix B) -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                    <i class="bi bi-easel-fill" style="color: #8B5CF6;"></i> Phase 3: Research Dissemination & Presentation Workspace (Appendix B)
-                </h3>
-                <p class="text-muted fs-7 mb-0">Full authorization workflow for Oral & Poster Presentation of Research Outputs, Sponsoring Agency Acceptance, and SUC President Sign-off.</p>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 3 ? '' : 'collapsed' }}"
+             data-bs-toggle="collapse" 
+             data-bs-target="#phase3WorkspaceCollapse" 
+             role="button" 
+             aria-expanded="{{ $proposal->current_phase == 3 ? 'true' : 'false' }}">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                <div>
+                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
+                        <i class="bi bi-easel-fill" style="color: #8B5CF6;"></i> Phase 3: Research Dissemination & Presentation Workspace (Appendix B)
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Full authorization workflow for Oral & Poster Presentation of Research Outputs, Sponsoring Agency Acceptance, and SUC President Sign-off.</p>
+                </div>
             </div>
-            @if($proposal->current_phase >= 2)
-                <span class="badge bg-purple bg-opacity-10 rounded-pill px-3 py-2 fw-medium fs-7" style="color: #8B5CF6;">
-                    <i class="bi bi-broadcast me-1"></i> Phase 3 Active
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+                <span class="badge {{ $proposal->current_phase == 3 ? 'bg-purple bg-opacity-10' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap" style="{{ $proposal->current_phase == 3 ? 'color: #8B5CF6;' : '' }}">
+                    <i class="bi bi-broadcast me-1"></i> {{ $proposal->current_phase == 3 ? 'Phase 3 Active' : 'Phase 3' }}
                 </span>
-            @endif
+            </div>
         </div>
 
-        <div class="card-body p-4 p-lg-5">
+        <div class="collapse {{ $proposal->current_phase == 3 ? 'show' : '' }}" id="phase3WorkspaceCollapse">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @forelse($proposal->researchPresentations as $pres)
                 <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
                     <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -999,24 +1024,33 @@
             @endif
         </div>
     </div>
+</div>
 
     <!-- Phase 4: Publication of Research Outputs Workspace (Appendix C) -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                    <i class="bi bi-journal-check text-success"></i> Phase 4: Publication of Research Outputs Workspace (Appendix C)
-                </h3>
-                <p class="text-muted fs-7 mb-0">Letter of intent submission, IP screening/clearance by VPREI & IEDC, refereed journal submission tracking, and final publication archiving.</p>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 4 ? '' : 'collapsed' }}"
+             data-bs-toggle="collapse" 
+             data-bs-target="#phase4WorkspaceCollapse" 
+             role="button" 
+             aria-expanded="{{ $proposal->current_phase == 4 ? 'true' : 'false' }}">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                <div>
+                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
+                        <i class="bi bi-journal-check text-success"></i> Phase 4: Publication of Research Outputs Workspace (Appendix C)
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Letter of intent submission, IP screening/clearance by VPREI & IEDC, refereed journal submission tracking, and final publication archiving.</p>
+                </div>
             </div>
-            @if($proposal->current_phase >= 3 || $proposal->researchPublications->count() > 0)
-                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-medium fs-7">
-                    <i class="bi bi-journal-bookmark-fill me-1"></i> Phase 4 Active
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+                <span class="badge {{ $proposal->current_phase == 4 ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap">
+                    <i class="bi bi-journal-bookmark-fill me-1"></i> {{ $proposal->current_phase == 4 ? 'Phase 4 Active' : 'Phase 4' }}
                 </span>
-            @endif
+            </div>
         </div>
 
-        <div class="card-body p-4 p-lg-5">
+        <div class="collapse {{ $proposal->current_phase == 4 ? 'show' : '' }}" id="phase4WorkspaceCollapse">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @forelse($proposal->researchPublications as $pub)
                 <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
                     <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -1272,70 +1306,77 @@
             @endif
         </div>
     </div>
+</div>
 
     <!-- Appendix D: Conduct of Local Research Forum Workspace -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="h5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                    <i class="bi bi-people-fill text-primary"></i> Phase 5: Conduct of Local Research Forum Workspace (Appendix D)
-                </h3>
-                <p class="text-muted fs-7 mb-0">Internal University In-House Colloquium workflow: Call for papers, College Coordinator endorsement, Notice of Acceptance, and presentation certificates.</p>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 5 ? '' : 'collapsed' }}"
+             data-bs-toggle="collapse" 
+             data-bs-target="#phase5WorkspaceCollapse" 
+             role="button" 
+             aria-expanded="{{ $proposal->current_phase == 5 ? 'true' : 'false' }}">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                <div>
+                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
+                        <i class="bi bi-people-fill text-primary"></i> Phase 5: Conduct of Local Research Forum Workspace (Appendix D)
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Internal University In-House Colloquium workflow: Call for papers, College Coordinator endorsement, Notice of Acceptance, and presentation certificates.</p>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
                 @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator', 'super_admin']))
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" data-bs-toggle="collapse" data-bs-target="#createForumModal">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" data-bs-toggle="collapse" data-bs-target="#createForumModal" onclick="event.stopPropagation()">
                         <i class="bi bi-megaphone me-1"></i> Launch Call for Papers
                     </button>
                 @endif
-                @if($proposal->localForumSubmissions->count() > 0)
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-medium fs-7">
-                        <i class="bi bi-calendar-event-fill me-1"></i> Forum Active
-                    </span>
-                @endif
+                <span class="badge {{ $proposal->current_phase == 5 ? 'bg-primary bg-opacity-10 text-primary' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap">
+                    <i class="bi bi-calendar-event-fill me-1"></i> {{ $proposal->current_phase == 5 ? 'Phase 5 Active' : 'Phase 5' }}
+                </span>
             </div>
         </div>
 
-        <!-- Launch Call for Papers Form (Collapse) -->
-        <div class="collapse px-4 px-lg-5 pt-3" id="createForumModal">
-            <div class="card border rounded-4 p-4 bg-light">
-                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-megaphone-fill me-2 text-primary"></i> Launch New Local Research Forum Event (Research Director)</h6>
-                <form action="{{ route('local_forum.create') }}" method="POST">
-                    @csrf
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fs-7 fw-bold">Forum Title</label>
-                            <input type="text" name="title" class="form-control" placeholder="e.g. 2026 Annual SUC In-House Research Forum" required>
+        <div class="collapse {{ $proposal->current_phase == 5 ? 'show' : '' }}" id="phase5WorkspaceCollapse">
+            <!-- Launch Call for Papers Form (Collapse) -->
+            <div class="collapse px-3 px-md-4 px-lg-5 pt-3" id="createForumModal">
+                <div class="card border rounded-4 p-4 bg-light">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-megaphone-fill me-2 text-primary"></i> Launch New Local Research Forum Event (Research Director)</h6>
+                    <form action="{{ route('local_forum.create') }}" method="POST">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fs-7 fw-bold">Forum Title</label>
+                                <input type="text" name="title" class="form-control" placeholder="e.g. 2026 Annual SUC In-House Research Forum" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fs-7 fw-bold">Forum Theme (Optional)</label>
+                                <input type="text" name="theme" class="form-control" placeholder="e.g. Innovating for Sustainable Regional Development">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fs-7 fw-bold">Event Date</label>
+                                <input type="date" name="event_date" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fs-7 fw-bold">Venue / Location</label>
+                                <input type="text" name="venue" class="form-control" placeholder="e.g. University Convention Center / Online">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fs-7 fw-bold">Submission Deadline</label>
+                                <input type="date" name="submission_deadline" class="form-control">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fs-7 fw-bold">Guidelines & Mechanics</label>
+                                <textarea name="guidelines" class="form-control" rows="2" placeholder="Enter submission guidelines or instructions for faculty researchers..."></textarea>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fs-7 fw-bold">Forum Theme (Optional)</label>
-                            <input type="text" name="theme" class="form-control" placeholder="e.g. Innovating for Sustainable Regional Development">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fs-7 fw-bold">Event Date</label>
-                            <input type="date" name="event_date" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fs-7 fw-bold">Venue / Location</label>
-                            <input type="text" name="venue" class="form-control" placeholder="e.g. University Convention Center / Online">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fs-7 fw-bold">Submission Deadline</label>
-                            <input type="date" name="submission_deadline" class="form-control">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fs-7 fw-bold">Guidelines & Mechanics</label>
-                            <textarea name="guidelines" class="form-control" rows="2" placeholder="Enter submission guidelines or instructions for faculty researchers..."></textarea>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">
-                        <i class="bi bi-broadcast me-1"></i> Launch & Disseminate Call for Papers
-                    </button>
-                </form>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-broadcast me-1"></i> Launch & Disseminate Call for Papers
+                        </button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <div class="card-body p-4 p-lg-5">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @forelse($proposal->localForumSubmissions as $sub)
                 <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
                     <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -1536,6 +1577,7 @@
             @endif
         </div>
     </div>
+</div>
 
     <!-- Phase 6: Final Manuscript Submission -->
     @if(auth()->id() == $proposal->user_id && $proposal->current_phase >= 5 && $proposal->status !== 'archived')
@@ -1568,26 +1610,34 @@
     @if($canViewFinancials)
         <!-- Financial & Budget Monitoring System Widget -->
         <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                    <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                        <i class="bi bi-wallet2 text-success"></i> Financial & Budget Monitoring System
-                    </h3>
-                    <p class="text-muted fs-7 mb-0">Real-time expenditure tracking, line item allocation, purchase requests, and remaining fund balance.</p>
+            <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
+                 data-bs-toggle="collapse" 
+                 data-bs-target="#financialMonitoringCollapse" 
+                 role="button" 
+                 aria-expanded="false">
+                <div class="d-flex align-items-center gap-2 gap-md-3">
+                    <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                    <div>
+                        <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-wallet2 text-success"></i> Financial & Budget Monitoring System
+                        </h3>
+                        <p class="text-muted small mb-0 d-none d-sm-block">Real-time expenditure tracking, line item allocation, purchase requests, and remaining fund balance.</p>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-medium fs-7">
-                        <i class="bi bi-cash-stack me-1"></i> Funding: {{ $proposal->funding_source ?? 'University Funded (GAA/MOOE)' }}
+                <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-bold text-nowrap">
+                        <i class="bi bi-cash-stack me-1"></i> {{ $proposal->funding_source ? 'Funded' : 'Budget Hub' }}
                     </span>
                     @if($proposal->status === 'funds_certified' || $proposal->current_phase >= 2)
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-medium fs-7">
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1.5 fw-bold text-nowrap">
                             <i class="bi bi-check-circle-fill me-1"></i> Funds Certified
                         </span>
                     @endif
                 </div>
             </div>
 
-            <div class="card-body p-4 p-lg-5 pt-3">
+            <div class="collapse" id="financialMonitoringCollapse">
+                <div class="card-body p-3 p-md-4 p-lg-5 pt-3 border-top">
                 @php
                     $subtotalMOOE = $proposal->budgetItems->where('category_type', 'mooe')->sum('amount');
                     $subtotalCO = $proposal->budgetItems->where('category_type', 'co')->sum('amount');
@@ -1710,30 +1760,39 @@
                 </div>
             </div>
         </div>
+    </div>
     @endif
 
     <!-- Line Item Budget (LIB) Section -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-calculator-fill text-success"></i> Line Item Budget (LIB)
-                </h3>
-                <p class="text-muted small mb-0">Detailed breakdown of Maintenance & Operating Expenses (MOOE) and Capital Outlay (CO).</p>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
+             data-bs-toggle="collapse" 
+             data-bs-target="#libBudgetCollapse" 
+             role="button" 
+             aria-expanded="false">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                <div>
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-calculator-fill text-success"></i> Line Item Budget (LIB)
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Detailed breakdown of Maintenance & Operating Expenses (MOOE) and Capital Outlay (CO).</p>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="bg-success bg-opacity-10 text-success px-4 py-2 rounded-pill fw-bold fs-6">
-                    Grand Total: ₱{{ number_format($proposal->total_budget ?? $proposal->budgetItems->sum('amount'), 2) }}
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0">
+                <div class="bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill fw-bold text-nowrap" style="font-size: 0.8rem;">
+                    Total: ₱{{ number_format($proposal->total_budget ?? $proposal->budgetItems->sum('amount'), 2) }}
                 </div>
                 @if(auth()->id() == $proposal->user_id)
-                    <button type="button" class="btn btn-success btn-sm px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addBudgetItemModal">
-                        <i class="bi bi-plus-circle-fill"></i> Add Budget Entry
+                    <button type="button" class="btn btn-success btn-sm px-3 py-1.5 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 text-nowrap" data-bs-toggle="modal" data-bs-target="#addBudgetItemModal" onclick="event.stopPropagation()">
+                        <i class="bi bi-plus-circle-fill"></i> <span class="d-none d-sm-inline">Add Budget Entry</span><span class="d-sm-none">Add Entry</span>
                     </button>
                 @endif
             </div>
         </div>
 
-        <div class="card-body p-4 p-lg-5">
+        <div class="collapse" id="libBudgetCollapse">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @php
                 $mooeItems = $proposal->budgetItems->where('category_type', 'mooe');
                 $coItems = $proposal->budgetItems->where('category_type', 'co');
@@ -1881,9 +1940,9 @@
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
+</div>
 
     <!-- Modal: Add Budget Entry -->
     @if(auth()->id() == $proposal->user_id)
@@ -1955,21 +2014,34 @@
 
     <!-- Work Plan & Gantt Chart Matrix Section -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 px-lg-5 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-                <h3 class="h5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                    <i class="bi bi-bar-chart-line-fill text-primary"></i> 12-Month Research Work Plan (Gantt Chart)
-                </h3>
-                <p class="text-muted small mb-0">Visual Gantt chart timeline mapping project phases from inception to final submission.</p>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
+             data-bs-toggle="collapse" 
+             data-bs-target="#ganttCollapse" 
+             role="button" 
+             aria-expanded="false">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
+                <div>
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-bar-chart-line-fill text-primary"></i> 12-Month Research Work Plan (Gantt Chart)
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Visual Gantt chart timeline mapping project phases from inception to final submission.</p>
+                </div>
             </div>
-            @if(auth()->id() == $proposal->user_id)
-                <button type="button" class="btn btn-primary btn-sm px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addMilestoneModal">
-                    <i class="bi bi-plus-circle-fill"></i> Add Work Plan Phase
-                </button>
-            @endif
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0">
+                @if(auth()->id() == $proposal->user_id)
+                    <button type="button" class="btn btn-primary btn-sm px-3 py-1.5 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 text-nowrap" data-bs-toggle="modal" data-bs-target="#addMilestoneModal" onclick="event.stopPropagation()">
+                        <i class="bi bi-plus-circle-fill"></i> <span class="d-none d-sm-inline">Add Work Plan Phase</span><span class="d-sm-none">Add Phase</span>
+                    </button>
+                @endif
+                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1.5 fw-bold text-nowrap">
+                    12-Month Plan
+                </span>
+            </div>
         </div>
 
-        <div class="card-body p-4 p-lg-5">
+        <div class="collapse" id="ganttCollapse">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @php
                 $months = [
                     ['num' => 'M1', 'label' => 'Jan'],
@@ -2132,6 +2204,7 @@
             @endif
         </div>
     </div>
+</div>
 
     <!-- Modal: Add Work Plan Item -->
     @if(auth()->id() == $proposal->user_id)
