@@ -5,60 +5,60 @@
             <p class="text-muted mb-0">Complete audit trail of user authentications, model updates, approvals, and system activities.</p>
         </div>
         <div>
-            <a href="{{ route('superadmin.logs.export', request()->query()) }}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm">
+            <a href="{{ route('superadmin.logs.export', request()->query()) }}" class="btn btn-outline-primary rounded-pill px-4 shadow-sm w-100 w-md-auto d-inline-flex align-items-center justify-content-center">
                 <i class="bi bi-file-earmark-spreadsheet me-2"></i>Export to CSV
             </a>
         </div>
     </div>
 
-    <!-- Quick Stats Grid -->
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-3">
+    <!-- Quick Stats Grid (2x2 on Mobile, 4 Cols on Desktop) -->
+    <div class="row g-2 g-md-3 mb-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body p-3 p-md-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted small fw-semibold">Total Logged Events</span>
+                        <span class="text-muted small fw-semibold text-truncate me-1">Total Events</span>
                         <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2">
-                            <i class="bi bi-journal-check h5 mb-0"></i>
+                            <i class="bi bi-journal-check"></i>
                         </div>
                     </div>
                     <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_logs']) }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body p-3 p-md-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted small fw-semibold">Today's Activities</span>
+                        <span class="text-muted small fw-semibold text-truncate me-1">Today's Activity</span>
                         <div class="bg-success bg-opacity-10 text-success rounded-3 p-2">
-                            <i class="bi bi-activity h5 mb-0"></i>
+                            <i class="bi bi-activity"></i>
                         </div>
                     </div>
                     <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['today_logs']) }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body p-3 p-md-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted small fw-semibold">Active Users Today</span>
+                        <span class="text-muted small fw-semibold text-truncate me-1">Active Users</span>
                         <div class="bg-info bg-opacity-10 text-info rounded-3 p-2">
-                            <i class="bi bi-people h5 mb-0"></i>
+                            <i class="bi bi-people"></i>
                         </div>
                     </div>
                     <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['active_users_today']) }}</h3>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm rounded-4 h-100">
                 <div class="card-body p-3 p-md-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted small fw-semibold">Logins Today</span>
+                        <span class="text-muted small fw-semibold text-truncate me-1">Logins Today</span>
                         <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2">
-                            <i class="bi bi-box-arrow-in-right h5 mb-0"></i>
+                            <i class="bi bi-box-arrow-in-right"></i>
                         </div>
                     </div>
                     <h3 class="fw-bold mb-0 text-dark">{{ number_format($stats['today_logins']) }}</h3>
@@ -71,7 +71,7 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-body p-3 p-md-4">
             <form action="{{ route('superadmin.logs') }}" method="GET">
-                <div class="row g-3 align-items-end">
+                <div class="row g-2 g-md-3 align-items-end">
                     <!-- User Filter -->
                     <div class="col-12 col-md-3">
                         <label class="form-label small fw-semibold text-muted mb-1">Filter by User</label>
@@ -134,129 +134,126 @@
         </div>
     </div>
 
-    <!-- Logs Table -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th class="ps-4 py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 170px;">Date & Time</th>
-                        <th class="py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 220px;">User</th>
-                        <th class="py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 140px;">Action</th>
-                        <th class="py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 180px;">Target</th>
-                        <th class="pe-4 py-3 border-0 text-muted small text-uppercase fw-semibold">Details & Changes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($logs as $log)
-                        <tr>
-                            <!-- Date & Time -->
-                            <td class="ps-4 py-3">
-                                <div class="fw-semibold text-dark small">{{ $log->created_at->format('M d, Y') }}</div>
-                                <div class="text-muted small">{{ $log->created_at->format('h:i:s A') }}</div>
-                                <div class="text-muted" style="font-size: 0.75rem;">{{ $log->created_at->diffForHumans() }}</div>
-                            </td>
+    <!-- Logs Records Section -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-white border-bottom py-3 px-3 px-md-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold mb-0 text-dark">Audit Trail Records</h6>
+                <small class="text-muted">Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} recorded entries</small>
+            </div>
+            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 small d-none d-sm-inline-block">
+                <i class="bi bi-shield-check text-success me-1"></i>Immutable Logs
+            </span>
+        </div>
 
-                            <!-- User (Causer) -->
-                            <td>
-                                @if($log->causer)
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">
+        <div class="card-body p-0">
+            <!-- Mobile View: Cards (d-md-none) -->
+            <div class="d-md-none p-3 bg-light bg-opacity-25">
+                @forelse($logs as $log)
+                    <div class="card border shadow-none rounded-3 mb-2.5 bg-white">
+                        <div class="card-body p-3">
+                            <!-- Top Row: User info + Relative Time -->
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    @if($log->causer)
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 34px; height: 34px; font-size: 0.82rem;">
                                             {{ strtoupper(substr($log->causer->name, 0, 1)) }}
                                         </div>
-                                        <div class="lh-sm">
-                                            <div class="fw-bold text-dark small">{{ $log->causer->name }}</div>
-                                            <div class="text-muted small" style="font-size: 0.75rem;">{{ $log->causer->email }}</div>
-                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 mt-1" style="font-size: 0.7rem;">
-                                                {{ ucfirst(str_replace('_', ' ', $log->causer->role)) }}
-                                            </span>
+                                        <div class="min-w-0">
+                                            <div class="fw-bold text-dark small text-truncate lh-sm">{{ $log->causer->name }}</div>
+                                            <div class="text-muted text-truncate" style="font-size: 0.72rem;">{{ $log->causer->email }}</div>
                                         </div>
-                                    </div>
-                                @else
-                                    <div class="d-flex align-items-center gap-2 text-muted">
-                                        <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                    @else
+                                        <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
                                             <i class="bi bi-gear-wide-connected"></i>
                                         </div>
-                                        <span class="small fw-semibold">System / Automated</span>
-                                    </div>
-                                @endif
-                            </td>
+                                        <div class="min-w-0">
+                                            <div class="fw-bold text-dark small lh-sm">System / Automated</div>
+                                            <span class="text-muted" style="font-size: 0.72rem;">Scheduled / Engine</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="text-end flex-shrink-0">
+                                    <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                        {{ $log->created_at->diffForHumans(null, true) }}
+                                    </span>
+                                </div>
+                            </div>
 
-                            <!-- Action / Event Badge -->
-                            <td>
+                            <!-- Badges Row: Role, Action, Target -->
+                            <div class="d-flex flex-wrap align-items-center gap-1.5 mb-2">
+                                @if($log->causer)
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                        {{ ucfirst(str_replace('_', ' ', $log->causer->role)) }}
+                                    </span>
+                                @endif
+
                                 @php
                                     $action = strtolower($log->event ?? $log->description);
                                 @endphp
 
                                 @if($action === 'login' || str_contains(strtolower($log->description), 'logged in'))
-                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill small fw-semibold">
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem;">
                                         <i class="bi bi-box-arrow-in-right me-1"></i>Logged In
                                     </span>
                                 @elseif($action === 'logout' || str_contains(strtolower($log->description), 'logged out'))
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill small fw-semibold">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem;">
                                         <i class="bi bi-box-arrow-right me-1"></i>Logged Out
                                     </span>
                                 @elseif($action === 'created')
-                                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill small fw-semibold">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem;">
                                         <i class="bi bi-plus-circle me-1"></i>Created
                                     </span>
                                 @elseif($action === 'updated')
-                                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill small fw-semibold">
+                                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem;">
                                         <i class="bi bi-pencil me-1"></i>Updated
                                     </span>
                                 @elseif($action === 'deleted')
-                                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill small fw-semibold">
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem;">
                                         <i class="bi bi-trash me-1"></i>Deleted
                                     </span>
                                 @else
-                                    <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-semibold">
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.68rem;">
                                         {{ ucfirst($log->description) }}
                                     </span>
                                 @endif
-                            </td>
 
-                            <!-- Target Model -->
-                            <td>
                                 @if($log->log_name === 'auth')
-                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1 rounded small">
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
                                         <i class="bi bi-shield-lock me-1"></i>User Session
                                     </span>
                                 @elseif($log->subject_type)
                                     @php
                                         $modelName = class_basename($log->subject_type);
                                     @endphp
-                                    <span class="badge bg-light text-dark border px-2 py-1 rounded small">
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
                                         <i class="bi bi-database me-1 text-muted"></i>{{ $modelName }} #{{ $log->subject_id }}
                                     </span>
-                                @else
-                                    <span class="text-muted small">-</span>
                                 @endif
-                            </td>
+                            </div>
 
-                            <!-- Details & Changes -->
-                            <td class="pe-4 text-start">
-                                <!-- Auth Event Details (IP and Device) -->
+                            <!-- Audit Payload Details -->
+                            <div class="bg-light rounded-2 p-2 mb-2" style="font-size: 0.76rem;">
                                 @if(isset($log->properties['ip']))
-                                    <div class="d-flex flex-wrap align-items-center gap-2">
-                                        <span class="badge bg-light text-dark border px-2 py-1 small">
+                                    <div class="d-flex flex-wrap align-items-center gap-1.5">
+                                        <span class="badge bg-white text-dark border px-1.5 py-0.5" style="font-size: 0.7rem;">
                                             <i class="bi bi-geo-alt text-primary me-1"></i>IP: {{ $log->properties['ip'] }}
                                         </span>
                                         @if(!empty($log->properties['user_agent']))
-                                            <span class="small text-muted text-truncate" style="max-width: 320px;" title="{{ $log->properties['user_agent'] }}">
-                                                <i class="bi bi-laptop me-1"></i>{{ \Illuminate\Support\Str::limit($log->properties['user_agent'], 50) }}
+                                            <span class="text-muted text-truncate d-inline-block" style="max-width: 190px;" title="{{ $log->properties['user_agent'] }}">
+                                                <i class="bi bi-laptop me-1"></i>{{ \Illuminate\Support\Str::limit($log->properties['user_agent'], 30) }}
                                             </span>
                                         @endif
                                     </div>
-                                <!-- Model Changes Diff -->
                                 @elseif(isset($log->properties['old']) && isset($log->properties['attributes']))
-                                    <div class="small">
+                                    <div>
                                         @foreach($log->properties['attributes'] as $key => $newValue)
                                             @php
                                                 $oldValue = $log->properties['old'][$key] ?? 'N/A';
                                                 if (is_bool($oldValue)) $oldValue = $oldValue ? 'true' : 'false';
                                                 if (is_bool($newValue)) $newValue = $newValue ? 'true' : 'false';
                                             @endphp
-                                            <div class="mb-1">
+                                            <div class="mb-1 text-break">
                                                 <strong class="text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
                                                 <span class="text-danger text-decoration-line-through">{{ $oldValue }}</span> 
                                                 <i class="bi bi-arrow-right mx-1 text-muted"></i> 
@@ -265,29 +262,190 @@
                                         @endforeach
                                     </div>
                                 @elseif(isset($log->properties['attributes']))
-                                    <div class="small text-muted">
+                                    <div class="text-muted">
                                         <i class="bi bi-check2-circle text-success me-1"></i>{{ count($log->properties['attributes']) }} attribute(s) recorded.
                                     </div>
                                 @else
-                                    <span class="text-muted small">{{ $log->description }}</span>
+                                    <span class="text-muted">{{ $log->description }}</span>
                                 @endif
-                            </td>
-                        </tr>
-                    @empty
+                            </div>
+
+                            <!-- Footer: Timestamp -->
+                            <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.72rem;">
+                                <span><i class="bi bi-calendar3 me-1"></i>{{ $log->created_at->format('M d, Y') }}</span>
+                                <span><i class="bi bi-clock me-1"></i>{{ $log->created_at->format('h:i:s A') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-x fs-2 d-block mb-2 text-black-50"></i>
+                        <div class="fw-semibold small">No activity logs found</div>
+                        <p class="text-muted mb-0" style="font-size: 0.75rem;">Try adjusting your filters or search terms.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Desktop View: Table (d-none d-md-block) -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="bi bi-journal-x fs-1 d-block mb-3 text-black-50"></i>
-                                <div class="fw-semibold mb-1">No activity logs found</div>
-                                <p class="small text-muted mb-0">Try adjusting your search criteria or clear your active filters.</p>
-                            </td>
+                            <th class="ps-4 py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 170px;">Date & Time</th>
+                            <th class="py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 220px;">User</th>
+                            <th class="py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 140px;">Action</th>
+                            <th class="py-3 border-0 text-muted small text-uppercase fw-semibold" style="width: 180px;">Target</th>
+                            <th class="pe-4 py-3 border-0 text-muted small text-uppercase fw-semibold">Details & Changes</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($logs as $log)
+                            <tr>
+                                <!-- Date & Time -->
+                                <td class="ps-4 py-3">
+                                    <div class="fw-semibold text-dark small">{{ $log->created_at->format('M d, Y') }}</div>
+                                    <div class="text-muted small">{{ $log->created_at->format('h:i:s A') }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ $log->created_at->diffForHumans() }}</div>
+                                </td>
+
+                                <!-- User (Causer) -->
+                                <td>
+                                    @if($log->causer)
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem;">
+                                                {{ strtoupper(substr($log->causer->name, 0, 1)) }}
+                                            </div>
+                                            <div class="lh-sm">
+                                                <div class="fw-bold text-dark small">{{ $log->causer->name }}</div>
+                                                <div class="text-muted small" style="font-size: 0.75rem;">{{ $log->causer->email }}</div>
+                                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 mt-1" style="font-size: 0.7rem;">
+                                                    {{ ucfirst(str_replace('_', ' ', $log->causer->role)) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="d-flex align-items-center gap-2 text-muted">
+                                            <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                                <i class="bi bi-gear-wide-connected"></i>
+                                            </div>
+                                            <span class="small fw-semibold">System / Automated</span>
+                                        </div>
+                                    @endif
+                                </td>
+
+                                <!-- Action / Event Badge -->
+                                <td>
+                                    @php
+                                        $action = strtolower($log->event ?? $log->description);
+                                    @endphp
+
+                                    @if($action === 'login' || str_contains(strtolower($log->description), 'logged in'))
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill small fw-semibold">
+                                            <i class="bi bi-box-arrow-in-right me-1"></i>Logged In
+                                        </span>
+                                    @elseif($action === 'logout' || str_contains(strtolower($log->description), 'logged out'))
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill small fw-semibold">
+                                            <i class="bi bi-box-arrow-right me-1"></i>Logged Out
+                                        </span>
+                                    @elseif($action === 'created')
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill small fw-semibold">
+                                            <i class="bi bi-plus-circle me-1"></i>Created
+                                        </span>
+                                    @elseif($action === 'updated')
+                                        <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill small fw-semibold">
+                                            <i class="bi bi-pencil me-1"></i>Updated
+                                        </span>
+                                    @elseif($action === 'deleted')
+                                        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill small fw-semibold">
+                                            <i class="bi bi-trash me-1"></i>Deleted
+                                        </span>
+                                    @else
+                                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill small fw-semibold">
+                                            {{ ucfirst($log->description) }}
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <!-- Target Model -->
+                                <td>
+                                    @if($log->log_name === 'auth')
+                                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1 rounded small">
+                                            <i class="bi bi-shield-lock me-1"></i>User Session
+                                        </span>
+                                    @elseif($log->subject_type)
+                                        @php
+                                            $modelName = class_basename($log->subject_type);
+                                        @endphp
+                                        <span class="badge bg-light text-dark border px-2 py-1 rounded small">
+                                            <i class="bi bi-database me-1 text-muted"></i>{{ $modelName }} #{{ $log->subject_id }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
+
+                                <!-- Details & Changes -->
+                                <td class="pe-4 text-start">
+                                    @if(isset($log->properties['ip']))
+                                        <div class="d-flex flex-wrap align-items-center gap-2">
+                                            <span class="badge bg-light text-dark border px-2 py-1 small">
+                                                <i class="bi bi-geo-alt text-primary me-1"></i>IP: {{ $log->properties['ip'] }}
+                                            </span>
+                                            @if(!empty($log->properties['user_agent']))
+                                                <span class="small text-muted text-truncate" style="max-width: 320px;" title="{{ $log->properties['user_agent'] }}">
+                                                    <i class="bi bi-laptop me-1"></i>{{ \Illuminate\Support\Str::limit($log->properties['user_agent'], 50) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @elseif(isset($log->properties['old']) && isset($log->properties['attributes']))
+                                        <div class="small">
+                                            @foreach($log->properties['attributes'] as $key => $newValue)
+                                                @php
+                                                    $oldValue = $log->properties['old'][$key] ?? 'N/A';
+                                                    if (is_bool($oldValue)) $oldValue = $oldValue ? 'true' : 'false';
+                                                    if (is_bool($newValue)) $newValue = $newValue ? 'true' : 'false';
+                                                @endphp
+                                                <div class="mb-1">
+                                                    <strong class="text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
+                                                    <span class="text-danger text-decoration-line-through">{{ $oldValue }}</span> 
+                                                    <i class="bi bi-arrow-right mx-1 text-muted"></i> 
+                                                    <span class="text-success fw-semibold">{{ $newValue }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @elseif(isset($log->properties['attributes']))
+                                        <div class="small text-muted">
+                                            <i class="bi bi-check2-circle text-success me-1"></i>{{ count($log->properties['attributes']) }} attribute(s) recorded.
+                                        </div>
+                                    @else
+                                        <span class="text-muted small">{{ $log->description }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-journal-x fs-1 d-block mb-3 text-black-50"></i>
+                                    <div class="fw-semibold mb-1">No activity logs found</div>
+                                    <p class="small text-muted mb-0">Try adjusting your search criteria or clear your active filters.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
+
         @if($logs->hasPages())
-            <div class="card-footer bg-white py-3 border-0">
-                {{ $logs->links() }}
+            <div class="card-footer bg-white py-3 px-3 px-md-4 border-top">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                    <span class="small text-muted text-center text-sm-start">
+                        Showing {{ $logs->firstItem() }} to {{ $logs->lastItem() }} of {{ $logs->total() }} results
+                    </span>
+                    <div>
+                        {{ $logs->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
             </div>
         @endif
     </div>

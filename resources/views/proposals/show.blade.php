@@ -276,7 +276,40 @@
             </h3>
             
             @if($proposal->documents && $proposal->documents->count() > 0)
-                <div class="table-responsive">
+                <!-- Mobile Document History Cards (d-md-none) -->
+                <div class="d-flex flex-column gap-2.5 d-md-none">
+                    @foreach($proposal->documents->sortByDesc('version') as $doc)
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem;">
+                                        Version {{ $doc->version }}
+                                    </span>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                        Phase {{ $doc->phase }}
+                                    </span>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.72rem;">
+                                    {{ $doc->created_at->format('M d, Y') }}
+                                </small>
+                            </div>
+
+                            <div class="p-2 bg-white rounded-2 border mb-2.5">
+                                <small class="text-muted text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 0.04em;">Document Tag</small>
+                                <span class="fw-mono text-dark small text-break" style="font-size: 0.75rem; line-height: 1.35;">
+                                    {{ $doc->document_tag }}
+                                </span>
+                            </div>
+
+                            <a href="{{ route('file.serve', ['path' => $doc->file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-bold shadow-xs d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5" style="font-size: 0.78rem;">
+                                <i class="bi bi-file-earmark-pdf"></i> View / Download PDF
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Desktop Document History Table (d-none d-md-block) -->
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr class="text-nowrap">
@@ -330,20 +363,20 @@
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-3 p-md-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
-            <div class="d-flex flex-wrap gap-2 gap-md-3">
-                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold">
-                    <i class="bi bi-download"></i> In-House Review Acceptance Form
+            <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 gap-md-3">
+                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs">
+                    <i class="bi bi-file-earmark-check"></i> In-House Review Acceptance Form
                 </a>
                 
                 @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
-                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-info text-white rounded-pill px-3 py-2 fw-semibold">
-                    <i class="bi bi-download"></i> Notice to Proceed
+                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-dark rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Notice to Proceed (NTP)
                 </a>
                 @endif
                 
                 @if($proposal->current_phase >= 5)
-                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold">
-                    <i class="bi bi-download"></i> Certificate of Completion
+                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs">
+                    <i class="bi bi-award"></i> Certificate of Completion
                 </a>
                 @endif
             </div>
@@ -884,7 +917,7 @@
                                     <!-- Recommendation Status -->
                                     <div class="mb-2">
                                         @if($pres->director_recommended)
-                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fs-7">
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1.5 fs-7 text-wrap text-start d-inline-block" style="line-height: 1.35;">
                                                 <i class="bi bi-check-circle me-1"></i> Recommended by Director on {{ $pres->director_recommended_at ? $pres->director_recommended_at->format('M d, Y') : '' }}
                                             </span>
                                         @else
@@ -905,7 +938,7 @@
                                     <!-- President Approval Status -->
                                     <div>
                                         @if($pres->president_approved)
-                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fs-7">
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2.5 py-1.5 fs-7 text-wrap text-start d-inline-block" style="line-height: 1.35;">
                                                 <i class="bi bi-award-fill me-1"></i> Approved by SUC President on {{ $pres->president_approved_at ? $pres->president_approved_at->format('M d, Y') : '' }}
                                             </span>
                                         @else
@@ -1326,7 +1359,7 @@
             </div>
             <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
                 @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator', 'super_admin']))
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" data-bs-toggle="collapse" data-bs-target="#createForumModal" onclick="event.stopPropagation()">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-none d-sm-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#createForumModal" onclick="event.stopPropagation()">
                         <i class="bi bi-megaphone me-1"></i> Launch Call for Papers
                     </button>
                 @endif
@@ -1337,6 +1370,13 @@
         </div>
 
         <div class="collapse {{ $proposal->current_phase == 5 ? 'show' : '' }}" id="phase5WorkspaceCollapse">
+            @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator', 'super_admin']))
+                <div class="d-sm-none px-3 pt-3">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5 py-2 shadow-xs" data-bs-toggle="collapse" data-bs-target="#createForumModal">
+                        <i class="bi bi-megaphone"></i> Launch Call for Papers
+                    </button>
+                </div>
+            @endif
             <!-- Launch Call for Papers Form (Collapse) -->
             <div class="collapse px-3 px-md-4 px-lg-5 pt-3" id="createForumModal">
                 <div class="card border rounded-4 p-4 bg-light">

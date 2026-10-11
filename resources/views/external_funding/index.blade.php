@@ -67,14 +67,17 @@
     @php
         $getStatusBadge = function($status) {
             return match($status) {
-                'grant_active' => ['bg' => 'bg-success bg-opacity-10 text-success border border-success border-opacity-25', 'icon' => 'bi-check-circle-fill'],
-                'closed' => ['bg' => 'bg-secondary bg-opacity-10 text-secondary border', 'icon' => 'bi-archive-fill'],
-                'rejected' => ['bg' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25', 'icon' => 'bi-x-circle-fill'],
-                'revision_requested' => ['bg' => 'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25', 'icon' => 'bi-exclamation-triangle-fill'],
-                'pending_university_endorsement', 'pending_president_endorsement' => ['bg' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25', 'icon' => 'bi-hourglass-split'],
-                'under_funder_review' => ['bg' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25', 'icon' => 'bi-search'],
-                'pending_moa_mou' => ['bg' => 'bg-primary bg-opacity-10 text-primary border', 'icon' => 'bi-file-earmark-text-fill'],
-                default => ['bg' => 'bg-primary bg-opacity-10 text-primary border', 'icon' => 'bi-clock-fill']
+                'grant_active' => ['bg' => 'bg-success bg-opacity-10 text-success border border-success border-opacity-25', 'icon' => 'bi-check-circle-fill', 'label' => 'Grant Active'],
+                'closed' => ['bg' => 'bg-secondary bg-opacity-10 text-secondary border', 'icon' => 'bi-archive-fill', 'label' => 'Closed'],
+                'rejected' => ['bg' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25', 'icon' => 'bi-x-circle-fill', 'label' => 'Rejected'],
+                'revision_requested' => ['bg' => 'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25', 'icon' => 'bi-exclamation-triangle-fill', 'label' => 'Revision Requested'],
+                'pending_university_endorsement' => ['bg' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25', 'icon' => 'bi-hourglass-split', 'label' => 'Pending University Endorsement'],
+                'pending_president_endorsement' => ['bg' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25', 'icon' => 'bi-hourglass-split', 'label' => 'Pending President Endorsement'],
+                'under_funder_review' => ['bg' => 'bg-info bg-opacity-10 text-info border border-info border-opacity-25', 'icon' => 'bi-search', 'label' => 'Under Funder Review'],
+                'pending_moa_mou' => ['bg' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25', 'icon' => 'bi-file-earmark-text-fill', 'label' => 'Pending MOA/MOU'],
+                'under_grant_monitoring' => ['bg' => 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25', 'icon' => 'bi-graph-up', 'label' => 'Grant Monitoring'],
+                'pending_grant_closure' => ['bg' => 'bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25', 'icon' => 'bi-clock-history', 'label' => 'Pending Grant Closure'],
+                default => ['bg' => 'bg-primary bg-opacity-10 text-primary border', 'icon' => 'bi-clock-fill', 'label' => ucwords(str_replace('_', ' ', $status))]
             };
         };
     @endphp
@@ -87,28 +90,38 @@
             @endphp
             <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
                 <div class="card-body p-3">
-                    <!-- Top Row: Title & Status -->
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                        <div class="min-w-0" style="min-width: 0;">
-                            <h6 class="fw-bold text-dark mb-0 text-truncate" title="{{ $project->proposal->title }}">
-                                {{ $project->proposal->title }}
-                            </h6>
-                            <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                Lead: {{ $project->proposal->user->name }}
-                            </small>
-                        </div>
-                        <span class="badge {{ $badgeInfo['bg'] }} rounded-pill px-2.5 py-1 text-wrap text-end flex-shrink-0" style="font-size: 0.68rem; line-height: 1.2;">
-                            <i class="bi {{ $badgeInfo['icon'] }} me-1"></i> {{ strtoupper(str_replace('_', ' ', $project->status)) }}
+                    <!-- Top Row: Proposal Code on left, Status on right (wrapped to prevent collision on narrow viewports) -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <span class="badge bg-white text-dark border fw-mono" style="font-size: 0.68rem;">
+                            {{ $project->proposal->proposal_code ?? 'P-'.$project->proposal->id }}
+                        </span>
+                        <span class="badge {{ $badgeInfo['bg'] }} rounded-pill px-2.5 py-1" style="font-size: 0.68rem; line-height: 1.2;">
+                            <i class="bi {{ $badgeInfo['icon'] }} me-1"></i> {{ $badgeInfo['label'] }}
                         </span>
                     </div>
 
-                    <!-- Agency & Program Pill -->
+                    <!-- Title & Lead Researcher (Full Width) -->
+                    <div class="mb-2.5">
+                        <h6 class="fw-bold mb-1" style="font-size: 0.92rem; line-height: 1.35;">
+                            <a href="{{ route('proposal.show', $project->proposal->id) }}" class="text-dark text-decoration-none hover-primary transition">
+                                {{ $project->proposal->title }}
+                            </a>
+                        </h6>
+                        <small class="text-muted d-block" style="font-size: 0.74rem;">
+                            Lead: {{ $project->proposal->user->name }}
+                        </small>
+                    </div>
+
+                    <!-- Agency & Program Box -->
                     <div class="bg-light p-2.5 rounded-3 mb-2.5 border">
-                        <div class="d-flex align-items-center gap-1.5 small text-dark fw-bold">
-                            <i class="bi bi-bank2 text-primary"></i> {{ $project->funding_agency }}
+                        <div class="d-flex align-items-center gap-2 small text-dark fw-bold">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 24px; height: 24px;">
+                                <i class="bi bi-bank2" style="font-size: 0.72rem;"></i>
+                            </div>
+                            <span>{{ $project->funding_agency }}</span>
                         </div>
                         @if($project->grant_program)
-                            <div class="text-muted small ps-3.5" style="font-size: 0.75rem;">
+                            <div class="text-muted small ps-4" style="font-size: 0.74rem;">
                                 Program: {{ $project->grant_program }}
                             </div>
                         @endif
@@ -123,10 +136,17 @@
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-2 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-20">
-                                <span class="text-success d-block" style="font-size: 0.68rem;">Awarded</span>
-                                <span class="fw-bold text-success small">₱{{ number_format($project->awarded_amount ?? 0, 2) }}</span>
-                            </div>
+                            @if(($project->awarded_amount ?? 0) > 0)
+                                <div class="p-2 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25">
+                                    <span class="text-success d-block fw-medium" style="font-size: 0.68rem;">Awarded</span>
+                                    <span class="fw-bold text-success small">₱{{ number_format($project->awarded_amount, 2) }}</span>
+                                </div>
+                            @else
+                                <div class="p-2 rounded-3 bg-light border">
+                                    <span class="text-muted d-block" style="font-size: 0.68rem;">Awarded</span>
+                                    <span class="fw-bold text-secondary small">₱0.00</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -216,10 +236,15 @@
                                 </button>
                             </form>
                         @else
-                            <div class="text-muted small text-center py-1">
-                                <i class="bi bi-clock-history me-1"></i> Waiting on next workflow milestone
+                            <div class="p-2 rounded-pill bg-light border text-muted small text-center d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.74rem;">
+                                <i class="bi bi-clock-history text-secondary"></i> Waiting on next workflow milestone
                             </div>
                         @endif
+                        <div class="text-center pt-2">
+                            <a href="{{ route('proposal.show', $project->proposal->id) }}" class="text-primary text-decoration-none small fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                                View Full Proposal <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -251,7 +276,16 @@
                         @endphp
                         <tr>
                             <td class="ps-4">
-                                <div class="fw-bold text-dark">{{ $project->proposal->title }}</div>
+                                <div class="d-flex align-items-center gap-1.5 mb-1">
+                                    <span class="badge bg-white text-dark border fw-mono" style="font-size: 0.68rem;">
+                                        {{ $project->proposal->proposal_code ?? 'P-'.$project->proposal->id }}
+                                    </span>
+                                </div>
+                                <div class="fw-bold text-dark">
+                                    <a href="{{ route('proposal.show', $project->proposal->id) }}" class="text-dark text-decoration-none hover-primary">
+                                        {{ $project->proposal->title }}
+                                    </a>
+                                </div>
                                 <small class="text-muted">{{ $project->proposal->user->name }}</small>
                             </td>
                             <td>
@@ -260,11 +294,15 @@
                             </td>
                             <td>
                                 <div class="small text-muted">Requested: <strong class="text-dark">₱{{ number_format($project->requested_amount ?? 0, 2) }}</strong></div>
-                                <div class="small text-success">Awarded: <strong>₱{{ number_format($project->awarded_amount ?? 0, 2) }}</strong></div>
+                                @if(($project->awarded_amount ?? 0) > 0)
+                                    <div class="small text-success">Awarded: <strong>₱{{ number_format($project->awarded_amount, 2) }}</strong></div>
+                                @else
+                                    <div class="small text-muted">Awarded: <span class="text-secondary fw-semibold">₱0.00</span></div>
+                                @endif
                             </td>
                             <td>
-                                <span class="badge {{ $badgeInfo['bg'] }} px-3 py-2 rounded-pill fw-bold text-wrap" style="font-size: 0.72rem; line-height: 1.2;">
-                                    <i class="bi {{ $badgeInfo['icon'] }} me-1"></i> {{ strtoupper(str_replace('_', ' ', $project->status)) }}
+                                <span class="badge {{ $badgeInfo['bg'] }} px-3 py-1.5 rounded-pill fw-bold text-wrap" style="font-size: 0.72rem; line-height: 1.2;">
+                                    <i class="bi {{ $badgeInfo['icon'] }} me-1"></i> {{ $badgeInfo['label'] }}
                                 </span>
                             </td>
                             <td class="pe-4 text-end">
