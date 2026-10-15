@@ -48,6 +48,8 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--shadow-sm);
     background: #ffffff;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .card:hover {
@@ -474,6 +476,7 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
     user-select: none;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+    min-width: 0;
 }
 
 .accordion-workspace-header:hover {
@@ -488,6 +491,30 @@ h1, h2, h3, h4, h5, h6 {
 
 .accordion-workspace-header.collapsed .workspace-chevron {
     transform: rotate(-90deg);
+}
+
+.gantt-matrix-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 576px) {
+    .accordion-workspace-header {
+        padding: 0.85rem !important;
+    }
+    
+    .accordion-workspace-header h3 {
+        font-size: 0.95rem !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+    }
+
+    .badge {
+        max-width: 100%;
+        text-overflow: ellipsis;
+    }
 }
 
 /* ── COLLABORATOR PICKER STYLES ── */
@@ -553,6 +580,27 @@ h1, h2, h3, h4, h5, h6 {
 
 .nav-pills .nav-link {
     color: var(--ua-text-dark);
+}
+
+.card-header-pills::-webkit-scrollbar {
+    display: none;
+}
+
+/* ── RESPONSIVE WIDTH & OVERFLOW UTILITIES ── */
+.min-w-0 {
+    min-width: 0 !important;
+}
+
+@media (min-width: 576px) {
+    .w-sm-auto {
+        width: auto !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .w-md-auto {
+        width: auto !important;
+    }
 }
 
 

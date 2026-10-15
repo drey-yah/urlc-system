@@ -364,19 +364,19 @@
         <div class="card-body p-3 p-md-4">
             <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
             <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 gap-md-3">
-                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs">
-                    <i class="bi bi-file-earmark-check"></i> In-House Review Acceptance Form
+                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
+                    <i class="bi bi-file-earmark-check"></i> <span>In-House Review Acceptance Form</span>
                 </a>
                 
                 @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
-                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-dark rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs">
-                    <i class="bi bi-file-earmark-arrow-down"></i> Notice to Proceed (NTP)
+                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-dark rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
+                    <i class="bi bi-file-earmark-arrow-down"></i> <span>Notice to Proceed (NTP)</span>
                 </a>
                 @endif
                 
                 @if($proposal->current_phase >= 5)
-                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs">
-                    <i class="bi bi-award"></i> Certificate of Completion
+                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
+                    <i class="bi bi-award"></i> <span>Certificate of Completion</span>
                 </a>
                 @endif
             </div>
@@ -386,21 +386,21 @@
 
     <!-- Phase 2: Implementation, Monitoring & Evaluation Workspace -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 2 ? '' : 'collapsed' }}"
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 2 ? '' : 'collapsed' }}"
              data-bs-toggle="collapse" 
              data-bs-target="#phase2WorkspaceCollapse" 
              role="button" 
              aria-expanded="{{ $proposal->current_phase == 2 ? 'true' : 'false' }}">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
-                <div>
-                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                        <i class="bi bi-diagram-3-fill text-success"></i> Phase 2: Implementation, Monitoring & Evaluation Workspace
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center flex-wrap gap-2 mb-1 text-break">
+                        <i class="bi bi-diagram-3-fill text-success flex-shrink-0"></i> <span>Phase 2: Implementation, Monitoring & Evaluation Workspace</span>
                     </h3>
                     <p class="text-muted small mb-0 d-none d-sm-block">Multi-step document sign-off & submission hub for Activity Designs, Purchase Requests, Monitoring Forms, and Terminal Reports.</p>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0 flex-shrink-0">
                 <span class="badge {{ $proposal->current_phase == 2 ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap">
                     {{ $proposal->current_phase == 2 ? 'Phase 2 Active' : 'Phase 2' }}
                 </span>
@@ -767,21 +767,21 @@
 
     <!-- Phase 3: Research Dissemination & Presentation Workspace (Appendix B) -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 3 ? '' : 'collapsed' }}"
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 3 ? '' : 'collapsed' }}"
              data-bs-toggle="collapse" 
              data-bs-target="#phase3WorkspaceCollapse" 
              role="button" 
              aria-expanded="{{ $proposal->current_phase == 3 ? 'true' : 'false' }}">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
-                <div>
-                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                        <i class="bi bi-easel-fill" style="color: #8B5CF6;"></i> Phase 3: Research Dissemination & Presentation Workspace (Appendix B)
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center flex-wrap gap-2 text-dark mb-1 text-break">
+                        <i class="bi bi-easel-fill flex-shrink-0" style="color: #8B5CF6;"></i> <span>Phase 3: Research Dissemination & Presentation Workspace (Appendix B)</span>
                     </h3>
                     <p class="text-muted small mb-0 d-none d-sm-block">Full authorization workflow for Oral & Poster Presentation of Research Outputs, Sponsoring Agency Acceptance, and SUC President Sign-off.</p>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0 flex-shrink-0">
                 <span class="badge {{ $proposal->current_phase == 3 ? 'bg-purple bg-opacity-10' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap" style="{{ $proposal->current_phase == 3 ? 'color: #8B5CF6;' : '' }}">
                     <i class="bi bi-broadcast me-1"></i> {{ $proposal->current_phase == 3 ? 'Phase 3 Active' : 'Phase 3' }}
                 </span>
@@ -792,14 +792,14 @@
             <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @forelse($proposal->researchPresentations as $pres)
                 <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
-                    <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div>
+                    <div class="card-header bg-light py-3 px-3 px-md-4 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+                        <div class="min-w-0">
                             <span class="badge {{ $pres->presentation_type === 'oral' ? 'bg-primary' : 'bg-info' }} text-white text-uppercase me-2 fw-bold fs-7">
                                 {{ strtoupper($pres->presentation_type) }} PRESENTATION
                             </span>
-                            <strong class="text-dark fs-6">{{ $pres->presentation_title }}</strong>
+                            <strong class="text-dark fs-6 text-break">{{ $pres->presentation_title }}</strong>
                         </div>
-                        <div>
+                        <div class="flex-shrink-0">
                             @if($pres->status === 'completed')
                                 <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Presented & Completed</span>
                             @elseif($pres->status === 'approved_by_president')
@@ -814,19 +814,19 @@
                         </div>
                     </div>
 
-                    <div class="card-body p-4">
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="row g-2 g-md-3 mb-3 mb-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="text-muted fs-7">Sponsoring Organization / Agency</div>
-                                <div class="fw-bold text-dark">{{ $pres->sponsoring_agency }}</div>
+                                <div class="fw-bold text-dark text-break">{{ $pres->sponsoring_agency }}</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="text-muted fs-7">Conference / Event Name</div>
-                                <div class="fw-semibold text-dark">{{ $pres->conference_name }}</div>
+                                <div class="fw-semibold text-dark text-break">{{ $pres->conference_name }}</div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="text-muted fs-7">Event Date & Venue</div>
-                                <div class="fw-medium text-dark">
+                                <div class="fw-medium text-dark text-break">
                                     {{ $pres->event_date ? $pres->event_date->format('M d, Y') : 'Date TBD' }} 
                                     {{ $pres->venue ? '('.$pres->venue.')' : '' }}
                                 </div>
@@ -845,13 +845,13 @@
                                         @endif
                                     </div>
                                     @if($pres->acceptance_letter_path)
-                                        <a href="{{ route('file.serve', ['path' => $pres->acceptance_letter_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-2">
+                                        <a href="{{ route('file.serve', ['path' => $pres->acceptance_letter_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-2 w-100 w-sm-auto d-inline-flex align-items-center justify-content-center">
                                             <i class="bi bi-file-earmark-pdf me-1"></i> View Acceptance Letter
                                         </a>
                                     @else
                                         <p class="text-muted fs-7 italic mb-2">No acceptance letter uploaded yet.</p>
                                         @if(auth()->id() == $proposal->user_id)
-                                            <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="collapse" data-bs-target="#acceptanceForm{{ $pres->id }}">
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#acceptanceForm{{ $pres->id }}">
                                                 <i class="bi bi-upload me-1"></i> Upload Acceptance Result
                                             </button>
                                             <div class="collapse mt-2" id="acceptanceForm{{ $pres->id }}">
@@ -885,13 +885,13 @@
                                         @endif
                                     </div>
                                     @if($pres->presentation_file_path)
-                                        <a href="{{ route('file.serve', ['path' => $pres->presentation_file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-2">
+                                        <a href="{{ route('file.serve', ['path' => $pres->presentation_file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-2 w-100 w-sm-auto d-inline-flex align-items-center justify-content-center">
                                             <i class="bi bi-file-earmark-slides me-1"></i> View Presentation File
                                         </a>
                                     @else
                                         <p class="text-muted fs-7 italic mb-2">No presentation slides/poster uploaded yet.</p>
                                         @if(auth()->id() == $proposal->user_id)
-                                            <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="collapse" data-bs-target="#presentationFileForm{{ $pres->id }}">
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#presentationFileForm{{ $pres->id }}">
                                                 <i class="bi bi-upload me-1"></i> Upload Slides / Poster
                                             </button>
                                             <div class="collapse mt-2" id="presentationFileForm{{ $pres->id }}">
@@ -968,13 +968,13 @@
                                         @endif
                                     </div>
                                     @if($pres->certificate_path)
-                                        <a href="{{ route('file.serve', ['path' => $pres->certificate_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill mt-2">
+                                        <a href="{{ route('file.serve', ['path' => $pres->certificate_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill mt-2 w-100 w-sm-auto d-inline-flex align-items-center justify-content-center">
                                             <i class="bi bi-award me-1"></i> View Presentation Certificate
                                         </a>
                                     @else
                                         <p class="text-muted fs-7 italic mb-2">No certificate uploaded yet.</p>
                                         @if(auth()->id() == $proposal->user_id && $pres->president_approved)
-                                            <button class="btn btn-sm btn-outline-success rounded-pill" data-bs-toggle="collapse" data-bs-target="#certForm{{ $pres->id }}">
+                                            <button class="btn btn-sm btn-outline-success rounded-pill w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#certForm{{ $pres->id }}">
                                                 <i class="bi bi-upload me-1"></i> Upload Certificate of Presentation
                                             </button>
                                             <div class="collapse mt-2" id="certForm{{ $pres->id }}">
@@ -1003,7 +1003,7 @@
 
             <!-- Researcher New Presentation Submission Form -->
             @if(auth()->id() == $proposal->user_id)
-                <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="collapse" data-bs-target="#newPresentationForm">
+                <button class="btn btn-primary rounded-pill px-3 px-md-4 shadow-sm w-100 w-sm-auto text-center" data-bs-toggle="collapse" data-bs-target="#newPresentationForm">
                     <i class="bi bi-plus-circle me-2"></i> Log Research Output for Oral/Poster Presentation
                 </button>
                 <div class="collapse mt-3" id="newPresentationForm">
@@ -1061,21 +1061,21 @@
 
     <!-- Phase 4: Publication of Research Outputs Workspace (Appendix C) -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 4 ? '' : 'collapsed' }}"
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 4 ? '' : 'collapsed' }}"
              data-bs-toggle="collapse" 
              data-bs-target="#phase4WorkspaceCollapse" 
              role="button" 
              aria-expanded="{{ $proposal->current_phase == 4 ? 'true' : 'false' }}">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
-                <div>
-                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                        <i class="bi bi-journal-check text-success"></i> Phase 4: Publication of Research Outputs Workspace (Appendix C)
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center flex-wrap gap-2 text-dark mb-1 text-break">
+                        <i class="bi bi-journal-check text-success flex-shrink-0"></i> <span>Phase 4: Publication of Research Outputs Workspace (Appendix C)</span>
                     </h3>
                     <p class="text-muted small mb-0 d-none d-sm-block">Letter of intent submission, IP screening/clearance by VPREI & IEDC, refereed journal submission tracking, and final publication archiving.</p>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0 flex-shrink-0">
                 <span class="badge {{ $proposal->current_phase == 4 ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap">
                     <i class="bi bi-journal-bookmark-fill me-1"></i> {{ $proposal->current_phase == 4 ? 'Phase 4 Active' : 'Phase 4' }}
                 </span>
@@ -1086,17 +1086,17 @@
             <div class="card-body p-3 p-md-4 p-lg-5 border-top">
             @forelse($proposal->researchPublications as $pub)
                 <div class="card border mb-4 rounded-4 shadow-sm overflow-hidden">
-                    <div class="card-header bg-light py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div>
+                    <div class="card-header bg-light py-3 px-3 px-md-4 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+                        <div class="min-w-0">
                             <span class="badge bg-dark text-white text-uppercase me-2 fw-bold fs-7">
                                 {{ $pub->indexing_agency ?? 'REFEREED JOURNAL' }}
                             </span>
-                            <strong class="text-dark fs-6">{{ $pub->journal_title }}</strong>
+                            <strong class="text-dark fs-6 text-break">{{ $pub->journal_title }}</strong>
                             @if($pub->issn_number)
-                                <span class="text-muted fs-7 ms-2">(ISSN: {{ $pub->issn_number }})</span>
+                                <span class="text-muted fs-7 ms-1">(ISSN: {{ $pub->issn_number }})</span>
                             @endif
                         </div>
-                        <div>
+                        <div class="flex-shrink-0">
                             @if($pub->status === 'published_and_archived')
                                 <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-patch-check-fill me-1"></i> Published & Archived</span>
                             @elseif($pub->status === 'submitted_to_journal')
@@ -1111,7 +1111,7 @@
                         </div>
                     </div>
 
-                    <div class="card-body p-4">
+                    <div class="card-body p-3 p-md-4">
                         <div class="row g-3">
                             <!-- Step 1: Letter of Intent to Publish -->
                             <div class="col-md-6">
@@ -1124,7 +1124,7 @@
                                     </div>
                                     <p class="text-muted fs-7 mb-2">Official letter of intent to publish in a refereed/indexed journal.</p>
                                     @if($pub->intent_letter_path)
-                                        <a href="{{ route('file.serve', ['path' => $pub->intent_letter_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        <a href="{{ route('file.serve', ['path' => $pub->intent_letter_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill w-100 w-sm-auto d-inline-flex align-items-center justify-content-center">
                                             <i class="bi bi-file-earmark-pdf me-1"></i> View Letter of Intent
                                         </a>
                                     @endif
@@ -1158,7 +1158,7 @@
                                             <i class="bi bi-exclamation-triangle-fill me-1"></i> <strong>IP Potential Detected!</strong> Please submit proof of Intellectual Property (IP) Registration application.
                                         </div>
                                         @if(auth()->id() == $proposal->user_id)
-                                            <button class="btn btn-sm btn-warning rounded-pill text-dark fw-bold" data-bs-toggle="collapse" data-bs-target="#ipProofForm{{ $pub->id }}">
+                                            <button class="btn btn-sm btn-warning rounded-pill text-dark fw-bold w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#ipProofForm{{ $pub->id }}">
                                                 <i class="bi bi-upload me-1"></i> Submit IP Registration Proof
                                             </button>
                                             <div class="collapse mt-2" id="ipProofForm{{ $pub->id }}">
@@ -1175,7 +1175,7 @@
                                     @else
                                         <p class="text-muted fs-7 mb-2 italic">Awaiting IP Screening review by VPREI, Research Director & IEDC.</p>
                                         @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator']))
-                                            <button class="btn btn-sm btn-outline-dark rounded-pill" data-bs-toggle="collapse" data-bs-target="#ipScreenForm{{ $pub->id }}">
+                                            <button class="btn btn-sm btn-outline-dark rounded-pill w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#ipScreenForm{{ $pub->id }}">
                                                 <i class="bi bi-shield-lock me-1"></i> Perform IP Screening
                                             </button>
                                             <div class="collapse mt-2" id="ipScreenForm{{ $pub->id }}">
@@ -1217,13 +1217,13 @@
                                         @endif
                                     </div>
                                     @if($pub->submission_proof_path)
-                                        <a href="{{ route('file.serve', ['path' => $pub->submission_proof_path]) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill mt-1">
+                                        <a href="{{ route('file.serve', ['path' => $pub->submission_proof_path]) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill mt-1 w-100 w-sm-auto d-inline-flex align-items-center justify-content-center">
                                             <i class="bi bi-file-earmark-check me-1"></i> View Submission Receipt
                                         </a>
                                     @else
                                         <p class="text-muted fs-7 italic mb-2">No journal submission proof logged yet.</p>
                                         @if(auth()->id() == $proposal->user_id && $pub->vprei_approved)
-                                            <button class="btn btn-sm btn-outline-info rounded-pill" data-bs-toggle="collapse" data-bs-target="#journalSubForm{{ $pub->id }}">
+                                            <button class="btn btn-sm btn-outline-info rounded-pill w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#journalSubForm{{ $pub->id }}">
                                                 <i class="bi bi-upload me-1"></i> Log Proof of Journal Submission
                                             </button>
                                             <div class="collapse mt-2" id="journalSubForm{{ $pub->id }}">
@@ -1252,11 +1252,11 @@
                                     </div>
                                     @if($pub->published_copy_path)
                                         <div class="d-flex flex-column gap-2 mt-1">
-                                            <a href="{{ route('file.serve', ['path' => $pub->published_copy_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill">
+                                            <a href="{{ route('file.serve', ['path' => $pub->published_copy_path]) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill w-100 w-sm-auto d-inline-flex align-items-center justify-content-center">
                                                 <i class="bi bi-journal-text me-1"></i> View Published Journal PDF
                                             </a>
                                             @if($pub->doi_link)
-                                                <a href="{{ $pub->doi_link }}" target="_blank" class="btn btn-sm btn-link text-decoration-none p-0 fs-7">
+                                                <a href="{{ $pub->doi_link }}" target="_blank" class="btn btn-sm btn-link text-decoration-none p-0 fs-7 text-break">
                                                     <i class="bi bi-link-45deg me-1"></i> DOI Link: {{ $pub->doi_link }}
                                                 </a>
                                             @endif
@@ -1264,7 +1264,7 @@
                                     @else
                                         <p class="text-muted fs-7 italic mb-2">No final published copy uploaded to Research Center yet.</p>
                                         @if(auth()->id() == $proposal->user_id && $pub->vprei_approved)
-                                            <button class="btn btn-sm btn-outline-success rounded-pill" data-bs-toggle="collapse" data-bs-target="#pubCopyForm{{ $pub->id }}">
+                                            <button class="btn btn-sm btn-outline-success rounded-pill w-100 w-sm-auto" data-bs-toggle="collapse" data-bs-target="#pubCopyForm{{ $pub->id }}">
                                                 <i class="bi bi-upload me-1"></i> Submit Published Copy to Research Center
                                             </button>
                                             <div class="collapse mt-2" id="pubCopyForm{{ $pub->id }}">
@@ -1297,7 +1297,7 @@
 
             <!-- Researcher New Intent to Publish Form -->
             @if(auth()->id() == $proposal->user_id)
-                <button class="btn btn-success rounded-pill px-4 shadow-sm" data-bs-toggle="collapse" data-bs-target="#newIntentForm">
+                <button class="btn btn-success rounded-pill px-3 px-md-4 shadow-sm w-100 w-sm-auto text-center" data-bs-toggle="collapse" data-bs-target="#newIntentForm">
                     <i class="bi bi-plus-circle me-2"></i> Submit Letter of Intent to Publish (Appendix C)
                 </button>
                 <div class="collapse mt-3" id="newIntentForm">
@@ -1343,21 +1343,21 @@
 
     <!-- Appendix D: Conduct of Local Research Forum Workspace -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 5 ? '' : 'collapsed' }}"
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 5 ? '' : 'collapsed' }}"
              data-bs-toggle="collapse" 
              data-bs-target="#phase5WorkspaceCollapse" 
              role="button" 
              aria-expanded="{{ $proposal->current_phase == 5 ? 'true' : 'false' }}">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
-                <div>
-                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center gap-2 text-dark mb-1">
-                        <i class="bi bi-people-fill text-primary"></i> Phase 5: Conduct of Local Research Forum Workspace (Appendix D)
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold d-flex align-items-center flex-wrap gap-2 text-dark mb-1 text-break">
+                        <i class="bi bi-people-fill text-primary flex-shrink-0"></i> <span>Phase 5: Conduct of Local Research Forum Workspace (Appendix D)</span>
                     </h3>
                     <p class="text-muted small mb-0 d-none d-sm-block">Internal University In-House Colloquium workflow: Call for papers, College Coordinator endorsement, Notice of Acceptance, and presentation certificates.</p>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0 flex-shrink-0">
                 @if(in_array(auth()->user()->role, ['admin', 'vprei', 'coordinator', 'super_admin']))
                     <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-none d-sm-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#createForumModal" onclick="event.stopPropagation()">
                         <i class="bi bi-megaphone me-1"></i> Launch Call for Papers
@@ -1805,21 +1805,21 @@
 
     <!-- Line Item Budget (LIB) Section -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
              data-bs-toggle="collapse" 
              data-bs-target="#libBudgetCollapse" 
              role="button" 
              aria-expanded="false">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
-                <div>
-                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                        <i class="bi bi-calculator-fill text-success"></i> Line Item Budget (LIB)
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center flex-wrap gap-2 mb-1 text-break">
+                        <i class="bi bi-calculator-fill text-success flex-shrink-0"></i> <span>Line Item Budget (LIB)</span>
                     </h3>
                     <p class="text-muted small mb-0 d-none d-sm-block">Detailed breakdown of Maintenance & Operating Expenses (MOOE) and Capital Outlay (CO).</p>
                 </div>
             </div>
-            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0">
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0 flex-shrink-0">
                 <div class="bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill fw-bold text-nowrap" style="font-size: 0.8rem;">
                     Total: ₱{{ number_format($proposal->total_budget ?? $proposal->budgetItems->sum('amount'), 2) }}
                 </div>
@@ -2054,21 +2054,21 @@
 
     <!-- Work Plan & Gantt Chart Matrix Section -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header collapsed"
              data-bs-toggle="collapse" 
              data-bs-target="#ganttCollapse" 
              role="button" 
              aria-expanded="false">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron"></i>
-                <div>
-                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                        <i class="bi bi-bar-chart-line-fill text-primary"></i> 12-Month Research Work Plan (Gantt Chart)
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center flex-wrap gap-2 mb-1 text-break">
+                        <i class="bi bi-bar-chart-line-fill text-primary flex-shrink-0"></i> <span>12-Month Research Work Plan (Gantt Chart)</span>
                     </h3>
                     <p class="text-muted small mb-0 d-none d-sm-block">Visual Gantt chart timeline mapping project phases from inception to final submission.</p>
                 </div>
             </div>
-            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0">
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto ms-sm-0 flex-shrink-0">
                 @if(auth()->id() == $proposal->user_id)
                     <button type="button" class="btn btn-primary btn-sm px-3 py-1.5 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-1.5 text-nowrap" data-bs-toggle="modal" data-bs-target="#addMilestoneModal" onclick="event.stopPropagation()">
                         <i class="bi bi-plus-circle-fill"></i> <span class="d-none d-sm-inline">Add Work Plan Phase</span><span class="d-sm-none">Add Phase</span>
