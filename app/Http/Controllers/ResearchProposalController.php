@@ -53,31 +53,33 @@ class ResearchProposalController extends Controller
         $sequence = str_pad($nextId, 3, '0', STR_PAD_LEFT);
         $proposalCode = "{$department}-UA-RP-{$year}-{$sequence}";
 
-        $proposal = ResearchProposal::create([
-            'user_id' => auth()->id(),
-            'proposal_code' => $proposalCode,
-            'title' => $request->title,
-            'abstract' => $request->abstract,
-            'rationale' => $request->rationale ?? null,
-            'research_field' => $request->research_field,
-            'document_path' => $filePath, // Kept for backwards compatibility
-            'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
-        ]);
-
-        if ($filePath) {
-            $documentTag = "{$proposalCode}-PH1-MANUSCRIPT-V1";
-            $proposal->documents()->create([
-                'document_tag' => $documentTag,
-                'document_type' => 'manuscript',
-                'phase' => 1,
-                'version' => 1,
-                'file_path' => $filePath,
+        \DB::transaction(function () use ($request, $isDraft, $filePath, $proposalCode) {
+            $proposal = ResearchProposal::create([
+                'user_id' => auth()->id(),
+                'proposal_code' => $proposalCode,
+                'title' => $request->title,
+                'abstract' => $request->abstract,
+                'rationale' => $request->rationale ?? null,
+                'research_field' => $request->research_field,
+                'document_path' => $filePath, // Kept for backwards compatibility
+                'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
             ]);
-        }
 
-        if ($request->has('collaborators')) {
-            $proposal->collaborators()->sync($request->collaborators);
-        }
+            if ($filePath) {
+                $documentTag = "{$proposalCode}-PH1-MANUSCRIPT-V1";
+                $proposal->documents()->create([
+                    'document_tag' => $documentTag,
+                    'document_type' => 'manuscript',
+                    'phase' => 1,
+                    'version' => 1,
+                    'file_path' => $filePath,
+                ]);
+            }
+
+            if ($request->has('collaborators')) {
+                $proposal->collaborators()->sync($request->collaborators);
+            }
+        });
 
         $msg = $isDraft ? 'Proposal saved as draft!' : 'Proposal submitted successfully!';
         return redirect('/proposal/my')->with('success', $msg);
@@ -329,19 +331,26 @@ class ResearchProposalController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        // Delete the file from storage
-        if ($proposal->document_path && \Storage::disk(config('filesystems.default', 'public'))->exists($proposal->document_path)) {
-            \Storage::disk(config('filesystems.default', 'public'))->delete($proposal->document_path);
+        // Security / Integrity check: Only draft proposals can be deleted
+        if (!in_array($proposal->status, ['draft'])) {
+            return redirect()->back()->with('error', 'Only draft proposals can be deleted. Proposals currently in the review or approval lifecycle cannot be deleted.');
         }
 
-        // Delete all versioned document files
-        foreach ($proposal->documents as $doc) {
-            if ($doc->file_path && \Storage::disk(config('filesystems.default', 'public'))->exists($doc->file_path)) {
-                \Storage::disk(config('filesystems.default', 'public'))->delete($doc->file_path);
+        \DB::transaction(function () use ($proposal) {
+            // Delete the file from storage
+            if ($proposal->document_path && \Storage::disk(config('filesystems.default', 'public'))->exists($proposal->document_path)) {
+                \Storage::disk(config('filesystems.default', 'public'))->delete($proposal->document_path);
             }
-        }
 
-        $proposal->delete();
+            // Delete all versioned document files
+            foreach ($proposal->documents as $doc) {
+                if ($doc->file_path && \Storage::disk(config('filesystems.default', 'public'))->exists($doc->file_path)) {
+                    \Storage::disk(config('filesystems.default', 'public'))->delete($doc->file_path);
+                }
+            }
+
+            $proposal->delete();
+        });
 
         return redirect()->back()->with('success', 'Proposal deleted successfully!');
     }

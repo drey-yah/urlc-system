@@ -41,7 +41,8 @@ class RegisteredUserController extends Controller
             'organization' => ['nullable', 'string', 'max:255', 'required_if:role,funding_agency'],
         ]);
 
-        $is_approved = !in_array($request->role, ['admin', 'recording_staff', 'staff', 'dean', 'vprei', 'budget_officer', 'sao_finance', 'president', 'funding_agency']);
+        // Only standard researchers are auto-approved; all evaluators and administrative roles require admin vetting
+        $is_approved = ($request->role === 'researcher');
 
         $user = new User();
         $user->name = $request->name;

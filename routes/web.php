@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ResearchProposalController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,37 +21,9 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/redirect', function () {
-    $role = Auth::user()->role;
-
-    if ($role == 'super_admin') {
-        return redirect('/superadmin');
-    } elseif ($role == 'admin') {
-        return redirect('/admin');
-    } elseif ($role == 'reviewer') {
-        return redirect('/reviewer');
-    } elseif ($role == 'coordinator') {
-        return redirect('/coordinator');
-    } elseif ($role == 'dean') {
-        return redirect('/dean');
-    } elseif ($role == 'vprei') {
-        return redirect('/vprei');
-    } elseif ($role == 'president') {
-        return redirect('/president');
-    } elseif ($role == 'budget_officer') {
-        return redirect('/budget');
-    } elseif ($role == 'sao_finance') {
-        return redirect('/finance');
-    } elseif ($role == 'staff') {
-        return redirect('/staff');
-    } elseif ($role == 'recording_staff') {
-        return redirect('/recording-staff/dashboard');
-    } elseif ($role == 'funding_agency') {
-        return redirect('/external-funding');
-    } else {
-        return redirect('/researcher');
-    }
-})->middleware(['auth', 'approved']);
+Route::get('/redirect', [DashboardController::class, 'redirectByRole'])
+    ->middleware(['auth', 'approved'])
+    ->name('redirect');
 
 /*
 |--------------------------------------------------------------------------
@@ -58,69 +31,17 @@ Route::get('/redirect', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/admin', function () {
-    $stats = [
-        'total_proposals' => \App\Models\ResearchProposal::count(),
-        'pending_proposals' => \App\Models\ResearchProposal::whereIn('status', [
-            'pending', 'submitted', 'pending_director_review', 'accepted_for_in_house_review', 
-            'under_review', 'endorsed_to_vprei', 'pending_budget_certification', 
-            'funds_certified', 'final_copy_submitted'
-        ])->count(),
-        'approved_proposals' => \App\Models\ResearchProposal::whereIn('status', ['approved', 'final_approved', 'ongoing', 'completed'])->count(),
-        'total_users' => \App\Models\User::count(),
-        'active_announcements' => \App\Models\Announcement::count(),
-    ];
+Route::get('/admin', [DashboardController::class, 'adminDashboard'])
+    ->middleware(['auth', 'role:admin', 'approved'])
+    ->name('admin.dashboard');
 
-    $recentProposals = \App\Models\ResearchProposal::with('user')->latest()->take(5)->get();
-    $recentUsers = \App\Models\User::latest()->take(5)->get();
+Route::get('/reviewer', [DashboardController::class, 'reviewerDashboard'])
+    ->middleware(['auth', 'role:reviewer', 'approved'])
+    ->name('reviewer.dashboard');
 
-    return view('admin.dashboard', compact('stats', 'recentProposals', 'recentUsers'));
-})->middleware(['auth', 'role:admin', 'approved'])->name('admin.dashboard');
-
-Route::get('/reviewer', function () {
-    $assignedProposalIds = \DB::table('proposal_assignments')
-        ->where('user_id', auth()->id())
-        ->pluck('research_proposal_id');
-
-    $proposals = \App\Models\ResearchProposal::with(['user', 'milestones'])
-        ->whereIn('id', $assignedProposalIds)
-        ->latest()
-        ->get();
-
-    $stats = [
-        'assigned' => $proposals->count(),
-        'pending_review' => $proposals->whereIn('status', ['pending', 'submitted', 'under_review', 'accepted_for_in_house_review'])->count(),
-        'evaluated' => $proposals->whereIn('status', ['approved', 'rejected', 'revision_required', 'approved_with_revisions', 'final_approved', 'final_rejected'])->count(),
-        'completed' => $proposals->where('status', 'completed')->count(),
-    ];
-
-    $recentAssigned = $proposals->take(5);
-
-    return view('reviewer.dashboard', compact('stats', 'recentAssigned'));
-})->middleware(['auth', 'role:reviewer', 'approved'])->name('reviewer.dashboard');
-
-Route::get('/researcher', function () {
-    $leadProposals = auth()->user()->leadProposals()->with(['collaborators'])->latest()->get();
-    $collaboratedProposals = auth()->user()->collaboratedProposals()->with(['user', 'collaborators'])->latest()->get();
-    $allProposals = $leadProposals->merge($collaboratedProposals)->sortByDesc('created_at');
-
-    $stats = [
-        'total' => $allProposals->count(),
-        'under_review' => $allProposals->whereIn('status', [
-            'pending', 'submitted', 'pending_director_review', 'accepted_for_in_house_review', 
-            'under_review', 'endorsed_to_vprei', 'pending_budget_certification', 
-            'funds_certified', 'final_copy_submitted'
-        ])->count(),
-        'action_required' => $allProposals->whereIn('status', ['revision_required', 'returned_for_revision', 'approved_with_revisions'])->count(),
-        'approved' => $allProposals->whereIn('status', ['approved', 'final_approved', 'ongoing', 'completed'])->count(),
-        'drafts' => $allProposals->where('status', 'draft')->count(),
-    ];
-
-    $recentProposals = $allProposals->take(5);
-    $recentAnnouncements = \App\Models\Announcement::latest()->take(3)->get();
-
-    return view('researcher.dashboard', compact('stats', 'recentProposals', 'recentAnnouncements'));
-})->middleware(['auth', 'role:researcher', 'approved'])->name('researcher.dashboard');
+Route::get('/researcher', [DashboardController::class, 'researcherDashboard'])
+    ->middleware(['auth', 'role:researcher', 'approved'])
+    ->name('researcher.dashboard');
 
 Route::get('/coordinator', [\App\Http\Controllers\CoordinatorController::class, 'dashboard'])
     ->middleware(['auth', 'role:coordinator', 'approved'])->name('coordinator.dashboard');
@@ -173,18 +94,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
     Route::post('/messages/{id}/reply', [\App\Http\Controllers\MessageController::class, 'reply'])->name('messages.reply');
     Route::delete('/messages/{id}', [\App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
-    Route::get('/email-templates', function() {
-        return redirect()->route('messages.index');
-    })->name('email.templates');
+    // Email Templates
+    Route::redirect('/email-templates', '/messages')->name('email.templates');
 
     // Repository
     Route::get('/repository', [\App\Http\Controllers\RepositoryController::class, 'index'])->name('repository.index');
 
     // Notifications
-    Route::post('/notifications/mark-read', function () {
-        auth()->user()->unreadNotifications->markAsRead();
-        return redirect()->back();
-    })->name('notifications.markRead');
+    Route::post('/notifications/mark-read', [DashboardController::class, 'markNotificationsAsRead'])->name('notifications.markRead');
 
     // Milestones
     Route::post('/proposal/{id}/milestones', [\App\Http\Controllers\ResearchMilestoneController::class, 'store'])->name('milestones.store');
@@ -215,46 +132,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/local-forum/{id}/accept', [\App\Http\Controllers\LocalResearchForumController::class, 'issueNoticeOfAcceptance'])->name('local_forum.accept');
     Route::post('/local-forum/{id}/certificate', [\App\Http\Controllers\LocalResearchForumController::class, 'uploadCertificate'])->name('local_forum.certificate');
 
-    // Secure File Serving — serves files seamlessly from Supabase S3 or local public storage
-    Route::get('/files/serve', function (\Illuminate\Http\Request $request) {
-        $path = $request->query('path');
-
-        if (!$path) {
-            abort(404, 'File path not provided.');
-        }
-
-        // 1. Check local public storage first if file exists locally
-        $publicDisk = \Storage::disk('public');
-        if ($publicDisk->exists($path)) {
-            return response()->file($publicDisk->path($path));
-        }
-
-        // 2. Check default cloud storage disk (Supabase S3)
-        $defaultDiskName = config('filesystems.default', 'public');
-        if ($defaultDiskName !== 'public') {
-            $defaultDisk = \Storage::disk($defaultDiskName);
-            if ($defaultDisk->exists($path)) {
-                try {
-                    return redirect($defaultDisk->temporaryUrl($path, now()->addMinutes(60)));
-                } catch (\Exception $e) {
-                    return redirect($defaultDisk->url($path));
-                }
-            }
-        }
-
-        abort(404, 'Uploaded file not found on storage server.');
-    })->name('file.serve');
-    
-    // PDF Generation
-    Route::get('/proposal/{id}/notice-of-acceptance', [\App\Http\Controllers\ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');
-    Route::get('/proposal/{id}/notice-to-proceed', [\App\Http\Controllers\ResearchProposalController::class, 'downloadNoticeToProceed'])->name('proposal.downloadNTP');
-    Route::get('/proposal/{id}/certificate-of-completion', [\App\Http\Controllers\ResearchProposalController::class, 'downloadCertificate'])->name('proposal.downloadCertificate');
-
-    // Notifications
-    Route::post('/notifications/mark-as-read', function() {
-        auth()->user()->unreadNotifications->markAsRead();
-        return back();
-    })->name('notifications.markRead');
+    // Secure File Serving — serves files seamlessly with path traversal protection
+    Route::get('/files/serve', [DashboardController::class, 'serveFile'])->name('file.serve');
 
     // Profile Routes
     Route::get('/profile/{id?}', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
@@ -433,9 +312,9 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/dashboard', function () {
-    return redirect('/redirect');
-})->middleware(['auth', 'approved'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'redirectByRole'])
+    ->middleware(['auth', 'approved'])
+    ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
