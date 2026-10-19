@@ -46,12 +46,11 @@ class ResearchProposalController extends Controller
             $filePath = $request->file('document')->store('documents', config('filesystems.default', 'public'));
         }
 
-        $department = auth()->user()->department ? strtoupper(auth()->user()->department) : 'UNI';
         $year = date('Y');
         $latestProposal = ResearchProposal::latest('id')->first();
         $nextId = $latestProposal ? $latestProposal->id + 1 : 1;
         $sequence = str_pad($nextId, 3, '0', STR_PAD_LEFT);
-        $proposalCode = "{$department}-UA-RP-{$year}-{$sequence}";
+        $proposalCode = "RP-{$year}-{$sequence}";
 
         \DB::transaction(function () use ($request, $isDraft, $filePath, $proposalCode) {
             $proposal = ResearchProposal::create([
@@ -223,7 +222,8 @@ class ResearchProposalController extends Controller
     {
         $proposal = ResearchProposal::with([
             'user', 'collaborators', 'assignments', 'milestones', 'budgetItems', 'purchaseRequests',
-            'researchPresentations', 'researchPublications', 'localForumSubmissions.forum'
+            'researchPresentations', 'researchPublications', 'localForumSubmissions.forum',
+            'activities.causer'
         ])->findOrFail($id);
 
         $openForums = \App\Models\LocalResearchForum::where('status', 'open')->latest()->get();

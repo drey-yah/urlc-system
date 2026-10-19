@@ -599,25 +599,43 @@
                     <div class="form-hint"><i class="bi bi-info-circle"></i> Required only when registering as a Funding Agency.</div>
                 </div>
 
-                <!-- College / Department -->
-                <div class="form-group">
-                    <label class="form-label-custom" for="department">College / Department</label>
-                    <div class="input-wrapper">
-                        <select id="department" name="department" class="form-select-custom">
-                            <option value="">— Not Applicable —</option>
-                            <option value="CCIS" {{ old('department') == 'CCIS' ? 'selected' : '' }}>College of Computing and Information Sciences (CCIS)</option>
-                            <option value="CAS"  {{ old('department') == 'CAS'  ? 'selected' : '' }}>College of Arts and Sciences (CAS)</option>
-                            <option value="CIT"  {{ old('department') == 'CIT'  ? 'selected' : '' }}>College of Industrial Technology (CIT)</option>
-                            <option value="CMS"  {{ old('department') == 'CMS'  ? 'selected' : '' }}>College of Maritime Studies (CMS)</option>
-                            <option value="CCJE" {{ old('department') == 'CCJE' ? 'selected' : '' }}>College of Criminal Justice Education (CCJE)</option>
-                            <option value="CMG"  {{ old('department') == 'CMG'  ? 'selected' : '' }}>College of Management and Governance (CMG)</option>
-                            <option value="CTE"  {{ old('department') == 'CTE'  ? 'selected' : '' }}>College of Teacher Education (CTE)</option>
-                        </select>
-                        <i class="bi bi-building input-icon"></i>
+                <!-- Campus & College / Department (2-Column Grid) -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label-custom" for="campus">UA Campus</label>
+                        <div class="input-wrapper">
+                            <select id="campus" name="campus" class="form-select-custom">
+                                <option value="">— Select Campus —</option>
+                                <option value="Main Campus (Sibalom)" {{ old('campus') == 'Main Campus (Sibalom)' ? 'selected' : '' }}>Main Campus (Sibalom)</option>
+                                <option value="TLMC (Tibiao)" {{ old('campus') == 'TLMC (Tibiao)' ? 'selected' : '' }}>TLMC - Tario Lim Memorial Campus</option>
+                                <option value="Hamtic Campus" {{ old('campus') == 'Hamtic Campus' ? 'selected' : '' }}>Hamtic Campus</option>
+                                <option value="Libertad Campus" {{ old('campus') == 'Libertad Campus' ? 'selected' : '' }}>Libertad Campus</option>
+                                <option value="Caluya Campus" {{ old('campus') == 'Caluya Campus' ? 'selected' : '' }}>Caluya Campus</option>
+                            </select>
+                            <i class="bi bi-geo-alt input-icon"></i>
+                        </div>
+                        <div class="form-hint"><i class="bi bi-info-circle"></i> Assigned UA campus.</div>
                     </div>
-                    <div class="form-hint">
-                        <i class="bi bi-info-circle"></i>
-                        Required for Researchers and Coordinators.
+
+                    <div class="form-group">
+                        <label class="form-label-custom" for="department">College / Department</label>
+                        <div class="input-wrapper">
+                            <select id="department" name="department" class="form-select-custom">
+                                <option value="">— Not Applicable —</option>
+                                <option value="CCIS" {{ old('department') == 'CCIS' ? 'selected' : '' }}>College of Computing and Information Sciences (CCIS)</option>
+                                <option value="CAS"  {{ old('department') == 'CAS'  ? 'selected' : '' }}>College of Arts and Sciences (CAS)</option>
+                                <option value="CIT"  {{ old('department') == 'CIT'  ? 'selected' : '' }}>College of Industrial Technology (CIT)</option>
+                                <option value="CMS"  {{ old('department') == 'CMS'  ? 'selected' : '' }}>College of Maritime Studies (CMS)</option>
+                                <option value="CCJE" {{ old('department') == 'CCJE' ? 'selected' : '' }}>College of Criminal Justice Education (CCJE)</option>
+                                <option value="CMG"  {{ old('department') == 'CMG'  ? 'selected' : '' }}>College of Management and Governance (CMG)</option>
+                                <option value="CTE"  {{ old('department') == 'CTE'  ? 'selected' : '' }}>College of Teacher Education (CTE)</option>
+                            </select>
+                            <i class="bi bi-building input-icon"></i>
+                        </div>
+                        <div class="form-hint">
+                            <i class="bi bi-info-circle"></i>
+                            Required for Researchers &amp; Coordinators.
+                        </div>
                     </div>
                 </div>
 

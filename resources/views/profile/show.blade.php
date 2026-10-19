@@ -20,7 +20,11 @@
                     <span class="badge rounded-pill px-3 py-1.5 fw-semibold text-uppercase tracking-wider shadow-sm d-inline-flex align-items-center gap-1.5" style="background: rgba(255, 255, 255, 0.18); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 0.76rem; letter-spacing: 0.5px; backdrop-filter: blur(4px);">
                         <i class="bi bi-shield-check text-warning"></i>
                         <span>{{ str_replace('_', ' ', $user->role) }}</span>
-                        <span class="opacity-50 mx-1">|</span>
+                        @if($user->campus)
+                            <span class="opacity-50 mx-1">•</span>
+                            <span>{{ $user->campus }}</span>
+                        @endif
+                        <span class="opacity-50 mx-1">•</span>
                         <span>{{ $user->department ?? 'General' }}</span>
                     </span>
                 </div>

@@ -112,7 +112,7 @@
                         <td>
                             <strong>{{ $index + 1 }}.</strong> {{ $prop->title }}
                             <div class="text-muted small mt-1" style="font-size: 0.8rem;">
-                                Proposal Code: {{ $prop->proposal_code ?? 'UA-RP-'.$prop->id }}
+                                Proposal Code: {{ $prop->proposal_code ?? 'RP-'.$prop->id }}
                             </div>
                         </td>
                         <td>

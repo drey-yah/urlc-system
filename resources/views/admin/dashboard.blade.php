@@ -282,7 +282,10 @@
                                                     </span>
                                                 </td>
                                                 <td class="py-3 text-muted small">
-                                                    {{ $user->department ?: 'N/A' }}
+                                                    <div>{{ $user->department ?: 'N/A' }}</div>
+                                                    @if($user->campus)
+                                                        <div class="text-secondary" style="font-size: 0.72rem;"><i class="bi bi-geo-alt me-1"></i>{{ $user->campus }}</div>
+                                                    @endif
                                                 </td>
                                                 <td class="pe-4 py-3 text-end text-muted small">
                                                     {{ $user->created_at ? $user->created_at->diffForHumans() : 'N/A' }}

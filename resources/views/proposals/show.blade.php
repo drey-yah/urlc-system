@@ -209,154 +209,126 @@
     </div>
     @endif
 
-    {{-- Collaborators section: visible to staff/admin roles only --}}
-    @if(!in_array(auth()->user()->role, ['researcher']))
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 p-lg-5">
-            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
-                <i class="bi bi-people text-info"></i> Collaborators
-            </h3>
-
-            @if($proposal->collaborators->isNotEmpty())
-                <div class="d-flex flex-wrap gap-3">
-                    @foreach($proposal->collaborators as $collab)
-                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-light" style="min-width: 220px;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
-                             style="width: 42px; height: 42px; font-size: 1rem; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                            {{ strtoupper(substr($collab->name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <div class="fw-semibold text-dark small">{{ $collab->name }}</div>
-                            <div class="text-muted" style="font-size: 0.75rem;">
-                                {{ $collab->department ? strtoupper($collab->department) : 'No Department' }}
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            @else
-                <p class="text-muted mb-0 small fst-italic">No collaborators listed for this proposal.</p>
-            @endif
-        </div>
-    </div>
-    @endif
-
-    <!-- Reviewer Feedback Section -->
-    @if(auth()->user()->role !== 'coordinator')
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 p-lg-5">
-            <h3 class="h5 fw-bold d-flex align-items-center gap-3 mb-4">
-                <i class="bi bi-chat-left-text text-primary"></i> Reviewer Feedback
-            </h3>
-
-            <p class="text-muted mb-4 small fw-medium">Reviewed by: {{ $proposal->reviewer->name ?? 'Under Review' }}</p>
-
-            <div class="mb-4">
-                <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Comments:</label>
-                <div class="feedback-box">
-                    {{ $proposal->review_comments ?? 'No comments available yet.' }}
-                </div>
-            </div>
-
-            <div>
-                <label class="text-muted small fw-bold text-uppercase mb-2 d-block">Suggestions:</label>
-                <div class="feedback-box">
-                    {{ $proposal->review_suggestions ?? 'No suggestions available yet.' }}
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Document History Section -->
+    <!-- Phase 1: Proposal Submission & Peer Review Workspace -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-body p-3 p-md-4 p-lg-5">
-            <h3 class="h5 fw-bold d-flex align-items-center gap-2 gap-md-3 mb-3 mb-md-4">
-                <i class="bi bi-file-earmark-pdf text-danger"></i> Document History
-            </h3>
-            
-            @if($proposal->documents && $proposal->documents->count() > 0)
-                <!-- Mobile Document History Cards (d-md-none) -->
-                <div class="d-flex flex-column gap-2.5 d-md-none">
-                    @foreach($proposal->documents->sortByDesc('version') as $doc)
-                        <div class="p-3 bg-light rounded-3 border">
-                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                                <div class="d-flex align-items-center gap-1.5">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem;">
-                                        Version {{ $doc->version }}
-                                    </span>
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1" style="font-size: 0.7rem;">
-                                        Phase {{ $doc->phase }}
-                                    </span>
+        <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 1 ? '' : 'collapsed' }}"
+             data-bs-toggle="collapse" 
+             data-bs-target="#phase1WorkspaceCollapse" 
+             role="button" 
+             aria-expanded="{{ $proposal->current_phase == 1 ? 'true' : 'false' }}">
+            <div class="d-flex align-items-start align-items-sm-center gap-2 gap-md-3 flex-grow-1 min-w-0">
+                <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0 mt-1 mt-sm-0"></i>
+                <div class="min-w-0">
+                    <h3 class="h6 fs-md-5 fw-bold text-dark d-flex align-items-center flex-wrap gap-2 mb-1 text-break">
+                        <i class="bi bi-file-earmark-text-fill text-primary flex-shrink-0"></i> <span>Phase 1: Proposal Submission &amp; Peer Review Workspace</span>
+                    </h3>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Initial proposal manuscript, collaborator list, administrative routing, and peer reviewer evaluation feedback.</p>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0 flex-shrink-0">
+                <span class="badge {{ $proposal->current_phase == 1 ? 'bg-primary bg-opacity-10 text-primary' : 'bg-secondary bg-opacity-10 text-secondary' }} rounded-pill px-3 py-1.5 fw-bold text-nowrap">
+                    {{ $proposal->current_phase == 1 ? 'Phase 1 Active' : 'Phase 1' }}
+                </span>
+            </div>
+        </div>
+
+        <div class="collapse {{ $proposal->current_phase == 1 ? 'show' : '' }}" id="phase1WorkspaceCollapse">
+            <div class="card-body p-3 p-md-4 p-lg-5 border-top">
+                <div class="row g-4">
+                    <!-- Proposal Overview / Summary -->
+                    @if($proposal->abstract || $proposal->rationale)
+                    <div class="col-12">
+                        <div class="p-3.5 p-md-4 bg-light rounded-3 border">
+                            <h5 class="fw-bold text-dark mb-2 fs-6"><i class="bi bi-card-text text-primary me-1.5"></i> Proposal Overview &amp; Abstract</h5>
+                            @if($proposal->abstract)
+                                <p class="text-secondary small mb-2 lh-base" style="font-size: 0.85rem;">{{ $proposal->abstract }}</p>
+                            @endif
+                            @if($proposal->rationale)
+                                <div class="mt-2 pt-2 border-top border-light-subtle">
+                                    <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.68rem;">Rationale &amp; Background:</small>
+                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">{{ $proposal->rationale }}</p>
                                 </div>
-                                <small class="text-muted" style="font-size: 0.72rem;">
-                                    {{ $doc->created_at->format('M d, Y') }}
-                                </small>
+                            @endif
+                            <div class="d-flex align-items-center gap-3 flex-wrap mt-3 pt-2 border-top border-light-subtle" style="font-size: 0.75rem;">
+                                @if($proposal->research_field)
+                                    <span class="text-muted"><i class="bi bi-tag me-1"></i>Field: <strong class="text-dark">{{ $proposal->research_field }}</strong></span>
+                                @endif
+                                @if($proposal->total_budget)
+                                    <span class="text-muted"><i class="bi bi-cash-stack me-1"></i>Proposed Budget: <strong class="text-dark">&#8369;{{ number_format($proposal->total_budget, 2) }}</strong></span>
+                                @endif
+                                @if($proposal->funding_type)
+                                    <span class="text-muted"><i class="bi bi-bank me-1"></i>Funding: <strong class="text-dark">{{ ucwords(str_replace('_', ' ', $proposal->funding_type)) }}</strong></span>
+                                @endif
                             </div>
-
-                            <div class="p-2 bg-white rounded-2 border mb-2.5">
-                                <small class="text-muted text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 0.04em;">Document Tag</small>
-                                <span class="fw-mono text-dark small text-break" style="font-size: 0.75rem; line-height: 1.35;">
-                                    {{ $doc->document_tag }}
-                                </span>
-                            </div>
-
-                            <a href="{{ route('file.serve', ['path' => $doc->file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-bold shadow-xs d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5" style="font-size: 0.78rem;">
-                                <i class="bi bi-file-earmark-pdf"></i> View / Download PDF
-                            </a>
                         </div>
-                    @endforeach
-                </div>
-
-                <!-- Desktop Document History Table (d-none d-md-block) -->
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr class="text-nowrap">
-                                <th>Document Tag</th>
-                                <th>Version</th>
-                                <th>Phase</th>
-                                <th>Date Uploaded</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($proposal->documents->sortByDesc('version') as $doc)
-                            <tr>
-                                <td>
-                                    <span class="badge bg-secondary text-wrap text-break" style="max-width: 220px; font-size: 0.72rem; white-space: normal; line-height: 1.3;">
-                                        {{ $doc->document_tag }}
-                                    </span>
-                                </td>
-                                <td class="text-nowrap fw-semibold">V{{ $doc->version }}</td>
-                                <td class="text-nowrap">Phase {{ $doc->phase }}</td>
-                                <td class="text-nowrap small text-muted">{{ $doc->created_at->format('M d, Y h:i A') }}</td>
-                                <td class="text-nowrap">
-                                    <a href="{{ route('file.serve', ['path' => $doc->file_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="bi bi-download"></i> View PDF
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @elseif($proposal->document_path)
-                <!-- Fallback for old proposals -->
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 p-3 border rounded-3 bg-light">
-                    <div>
-                        <h6 class="mb-0 fw-bold">Original Proposal Document</h6>
-                        <small class="text-muted">Legacy Upload</small>
                     </div>
-                    <a href="{{ route('file.serve', ['path' => $proposal->document_path]) }}" target="_blank" class="btn btn-sm btn-outline-primary px-4 rounded-pill">
-                        View PDF
-                    </a>
+                    @endif
+
+                    <!-- Reviewer Feedback Section -->
+                    @if(auth()->user()->role !== 'coordinator')
+                    <div class="col-12">
+                        <div class="p-3.5 p-md-4 bg-white rounded-3 border">
+                            <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-chat-left-text text-primary"></i> Reviewer Feedback
+                            </h4>
+                            <p class="text-muted mb-3 small fw-medium">Reviewed by: {{ $proposal->reviewer->name ?? 'Under Review' }}</p>
+
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold text-uppercase mb-1.5 d-block" style="font-size: 0.72rem;">Comments:</label>
+                                <div class="feedback-box">
+                                    {{ $proposal->review_comments ?? 'No comments available yet.' }}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-muted small fw-bold text-uppercase mb-1.5 d-block" style="font-size: 0.72rem;">Suggestions:</label>
+                                <div class="feedback-box">
+                                    {{ $proposal->review_suggestions ?? 'No suggestions available yet.' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Collaborators Section -->
+                    @if(!in_array(auth()->user()->role, ['researcher']))
+                    <div class="col-12">
+                        <div class="p-3.5 p-md-4 bg-white rounded-3 border">
+                            <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-people text-info"></i> Project Collaborators
+                            </h4>
+
+                            @if($proposal->collaborators->isNotEmpty())
+                                <div class="d-flex flex-wrap gap-2.5">
+                                    @foreach($proposal->collaborators as $collab)
+                                    <div class="d-flex align-items-center gap-2.5 p-2.5 rounded-3 border bg-light" style="min-width: 200px;">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                                             style="width: 36px; height: 36px; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                                            {{ strtoupper(substr($collab->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="fw-semibold text-dark small text-truncate">{{ $collab->name }}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.72rem;">
+                                                {{ $collab->department ? strtoupper($collab->department) : 'No Department' }}
+                                                @if($collab->campus) &bull; {{ $collab->campus }}@endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-muted mb-0 small fst-italic">No collaborators listed for this proposal.</p>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
                 </div>
-            @else
-                <p class="text-muted mb-0 small">No documents uploaded.</p>
-            @endif
+            </div>
         </div>
     </div>
+
+    <!-- Proposal Lifecycle, Stage & Milestone History Section -->
+    @include('proposals.partials.lifecycle_timeline')
 
     <!-- Official Documents (Notice & Certificate) -->
     @if(in_array($proposal->status, ['accepted_for_in_house_review', 'revision_required', 'approved', 'final_copy_submitted', 'final_copy_noted_by_dean', 'endorsed_to_vprei', 'final_approved', 'ongoing', 'completed', 'archived']))

@@ -265,7 +265,10 @@
                                                     <span class="badge bg-light text-dark border px-2 py-1">{{ ucfirst(str_replace('_', ' ', $user->role)) }}</span>
                                                 </td>
                                                 <td class="py-3 text-muted small">
-                                                    {{ $user->department ?: 'N/A' }}
+                                                    <div>{{ $user->department ?: 'N/A' }}</div>
+                                                    @if($user->campus)
+                                                        <div class="text-secondary" style="font-size: 0.72rem;"><i class="bi bi-geo-alt me-1"></i>{{ $user->campus }}</div>
+                                                    @endif
                                                 </td>
                                                 <td class="py-3">
                                                     @if($user->is_approved)

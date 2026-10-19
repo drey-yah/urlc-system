@@ -20,7 +20,16 @@
                     <tbody>
                         @foreach($users as $user)
                         <tr>
-                            <td>{{ $user->name }}</td>
+                            <td>
+                                <div class="fw-bold">{{ $user->name }}</div>
+                                @if($user->campus || $user->department)
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        @if($user->campus)<i class="bi bi-geo-alt me-1 text-primary"></i>{{ $user->campus }}@endif
+                                        @if($user->campus && $user->department) • @endif
+                                        @if($user->department){{ $user->department }}@endif
+                                    </div>
+                                @endif
+                            </td>
                             <td>{{ $user->email }}</td>
                             <td>
                                 <span class="badge {{ $user->role == 'admin' ? 'bg-danger' : ($user->role == 'president' ? 'bg-purple text-white' : ($user->role == 'dean' ? 'bg-primary' : ($user->role == 'vprei' ? 'bg-dark' : ($user->role == 'reviewer' ? 'bg-info' : ($user->role == 'budget_officer' ? 'bg-warning text-dark' : ($user->role == 'sao_finance' ? 'bg-success' : 'bg-secondary')))))) }}" style="{{ $user->role == 'president' ? 'background-color: #8B5CF6;' : '' }}">

@@ -82,6 +82,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/proposal/{id}', [ResearchProposalController::class, 'show'])->name('proposal.show');
     Route::get('/proposal/{id}/endorsement-form', [\App\Http\Controllers\CoordinatorController::class, 'generateEndorsementForm'])->name('proposal.endorsement_form');
     Route::get('/proposal/{id}/resu-fm015', [\App\Http\Controllers\ResearchProposalController::class, 'exportResuFm015'])->name('proposal.resu_fm015');
+    Route::get('/proposal/{id}/notice', [ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');
+    Route::get('/proposal/{id}/ntp', [ResearchProposalController::class, 'downloadNoticeToProceed'])->name('proposal.downloadNTP');
+    Route::get('/proposal/{id}/certificate', [ResearchProposalController::class, 'downloadCertificate'])->name('proposal.downloadCertificate');
     Route::post('/proposal/{id}/submit-final', [\App\Http\Controllers\ResearchProposalController::class, 'submitFinalManuscript'])->name('proposal.submitFinal');
     
     // Call for Papers (Announcements)

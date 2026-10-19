@@ -21,7 +21,17 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted text-uppercase">Campus</label>
-                                <input type="text" name="campus" class="form-control border-0 bg-light py-2 px-3 rounded-3" value="{{ old('campus', $user->campus) }}" placeholder="e.g. Main Campus">
+                                <select name="campus" class="form-select border-0 bg-light py-2 px-3 rounded-3">
+                                    <option value="">— Select Campus —</option>
+                                    <option value="Main Campus (Sibalom)" {{ old('campus', $user->campus) == 'Main Campus (Sibalom)' ? 'selected' : '' }}>Main Campus (Sibalom)</option>
+                                    <option value="TLMC (Tibiao)" {{ old('campus', $user->campus) == 'TLMC (Tibiao)' ? 'selected' : '' }}>TLMC - Tario Lim Memorial Campus</option>
+                                    <option value="Hamtic Campus" {{ old('campus', $user->campus) == 'Hamtic Campus' ? 'selected' : '' }}>Hamtic Campus</option>
+                                    <option value="Libertad Campus" {{ old('campus', $user->campus) == 'Libertad Campus' ? 'selected' : '' }}>Libertad Campus</option>
+                                    <option value="Caluya Campus" {{ old('campus', $user->campus) == 'Caluya Campus' ? 'selected' : '' }}>Caluya Campus</option>
+                                    @if($user->campus && !in_array($user->campus, ['Main Campus (Sibalom)', 'TLMC (Tibiao)', 'Hamtic Campus', 'Libertad Campus', 'Caluya Campus']))
+                                        <option value="{{ $user->campus }}" selected>{{ $user->campus }}</option>
+                                    @endif
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted text-uppercase">Department</label>
