@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ResearchProposal;
+use App\Models\User;
+use App\Notifications\WorkflowStatusNotification;
 use Illuminate\Http\Request;
 
 class DeanController extends Controller
@@ -60,15 +62,73 @@ class DeanController extends Controller
         }
 
         if ($request->action === 'return') {
-            $proposal->update([
-                'status' => 'returned_for_revision'
+            $request->validate([
+                'return_reason' => 'required|string|max:3000',
+            ], [
+                'return_reason.required' => 'Please provide the reason or feedback for returning this proposal for revision.',
             ]);
-            return redirect()->back()->with('success', 'Proposal returned to coordinator/researcher.');
+
+            $proposal->update([
+                'status' => 'returned_for_revision',
+                'return_reason' => $request->return_reason,
+                'returned_by_role' => 'dean',
+                'returned_at' => now(),
+            ]);
+
+            // Notify Researcher
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Returned for Revision by Dean',
+                "Your proposal '{$proposal->title}' was returned by College Dean ({$proposal->user->department}) for revision. Remarks: {$request->return_reason}",
+                'bi-arrow-return-left',
+                'text-danger'
+            ));
+
+            // Notify Department Coordinator(s)
+            $coordinators = User::where('role', 'coordinator')
+                ->where('department', $proposal->user->department)
+                ->get();
+            foreach ($coordinators as $coord) {
+                $coord->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Endorsement Returned by Dean',
+                    "Dean returned proposal '{$proposal->title}' for revision. Remarks: {$request->return_reason}",
+                    'bi-arrow-return-left',
+                    'text-warning'
+                ));
+            }
+
+            return redirect()->back()->with('success', 'Proposal returned for revision with your remarks. Both the researcher and coordinator have been notified.');
         }
 
         $proposal->update([
-            'status' => 'noted_by_dean'
+            'status' => 'noted_by_dean',
+            'return_reason' => null,
+            'returned_by_role' => null,
         ]);
+
+        // Notify College Coordinator(s)
+        $coordinators = User::where('role', 'coordinator')
+            ->where('department', $proposal->user->department)
+            ->get();
+        foreach ($coordinators as $coord) {
+            $coord->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Endorsement Noted by Dean',
+                "Dean officially noted proposal '{$proposal->title}' ({$proposal->user->name}). You may now transmit it to the Research Unit.",
+                'bi-check2-all',
+                'text-success'
+            ));
+        }
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Endorsement Noted by College Dean',
+            "Your proposal '{$proposal->title}' was officially noted by the College Dean. Next, the Coordinator will transmit it to the Research Unit.",
+            'bi-patch-check-fill',
+            'text-info'
+        ));
 
         return redirect()->back()->with('success', 'Proposal noted successfully. Coordinator will be notified to submit it to the Research Unit.');
     }
@@ -89,6 +149,27 @@ class DeanController extends Controller
             'status' => 'final_copy_noted_by_dean'
         ]);
 
-        return redirect()->back()->with('success', 'Final copy noted successfully. Awaiting Research Director endorsement to VPREI.');
+        // Notify Budget Officers
+        $budgetOfficers = User::where('role', 'budget_officer')->get();
+        foreach ($budgetOfficers as $bo) {
+            $bo->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Pending Budget Certification',
+                "Dean noted the final copy of '{$proposal->title}' ({$proposal->user->name}). Awaiting your certification of funds availability.",
+                'bi-cash-coin',
+                'text-warning'
+            ));
+        }
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Final Copy Noted by Dean',
+            "Your final copy for '{$proposal->title}' has been noted by the College Dean and routed to the Budget Officer for fund certification.",
+            'bi-clipboard-check',
+            'text-success'
+        ));
+
+        return redirect()->back()->with('success', 'Final copy noted successfully. Awaiting Budget Officer certification of funds.');
     }
 }

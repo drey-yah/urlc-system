@@ -25,6 +25,10 @@ Route::get('/redirect', [DashboardController::class, 'redirectByRole'])
     ->middleware(['auth', 'approved'])
     ->name('redirect');
 
+Route::post('/switch-role', [DashboardController::class, 'switchRole'])
+    ->middleware(['auth', 'approved'])
+    ->name('role.switch');
+
 /*
 |--------------------------------------------------------------------------
 | Protected Dashboard Routes
@@ -105,6 +109,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Notifications
     Route::post('/notifications/mark-read', [DashboardController::class, 'markNotificationsAsRead'])->name('notifications.markRead');
+    Route::get('/notifications/{id}/read', [DashboardController::class, 'markSingleNotificationAsRead'])->name('notifications.readSingle');
+    Route::get('/notifications/poll', [DashboardController::class, 'pollNotifications'])->name('notifications.poll');
 
     // Milestones
     Route::post('/proposal/{id}/milestones', [\App\Http\Controllers\ResearchMilestoneController::class, 'store'])->name('milestones.store');
@@ -267,10 +273,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/admin/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('admin.users.index');
     Route::patch('/admin/users/{id}/role', [\App\Http\Controllers\Admin\UserManagementController::class, 'updateRole'])->name('admin.users.updateRole');
+    Route::post('/admin/users/{id}/roles', [\App\Http\Controllers\Admin\UserManagementController::class, 'updateRoles'])->name('admin.users.updateRoles');
     Route::delete('/admin/users/{id}', [\App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])->name('admin.users.destroy');
 
     // Reviewer Assignment
     Route::post('/admin/proposals/{id}/assign', [ResearchProposalController::class, 'assignReviewer'])->name('admin.proposals.assign');
+    Route::delete('/admin/proposals/{id}/unassign/{reviewer_id}', [ResearchProposalController::class, 'unassignReviewer'])->name('admin.proposals.unassign');
 
     // Director Review & Endorsement Actions
     Route::post('/admin/proposals/{id}/accept-in-house', [ResearchProposalController::class, 'acceptForInHouseReview'])->name('admin.proposals.acceptInHouse');
@@ -302,6 +310,7 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
     Route::get('/superadmin', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('superadmin.dashboard');
     Route::get('/superadmin/users', [\App\Http\Controllers\SuperAdminController::class, 'users'])->name('superadmin.users');
     Route::post('/superadmin/users/{id}/approve', [\App\Http\Controllers\SuperAdminController::class, 'approveAdmin'])->name('superadmin.users.approve');
+    Route::post('/superadmin/users/{id}/roles', [\App\Http\Controllers\SuperAdminController::class, 'updateUserRoles'])->name('superadmin.users.updateRoles');
     Route::delete('/superadmin/users/{id}', [\App\Http\Controllers\SuperAdminController::class, 'destroyUser'])->name('superadmin.users.destroy');
     Route::get('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'settings'])->name('superadmin.settings');
     Route::post('/superadmin/settings', [\App\Http\Controllers\SuperAdminController::class, 'updateSettings'])->name('superadmin.settings.update');

@@ -8,19 +8,23 @@
                 <span class="sidebar-brand-sub">University of Antique</span>
             </div>
         </a>
-        <button type="button" class="btn btn-sm text-white-50 border-0 p-1 d-lg-none" id="sidebarCloseBtn" aria-label="Close menu">
-            <i class="bi bi-x-lg fs-5 text-white"></i>
+        <button type="button" class="btn btn-sm text-white-50 border-0 p-1 d-flex align-items-center justify-content-center rounded-circle" id="sidebarCloseBtn" aria-label="Close sidebar" title="Close sidebar" style="width: 32px; height: 32px; background: rgba(255,255,255,0.06); transition: all 0.2s ease;">
+            <i class="bi bi-x-lg fs-6 text-white d-lg-none"></i>
+            <i class="bi bi-chevron-left fs-6 text-white-50 d-none d-lg-inline"></i>
         </button>
     </div>
 
     <!-- Navigation -->
+    @php
+        $currentRole = auth()->user()->activeRole();
+    @endphp
     <nav class="sidebar-nav">
         <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <i class="bi bi-grid-fill"></i>
             <span>Dashboard</span>
         </a>
 
-        @if(auth()->user()->isSuperAdmin())
+        @if(auth()->user()->isSuperAdmin() && $currentRole === 'super_admin')
             <a href="{{ route('superadmin.dashboard') }}" class="sidebar-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-shield-lock-fill"></i>
                 <span>Super Admin</span>
@@ -39,7 +43,7 @@
             </a>
         @endif
 
-        @if(auth()->user()->role === 'admin' && !auth()->user()->isSuperAdmin())
+        @if($currentRole === 'admin')
             <a href="{{ route('admin.proposals') }}" class="sidebar-link {{ request()->routeIs('admin.proposals') ? 'active' : '' }}">
                 <i class="bi bi-collection-fill"></i>
                 <span>All Proposals</span>
@@ -50,70 +54,70 @@
             </a>
         @endif
 
-        @if(auth()->user()->role === 'reviewer')
+        @if($currentRole === 'reviewer')
             <a href="{{ route('reviewer.proposals') }}" class="sidebar-link {{ request()->routeIs('reviewer.proposals') ? 'active' : '' }}">
                 <i class="bi bi-clipboard-check-fill"></i>
                 <span>Review Queue</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'coordinator')
+        @if($currentRole === 'coordinator')
             <a href="{{ route('coordinator.proposals') }}" class="sidebar-link {{ request()->routeIs('coordinator.proposals') ? 'active' : '' }}">
                 <i class="bi bi-check-circle-fill"></i>
                 <span>Endorsements</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'staff')
+        @if($currentRole === 'staff')
             <a href="{{ route('staff.proposals') }}" class="sidebar-link {{ request()->routeIs('staff.proposals') ? 'active' : '' }}">
                 <i class="bi bi-inbox-fill"></i>
                 <span>Receiving Queue</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'recording_staff')
+        @if($currentRole === 'recording_staff')
             <a href="{{ route('recording_staff.dashboard') }}" class="sidebar-link {{ request()->routeIs('recording_staff.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-journal-text"></i>
                 <span>Tracking Dashboard</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'dean')
+        @if($currentRole === 'dean')
             <a href="{{ route('dean.dashboard') }}" class="sidebar-link {{ request()->routeIs('dean.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-bank2"></i>
                 <span>Dean Noting</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'vprei')
+        @if($currentRole === 'vprei')
             <a href="{{ route('vprei.dashboard') }}" class="sidebar-link {{ request()->routeIs('vprei.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-award-fill"></i>
                 <span>VPREI Approvals</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'president')
+        @if($currentRole === 'president')
             <a href="{{ route('president.dashboard') }}" class="sidebar-link {{ request()->routeIs('president.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-person-workspace"></i>
                 <span>President Authorization</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'budget_officer')
+        @if($currentRole === 'budget_officer')
             <a href="{{ route('budget.dashboard') }}" class="sidebar-link {{ request()->routeIs('budget.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-cash-stack"></i>
                 <span>Budget Certification</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'sao_finance')
+        @if($currentRole === 'sao_finance')
             <a href="{{ route('finance.dashboard') }}" class="sidebar-link {{ request()->routeIs('finance.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-bank"></i>
                 <span>Procurement PRs</span>
             </a>
         @endif
 
-        @if(auth()->user()->role === 'researcher')
+        @if($currentRole === 'researcher')
             <a href="{{ route('proposal.index') }}" class="sidebar-link {{ request()->routeIs('proposal.index') ? 'active' : '' }}">
                 <i class="bi bi-folder-fill"></i>
                 <span>My Researches</span>
@@ -124,10 +128,10 @@
             </a>
         @endif
 
-        @if(in_array(auth()->user()->role, ['researcher', 'vprei', 'president', 'admin', 'funding_agency']) || auth()->user()->isSuperAdmin())
+        @if(in_array($currentRole, ['researcher', 'vprei', 'president', 'admin', 'funding_agency', 'super_admin']))
             <a href="{{ route('external-funding.index') }}" class="sidebar-link {{ request()->routeIs('external-funding.*') ? 'active' : '' }}">
                 <i class="bi bi-cash-coin"></i>
-                <span>{{ auth()->user()->isFundingAgency() ? 'Agency Grant Reviews' : 'External Funding' }}</span>
+                <span>{{ $currentRole === 'funding_agency' ? 'Agency Grant Reviews' : 'External Funding' }}</span>
             </a>
         @endif
 
@@ -151,63 +155,7 @@
             <span>Messages</span>
         </a>
 
-        <!-- Notifications & Activity Log History Section -->
-        <div class="mt-4 pt-3 px-3" style="border-top: 1px solid rgba(212, 175, 55, 0.15);">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="small fw-bold mb-0 text-uppercase d-flex align-items-center gap-2" style="color: var(--ua-gold); font-size: 0.72rem; letter-spacing: 0.05em;">
-                    <i class="bi bi-bell-fill"></i> Notifications
-                    @if(auth()->user()->unreadNotifications->count() > 0)
-                        <span class="badge bg-danger rounded-pill fs-7">{{ auth()->user()->unreadNotifications->count() }}</span>
-                    @endif
-                </h6>
-                @if(auth()->user()->unreadNotifications->count() > 0)
-                    <form action="{{ route('notifications.markRead') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-link p-0 text-decoration-none" style="font-size: 0.7rem; color: #D6CBC4;" title="Mark all as read">
-                            Mark all read
-                        </button>
-                    </form>
-                @endif
-            </div>
-
-            @forelse(auth()->user()->notifications->take(6) as $notification)
-                @php
-                    $isUnread = is_null($notification->read_at);
-                @endphp
-                <a href="{{ isset($notification->data['proposal_id']) && $notification->data['proposal_id'] ? route('proposal.show', $notification->data['proposal_id']) : route('announcements.index') }}" 
-                   class="d-flex align-items-start gap-2 p-2 rounded-3 text-decoration-none transition-all mb-1" 
-                   style="font-size: 0.78rem; {{ $isUnread ? 'background: rgba(140, 29, 44, 0.4); border-left: 3px solid var(--ua-gold);' : 'background: rgba(255, 255, 255, 0.04);' }}">
-                    <div class="overflow-hidden w-100">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="fw-bold text-truncate text-white" style="line-height: 1.2;">{{ $notification->data['title'] ?? 'Notification' }}</div>
-                            @if($isUnread)
-                                <span class="badge rounded-circle p-1" style="background-color: var(--ua-gold);" title="Unread"></span>
-                            @endif
-                        </div>
-                        <div class="text-truncate" style="color: #D6CBC4; font-size: 0.7rem;">{{ $notification->data['message'] ?? '' }}</div>
-                        <div style="color: #8C7E77; font-size: 0.65rem;">{{ $notification->created_at->diffForHumans() }}</div>
-                    </div>
-                </a>
-            @empty
-                <p class="x-small italic mb-0 text-center py-2" style="font-size: 0.72rem; color: #8C7E77;">No notification history yet</p>
-            @endforelse
-        </div>
     </nav>
-
-    <!-- Footer Profile -->
-    <div class="sidebar-footer">
-        <a href="{{ route('profile.show') }}" class="sidebar-link mb-2 {{ request()->routeIs('profile.show') ? 'active' : '' }}">
-            <i class="bi bi-person-circle"></i>
-            <span class="text-truncate">{{ auth()->user()->name }}</span>
-        </a>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-danger">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
-            </button>
-        </form>
-    </div>
 </aside>
 
 <!-- Global Submission Guidelines Modal -->

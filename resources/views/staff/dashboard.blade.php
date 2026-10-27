@@ -231,38 +231,101 @@
                                 <div class="modal fade" id="receiveModal{{ $proposal->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered text-start">
                                         <div class="modal-content border-0 rounded-4 shadow-lg">
-                                            <div class="modal-header border-0 bg-light rounded-top-4">
-                                                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-clipboard-check text-primary me-2"></i>Administrative Completeness Check</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST">
-                                                @csrf
-                                                <div class="modal-body p-4 text-start">
-                                                    <p class="text-muted small mb-4">Please verify the required technical and format checks before routing to the Admin / Director.</p>
-                                                    
-                                                    <div class="form-check mb-3">
-                                                        <input class="form-check-input border-primary" type="checkbox" id="check1{{ $proposal->id }}" required>
-                                                        <label class="form-check-label small fw-semibold text-dark" for="check1{{ $proposal->id }}">
-                                                            Technical Checking Completed
-                                                        </label>
+                                            <div class="modal-header border-0 bg-light rounded-top-4 px-4 pt-4 pb-3">
+                                                <div class="d-flex align-items-center gap-2.5">
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-clipboard-check fs-5"></i>
                                                     </div>
-                                                    <div class="form-check mb-3">
-                                                        <input class="form-check-input border-primary" type="checkbox" id="check2{{ $proposal->id }}" required>
-                                                        <label class="form-check-label small fw-semibold text-dark" for="check2{{ $proposal->id }}">
-                                                            Format & Template Compliance Checked
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-check mb-4">
-                                                        <input class="form-check-input border-primary" type="checkbox" id="check3{{ $proposal->id }}" required>
-                                                        <label class="form-check-label small fw-semibold text-dark" for="check3{{ $proposal->id }}">
-                                                            Similarity / Plagiarism Check Verified
-                                                        </label>
+                                                    <div>
+                                                        <h5 class="modal-title fw-bold text-dark mb-0">Administrative Completeness Check</h5>
+                                                        <p class="text-muted small mb-0">{{ $proposal->proposal_code ?? 'P-'.$proposal->id }} • {{ \Illuminate\Support\Str::limit($proposal->title, 35) }}</p>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer border-0 p-4 pt-0">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST" id="staffVerifyForm{{ $proposal->id }}">
+                                                @csrf
+                                                <input type="hidden" name="action" id="staffAction{{ $proposal->id }}" value="return">
+                                                <div class="modal-body p-4 text-start">
+                                                    <p class="text-muted small mb-3">Please verify the administrative compliance items below. If all pass, you can route the proposal to the Director. If any item is unchecked, you can return it to the researcher with required remarks.</p>
+                                                    
+                                                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                                                        <div class="form-check mb-2.5">
+                                                            <input class="form-check-input border-primary staff-check-input" 
+                                                                   type="checkbox" 
+                                                                   name="check_technical" 
+                                                                   value="1" 
+                                                                   id="check1{{ $proposal->id }}" 
+                                                                   onchange="toggleStaffChecklist({{ $proposal->id }})">
+                                                            <label class="form-check-label small fw-semibold text-dark" for="check1{{ $proposal->id }}">
+                                                                1. Technical Checking Completed
+                                                            </label>
+                                                            <div class="text-muted" style="font-size: 0.72rem; margin-left: 1.5rem;">Verified proposal completeness, signatures, and endorsements.</div>
+                                                        </div>
+                                                        <div class="form-check mb-2.5">
+                                                            <input class="form-check-input border-primary staff-check-input" 
+                                                                   type="checkbox" 
+                                                                   name="check_format" 
+                                                                   value="1" 
+                                                                   id="check2{{ $proposal->id }}" 
+                                                                   onchange="toggleStaffChecklist({{ $proposal->id }})">
+                                                            <label class="form-check-label small fw-semibold text-dark" for="check2{{ $proposal->id }}">
+                                                                2. Format & Template Compliance Checked
+                                                            </label>
+                                                            <div class="text-muted" style="font-size: 0.72rem; margin-left: 1.5rem;">Compliant with prescribed University Research manual & font/margins.</div>
+                                                        </div>
+                                                        <div class="form-check mb-0">
+                                                            <input class="form-check-input border-primary staff-check-input" 
+                                                                   type="checkbox" 
+                                                                   name="check_similarity" 
+                                                                   value="1" 
+                                                                   id="check3{{ $proposal->id }}" 
+                                                                   onchange="toggleStaffChecklist({{ $proposal->id }})">
+                                                            <label class="form-check-label small fw-semibold text-dark" for="check3{{ $proposal->id }}">
+                                                                3. Similarity / Plagiarism Check Verified
+                                                            </label>
+                                                            <div class="text-muted" style="font-size: 0.72rem; margin-left: 1.5rem;">Similarity index passed and within acceptable institutional ceiling.</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Deficiencies Box (Shown when partially or not fully checked) -->
+                                                    <div id="deficienciesBox{{ $proposal->id }}" class="mb-2">
+                                                        <div class="alert alert-warning border-0 p-2.5 rounded-3 mb-2 small d-flex align-items-center gap-2">
+                                                            <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0"></i>
+                                                            <div>
+                                                                <strong class="text-dark">Checklist is incomplete.</strong>
+                                                                <span class="text-muted d-block" style="font-size: 0.74rem;">Proposal will be returned directly to researcher for revision.</span>
+                                                            </div>
+                                                        </div>
+                                                        <label for="returnReasonStaff{{ $proposal->id }}" class="form-label fw-semibold text-dark small mb-1">
+                                                            Deficiencies / Revision Remarks <span class="text-danger">*</span>
+                                                        </label>
+                                                        <textarea class="form-control" 
+                                                                  id="returnReasonStaff{{ $proposal->id }}" 
+                                                                  name="return_reason" 
+                                                                  rows="3" 
+                                                                  required
+                                                                  placeholder="Specify why the check is incomplete and what needs to be fixed (e.g., Plagiarism index is 26%, reduce below 15%; or use the prescribed RESU template)..."></textarea>
+                                                        <div class="form-text text-muted" style="font-size: 0.72rem;">
+                                                            Once the researcher updates this, it will be fast-tracked directly back to this queue.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between align-items-center">
                                                     <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-medium text-muted" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm">
-                                                        Log & Route to Admin <i class="bi bi-arrow-right ms-1"></i>
+                                                    
+                                                    <!-- Forward Button (Hidden initially until all 3 checked) -->
+                                                    <button type="submit" 
+                                                            id="btnForward{{ $proposal->id }}" 
+                                                            class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm d-none">
+                                                        <i class="bi bi-send-check me-1"></i> Log & Route to Admin
+                                                    </button>
+                                                    
+                                                    <!-- Return Button (Active when 1 or more boxes unchecked) -->
+                                                    <button type="submit" 
+                                                            id="btnReturn{{ $proposal->id }}" 
+                                                            class="btn btn-danger px-4 py-2 rounded-pill fw-bold shadow-sm">
+                                                        <i class="bi bi-arrow-return-left me-1"></i> Return for Incompleteness
                                                     </button>
                                                 </div>
                                             </form>
@@ -368,6 +431,7 @@
                                             'approved', 'final_approved', 'completed' => 'bg-success bg-opacity-10 text-success',
                                             'pending', 'submitted', 'pending_director_review', 'accepted_for_in_house_review' => 'bg-warning bg-opacity-10 text-warning',
                                             'rejected', 'final_rejected' => 'bg-danger bg-opacity-10 text-danger',
+                                            'returned_for_revision' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
                                             default => 'bg-secondary bg-opacity-10 text-secondary'
                                         };
                                     @endphp
@@ -523,5 +587,32 @@
                 </div>
             </div>
         </div>
-    </div>
+    <script>
+        function toggleStaffChecklist(proposalId) {
+            const c1 = document.getElementById('check1' + proposalId);
+            const c2 = document.getElementById('check2' + proposalId);
+            const c3 = document.getElementById('check3' + proposalId);
+            const defBox = document.getElementById('deficienciesBox' + proposalId);
+            const reasonInput = document.getElementById('returnReasonStaff' + proposalId);
+            const btnForward = document.getElementById('btnForward' + proposalId);
+            const btnReturn = document.getElementById('btnReturn' + proposalId);
+            const actionInput = document.getElementById('staffAction' + proposalId);
+
+            const allChecked = c1 && c2 && c3 && c1.checked && c2.checked && c3.checked;
+
+            if (allChecked) {
+                actionInput.value = 'forward';
+                defBox.classList.add('d-none');
+                reasonInput.removeAttribute('required');
+                btnForward.classList.remove('d-none');
+                btnReturn.classList.add('d-none');
+            } else {
+                actionInput.value = 'return';
+                defBox.classList.remove('d-none');
+                reasonInput.setAttribute('required', 'required');
+                btnForward.classList.add('d-none');
+                btnReturn.classList.remove('d-none');
+            }
+        }
+    </script>
 </x-app-layout>

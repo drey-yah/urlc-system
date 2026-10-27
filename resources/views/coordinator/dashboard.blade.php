@@ -166,15 +166,25 @@
                                                 <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill flex-fill text-center" style="font-size: 0.75rem;">
                                                     View
                                                 </a>
-                                                <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-flex gap-1.5 flex-fill">
-                                                    @csrf
-                                                    <button type="submit" name="action" value="return" class="btn btn-sm btn-outline-danger rounded-pill flex-fill text-center" style="font-size: 0.75rem;" onclick="return confirm('Return this proposal to researcher for revision?');">
+                                                <div class="d-flex gap-1.5 flex-fill">
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-outline-danger rounded-pill flex-fill text-center" 
+                                                            style="font-size: 0.75rem;" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#returnProposalModal"
+                                                            data-proposal-id="{{ $proposal->id }}"
+                                                            data-proposal-title="{{ htmlspecialchars($proposal->title, ENT_QUOTES) }}"
+                                                            data-proposal-code="{{ $proposal->proposal_code ?? 'P-'.$proposal->id }}">
                                                         Return
                                                     </button>
-                                                    <button type="submit" name="action" value="endorse" class="btn btn-sm btn-success rounded-pill flex-fill text-center shadow-xs" style="font-size: 0.75rem;" onclick="return confirm('Endorse this proposal to the Dean?');">
-                                                        Endorse
-                                                    </button>
-                                                </form>
+                                                    <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="flex-fill d-flex m-0">
+                                                        @csrf
+                                                        <input type="hidden" name="action" value="endorse">
+                                                        <button type="submit" class="btn btn-sm btn-success rounded-pill flex-fill text-center shadow-xs" style="font-size: 0.75rem;" onclick="return confirm('Endorse this proposal to the Dean?');">
+                                                            Endorse
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -225,16 +235,23 @@
                                                     </span>
                                                 </td>
                                                 <td class="pe-4 py-3 text-end">
-                                                    <div class="d-flex justify-content-end gap-1">
+                                                    <div class="d-flex justify-content-end gap-1.5 align-items-center">
                                                         <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill px-3">
                                                             View
                                                         </a>
-                                                        <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-inline">
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-danger rounded-pill px-3" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#returnProposalModal"
+                                                                data-proposal-id="{{ $proposal->id }}"
+                                                                data-proposal-title="{{ htmlspecialchars($proposal->title, ENT_QUOTES) }}"
+                                                                data-proposal-code="{{ $proposal->proposal_code ?? 'P-'.$proposal->id }}">
+                                                            Return
+                                                        </button>
+                                                        <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-inline m-0">
                                                             @csrf
-                                                            <button type="submit" name="action" value="return" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Return this proposal to researcher for revision?');">
-                                                                Return
-                                                            </button>
-                                                            <button type="submit" name="action" value="endorse" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="return confirm('Endorse this proposal to the Dean?');">
+                                                            <input type="hidden" name="action" value="endorse">
+                                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" onclick="return confirm('Endorse this proposal to the Dean?');">
                                                                 Endorse
                                                             </button>
                                                         </form>
@@ -375,6 +392,7 @@
                                             'approved', 'final_approved', 'completed' => 'bg-success bg-opacity-10 text-success',
                                             'pending', 'submitted', 'pending_coordinator_endorsement', 'pending_dean_noting' => 'bg-warning bg-opacity-10 text-warning',
                                             'rejected', 'final_rejected' => 'bg-danger bg-opacity-10 text-danger',
+                                            'returned_for_revision' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
                                             default => 'bg-secondary bg-opacity-10 text-secondary'
                                         };
                                     @endphp
@@ -441,6 +459,7 @@
                                                             'approved', 'final_approved', 'completed' => 'bg-success bg-opacity-10 text-success',
                                                             'pending', 'submitted', 'pending_coordinator_endorsement', 'pending_dean_noting' => 'bg-warning bg-opacity-10 text-warning',
                                                             'rejected', 'final_rejected' => 'bg-danger bg-opacity-10 text-danger',
+                                                            'returned_for_revision' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
                                                             default => 'bg-secondary bg-opacity-10 text-secondary'
                                                         };
                                                     @endphp
@@ -650,9 +669,79 @@
                                 <i class="bi bi-arrow-right text-muted fs-7"></i>
                             </a>
                         </div>
+    <!-- Modal: Return Proposal for Revision -->
+    <div class="modal fade" id="returnProposalModal" tabindex="-1" aria-labelledby="returnProposalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                    <div class="d-flex align-items-center gap-2.5">
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi bi-arrow-return-left fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" id="returnProposalModalLabel">Return Proposal for Revision</h5>
+                            <p class="text-muted small mb-0">Provide reasons and feedback for the researcher</p>
+                        </div>
                     </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <form id="returnProposalForm" method="POST" action="">
+                    @csrf
+                    <input type="hidden" name="action" value="return">
+                    <div class="modal-body px-4 py-3">
+                        <div class="bg-light p-3 rounded-3 mb-3 border">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="badge bg-white text-dark border fw-mono" id="returnModalCode"></span>
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Pending Endorsement</span>
+                            </div>
+                            <div class="fw-semibold text-dark text-truncate" id="returnModalTitle"></div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="returnReasonText" class="form-label fw-semibold text-dark small">
+                                Reason for Return / Revision Remarks <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" 
+                                      id="returnReasonText" 
+                                      name="return_reason" 
+                                      rows="4" 
+                                      required 
+                                      placeholder="Explain why the proposal is being returned and describe what needs revision (e.g., missing attachments, budget adjustments, format or methodology improvements)..."></textarea>
+                            <div class="form-text text-muted" style="font-size: 0.74rem;">
+                                This feedback will be displayed directly to the researcher on their dashboard and proposal edit page.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-return-left me-1"></i> Confirm Return
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const returnModal = document.getElementById('returnProposalModal');
+            if (returnModal) {
+                returnModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+                    const proposalId = button.getAttribute('data-proposal-id');
+                    const proposalTitle = button.getAttribute('data-proposal-title');
+                    const proposalCode = button.getAttribute('data-proposal-code');
+                    
+                    const form = document.getElementById('returnProposalForm');
+                    form.action = `/coordinator/proposals/${proposalId}/endorse`;
+                    
+                    document.getElementById('returnModalCode').textContent = proposalCode;
+                    document.getElementById('returnModalTitle').textContent = proposalTitle;
+                    document.getElementById('returnReasonText').value = '';
+                });
+            }
+        });
+    </script>
 </x-app-layout>

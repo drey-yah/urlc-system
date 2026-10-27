@@ -60,8 +60,12 @@ class ExternalFundingWorkflowTest extends TestCase
         ])->assertRedirect();
         $this->assertDatabaseHas('external_funding_projects', ['id' => $project->id, 'status' => 'pending_moa_mou']);
 
+        $tempMoa = tempnam(sys_get_temp_dir(), 'pdf');
+        file_put_contents($tempMoa, '%PDF-1.4 moa content');
+        $moaFile = new UploadedFile($tempMoa, 'agreement.pdf', 'application/pdf', null, true);
+
         $this->actingAs($president)->post(route('external-funding.agreement', $project), [
-            'moa_mou_file' => UploadedFile::fake()->create('agreement.pdf', 100, 'application/pdf'),
+            'moa_mou_file' => $moaFile,
             'grant_start_date' => '2026-10-01',
             'grant_end_date' => '2027-09-30',
         ])->assertRedirect();
@@ -70,8 +74,12 @@ class ExternalFundingWorkflowTest extends TestCase
         $this->actingAs($vprei)->post(route('external-funding.monitor', $project))->assertRedirect();
         $this->assertDatabaseHas('external_funding_projects', ['id' => $project->id, 'status' => 'under_grant_monitoring']);
 
+        $tempTerminal = tempnam(sys_get_temp_dir(), 'pdf');
+        file_put_contents($tempTerminal, '%PDF-1.4 terminal report content');
+        $terminalFile = new UploadedFile($tempTerminal, 'terminal-report.pdf', 'application/pdf', null, true);
+
         $this->actingAs($researcher)->post(route('external-funding.terminal-report', $project), [
-            'terminal_report' => UploadedFile::fake()->create('terminal-report.pdf', 100, 'application/pdf'),
+            'terminal_report' => $terminalFile,
         ])->assertRedirect();
         $this->assertDatabaseHas('external_funding_projects', ['id' => $project->id, 'status' => 'pending_grant_closure']);
 

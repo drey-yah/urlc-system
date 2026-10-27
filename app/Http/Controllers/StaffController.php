@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ResearchProposal;
+use App\Models\User;
+use App\Notifications\WorkflowStatusNotification;
 
 class StaffController extends Controller
 {
@@ -43,11 +45,90 @@ class StaffController extends Controller
     {
         $proposal = ResearchProposal::findOrFail($id);
 
-        // Change status to pending_director_review
+        if ($request->action === 'return') {
+            $request->validate([
+                'return_reason' => 'required|string|max:3000',
+            ], [
+                'return_reason.required' => 'Please provide the remarks or describe the missing requirements for returning this proposal.',
+            ]);
+
+            $failedChecks = [];
+            if (!$request->boolean('check_technical')) {
+                $failedChecks[] = 'Technical Checking (Incomplete)';
+            }
+            if (!$request->boolean('check_format')) {
+                $failedChecks[] = 'Format & Template Compliance (Non-compliant)';
+            }
+            if (!$request->boolean('check_similarity')) {
+                $failedChecks[] = 'Similarity / Plagiarism Check (Not verified / Exceeded limit)';
+            }
+
+            $formattedReason = $request->return_reason;
+            if (!empty($failedChecks)) {
+                $formattedReason = "Administrative Deficiencies:\n• " . implode("\n• ", $failedChecks) . "\n\nRemarks: " . $request->return_reason;
+            }
+
+            $proposal->update([
+                'status' => 'returned_for_revision',
+                'return_reason' => $formattedReason,
+                'returned_by_role' => 'staff',
+                'returned_at' => now(),
+            ]);
+
+            // Notify Researcher directly
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Returned by Receiving Staff',
+                "Your proposal '{$proposal->title}' was returned by Receiving Staff due to administrative incompleteness. Reason: {$request->return_reason}",
+                'bi-clipboard-x-fill',
+                'text-danger'
+            ));
+
+            // Notify Department Coordinator so they are aware
+            $coordinators = User::where('role', 'coordinator')
+                ->where('department', $proposal->user->department)
+                ->get();
+            foreach ($coordinators as $coord) {
+                $coord->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Proposal Returned by Receiving Staff',
+                    "Receiving Staff returned proposal '{$proposal->title}' ({$proposal->user->name}) for administrative incompleteness.",
+                    'bi-clipboard-x-fill',
+                    'text-warning'
+                ));
+            }
+
+            return redirect()->back()->with('success', 'Proposal returned to researcher for administrative revision with remarks.');
+        }
+
+        // Action is 'forward' (all checks completed)
         $proposal->update([
-            'status' => 'pending_director_review'
+            'status' => 'pending_director_review',
+            'return_reason' => null,
+            'returned_by_role' => null,
         ]);
 
-        return redirect()->back()->with('success', 'Manuscript received and forwarded to Research Director successfully.');
+        // Notify Research Director / Admins
+        $directors = User::whereIn('role', ['admin', 'super_admin'])->get();
+        foreach ($directors as $dir) {
+            $dir->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Routed for Director Review',
+                "Proposal '{$proposal->title}' ({$proposal->user->name}) passed administrative completeness and is awaiting your In-House review decision.",
+                'bi-inbox-fill',
+                'text-primary'
+            ));
+        }
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Administrative Completeness Verified',
+            "Your proposal '{$proposal->title}' passed administrative completeness checking and was forwarded to the Research Director.",
+            'bi-check2-circle',
+            'text-success'
+        ));
+
+        return redirect()->back()->with('success', 'Manuscript received, verified, and forwarded to Research Director successfully.');
     }
 }

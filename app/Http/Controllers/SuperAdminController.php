@@ -60,6 +60,42 @@ class SuperAdminController extends Controller
         return redirect()->back()->with('success', "Account for {$user->name} has been approved.");
     }
 
+    public function updateUserRoles(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $allowedRoles = [
+            'researcher', 'reviewer', 'coordinator', 'dean', 
+            'staff', 'recording_staff', 'budget_officer', 
+            'sao_finance', 'vprei', 'president', 'funding_agency', 'admin'
+        ];
+
+        $request->validate([
+            'primary_role' => 'required|in:' . implode(',', array_merge($allowedRoles, ['super_admin'])),
+            'additional_roles' => 'nullable|array',
+            'additional_roles.*' => 'in:' . implode(',', $allowedRoles),
+        ]);
+
+        $primaryRole = $request->primary_role;
+        $additionalRoles = $request->additional_roles ?? [];
+
+        // Exclude primary role from additional_roles to prevent duplicates
+        $additionalRoles = array_values(array_diff($additionalRoles, [$primaryRole]));
+
+        $user->update([
+            'role' => $primaryRole,
+            'additional_roles' => !empty($additionalRoles) ? $additionalRoles : null,
+        ]);
+
+        activity()
+            ->performedOn($user)
+            ->causedBy(auth()->user())
+            ->withProperties(['roles' => $user->allRoles()])
+            ->log("Updated roles for user: {$user->name}");
+
+        return redirect()->back()->with('success', "Roles for {$user->name} updated successfully.");
+    }
+
     public function destroyUser($id)
     {
         $user = User::findOrFail($id);

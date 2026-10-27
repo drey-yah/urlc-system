@@ -2,7 +2,7 @@
     <!-- Header Section -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 mb-md-4 gap-2 gap-md-3">
         <div>
-            <h1 class="h4 h-md-3 fw-bold text-dark mb-1">Welcome back, {{ Auth::user()->name }} 👋</h1>
+            <h1 class="h4 h-md-3 fw-bold text-dark mb-1">Research Dashboard</h1>
             <p class="text-muted small mb-0">Track your research proposals, monitor review progress, and submit new research.</p>
         </div>
         <div class="d-flex gap-2">

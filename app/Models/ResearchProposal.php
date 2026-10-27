@@ -26,14 +26,22 @@ class ResearchProposal extends Model
         'phase_updated_at',
         'review_comments',
         'review_suggestions',
+        'return_reason',
+        'returned_by_role',
+        'returned_at',
         'document_path',
         'terminal_report_path',
+    ];
+
+    protected $casts = [
+        'returned_at' => 'datetime',
+        'phase_updated_at' => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'current_phase', 'reviewer_id', 'title'])
+            ->logOnly(['status', 'current_phase', 'reviewer_id', 'title', 'return_reason', 'returned_by_role'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

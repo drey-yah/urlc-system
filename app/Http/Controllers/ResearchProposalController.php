@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ResearchProposal;
+use App\Models\User;
+use App\Notifications\WorkflowStatusNotification;
 use Illuminate\Http\Request;
 
 class ResearchProposalController extends Controller
@@ -52,7 +54,8 @@ class ResearchProposalController extends Controller
         $sequence = str_pad($nextId, 3, '0', STR_PAD_LEFT);
         $proposalCode = "RP-{$year}-{$sequence}";
 
-        \DB::transaction(function () use ($request, $isDraft, $filePath, $proposalCode) {
+        $proposal = null;
+        \DB::transaction(function () use ($request, $isDraft, $filePath, $proposalCode, &$proposal) {
             $proposal = ResearchProposal::create([
                 'user_id' => auth()->id(),
                 'proposal_code' => $proposalCode,
@@ -80,6 +83,31 @@ class ResearchProposalController extends Controller
             }
         });
 
+        if (!$isDraft && $proposal) {
+            // Notify Lead Researcher
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Submitted for Endorsement',
+                "Your proposal '{$proposal->title}' ({$proposal->proposal_code}) was submitted successfully and is awaiting College Coordinator endorsement.",
+                'bi-send-check',
+                'text-primary'
+            ));
+
+            // Notify College Coordinator(s)
+            $coordinators = User::where('role', 'coordinator')
+                ->where('department', auth()->user()->department)
+                ->get();
+            foreach ($coordinators as $coord) {
+                $coord->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'New Proposal for Endorsement',
+                    "Researcher " . auth()->user()->name . " submitted proposal '{$proposal->title}' for college endorsement.",
+                    'bi-file-earmark-plus-fill',
+                    'text-info'
+                ));
+            }
+        }
+
         $msg = $isDraft ? 'Proposal saved as draft!' : 'Proposal submitted successfully!';
         return redirect('/proposal/my')->with('success', $msg);
     }
@@ -87,13 +115,14 @@ class ResearchProposalController extends Controller
     // Reviewer: View ALL proposals
     public function reviewerIndex()
     {
-        // BUG FIX: Reviewers should only see proposals assigned to them
+        // Reviewers should only see proposals assigned to them, excluding their own (COI safeguard)
         $assignedProposalIds = \DB::table('proposal_assignments')
             ->where('user_id', auth()->id())
             ->pluck('research_proposal_id');
 
-        $proposals = ResearchProposal::with('user')
+        $proposals = ResearchProposal::with(['user', 'collaborators'])
             ->whereIn('id', $assignedProposalIds)
+            ->where('user_id', '!=', auth()->id())
             ->get();
 
         return view('reviewer.proposals', compact('proposals'));
@@ -106,9 +135,20 @@ class ResearchProposalController extends Controller
             'reviewer_id' => 'required|exists:users,id',
         ]);
 
-        $reviewer = \App\Models\User::findOrFail($request->reviewer_id);
-        if ($reviewer->role !== 'reviewer') {
-            return redirect()->back()->with('error', 'The selected user is not a reviewer.');
+        $reviewer = User::findOrFail($request->reviewer_id);
+        if (!$reviewer->hasRole('reviewer')) {
+            return redirect()->back()->with('error', 'The selected user is not authorized as an Evaluator/Reviewer.');
+        }
+
+        $proposal = ResearchProposal::with(['collaborators'])->findOrFail($id);
+
+        // Conflict of Interest (COI) Protection
+        if ($proposal->user_id == $reviewer->id) {
+            return redirect()->back()->with('error', 'Conflict of Interest: The lead researcher cannot be assigned to review their own proposal.');
+        }
+
+        if ($proposal->collaborators->contains('id', $reviewer->id)) {
+            return redirect()->back()->with('error', 'Conflict of Interest: A co-researcher / collaborator cannot be assigned to review this proposal.');
         }
 
         // Create assignment if not exists
@@ -117,7 +157,30 @@ class ResearchProposalController extends Controller
             ['created_at' => now(), 'updated_at' => now()]
         );
 
+        $reviewer->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Assigned as Peer Reviewer',
+            "You have been assigned to evaluate proposal: {$proposal->proposal_code} - {$proposal->title}",
+            'bi-person-check-fill',
+            'text-info'
+        ));
+
         return redirect()->back()->with('success', 'Reviewer assigned successfully!');
+    }
+
+    // Admin: Unassign a reviewer from a proposal
+    public function unassignReviewer($id, $reviewer_id)
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+            abort(403, 'Unauthorized.');
+        }
+
+        \DB::table('proposal_assignments')
+            ->where('research_proposal_id', $id)
+            ->where('user_id', $reviewer_id)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Reviewer removed successfully!');
     }
 
     // Reviewer: Update proposal status, comments, and suggestions
@@ -130,7 +193,12 @@ class ResearchProposalController extends Controller
             'evaluation_document' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        $proposal = ResearchProposal::findOrFail($id);
+        $proposal = ResearchProposal::with('collaborators')->findOrFail($id);
+
+        // Conflict of Interest (COI) Protection: Cannot evaluate own proposal
+        if ($proposal->user_id === auth()->id() || $proposal->collaborators->contains('id', auth()->id())) {
+            abort(403, 'Conflict of Interest: You cannot evaluate or submit feedback on your own research proposal.');
+        }
 
         if (in_array($proposal->status, ['final_approved', 'final_rejected'])) {
             return redirect()->back()->with('error', 'This proposal has already received a final decision and cannot be updated.');
@@ -165,7 +233,7 @@ class ResearchProposalController extends Controller
     public function adminIndex()
     {
         $proposals = ResearchProposal::with(['user', 'assignments'])->latest()->paginate(15, ['*'], 'proposals_page');
-        $reviewers = \App\Models\User::where('role', 'reviewer')->get();
+        $reviewers = User::withRole('reviewer')->orderBy('name')->get();
         $announcements = \App\Models\Announcement::with('user')->latest()->paginate(15, ['*'], 'announcements_page');
         
         $stats = [
@@ -215,6 +283,24 @@ class ResearchProposalController extends Controller
             'status' => $request->status,
         ]);
 
+        if ($request->status === 'final_approved') {
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Final Approved',
+                "Your proposal '{$proposal->title}' has received final approval from the Research Director.",
+                'bi-check-circle-fill',
+                'text-success'
+            ));
+        } else {
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Decision: Final Rejected',
+                "Your proposal '{$proposal->title}' was rejected during administrative final decision.",
+                'bi-x-circle-fill',
+                'text-danger'
+            ));
+        }
+
         return redirect()->back()->with('success', 'Final decision applied successfully!');
     }
 
@@ -227,23 +313,37 @@ class ResearchProposalController extends Controller
         ])->findOrFail($id);
 
         $openForums = \App\Models\LocalResearchForum::where('status', 'open')->latest()->get();
+        $activeRole = auth()->user()->activeRole();
+        $isAuthorOrCollaborator = $proposal->user_id === auth()->id() || $proposal->collaborators->contains('id', auth()->id());
+        $isAssignedReviewer = $proposal->assignments->contains('id', auth()->id());
+
+        // Reviewers dropdown excludes lead author and collaborators to prevent conflict of interest
+        $reviewers = (in_array($activeRole, ['admin', 'super_admin']) || auth()->user()->isSuperAdmin())
+            ? User::withRole('reviewer')
+                ->where('id', '!=', $proposal->user_id)
+                ->whereNotIn('id', $proposal->collaborators->pluck('id'))
+                ->orderBy('name')
+                ->get()
+            : collect();
         
         // Authorization check
-        if (auth()->user()->role == 'researcher' && $proposal->user_id !== auth()->id()) {
-            if (!$proposal->collaborators->contains(auth()->id())) {
+        if (!auth()->user()->isSuperAdmin() && !in_array($activeRole, ['admin', 'staff', 'vprei', 'president', 'budget_officer', 'sao_finance'])) {
+            if ($activeRole == 'researcher' && !$isAuthorOrCollaborator) {
                 abort(403, 'Unauthorized access.');
-            }
-        } elseif (auth()->user()->role == 'reviewer') {
-            if (!$proposal->assignments->contains('id', auth()->id())) {
+            } elseif ($activeRole == 'reviewer' && !$isAssignedReviewer && !$isAuthorOrCollaborator) {
                 abort(403, 'Unauthorized access. You are not assigned to review this proposal.');
-            }
-        } elseif (auth()->user()->role == 'dean') {
-            if ($proposal->user->department !== auth()->user()->department) {
-                abort(403, 'Unauthorized access. You can only view proposals from your college/department.');
+            } elseif ($activeRole == 'dean') {
+                if ($proposal->user->department !== auth()->user()->department) {
+                    abort(403, 'Unauthorized access. You can only view proposals from your college/department.');
+                }
+            } elseif ($activeRole == 'coordinator') {
+                if ($proposal->user->department !== auth()->user()->department) {
+                    abort(403, 'Unauthorized access. You can only view proposals from your college/department.');
+                }
             }
         }
 
-        return view('proposals.show', compact('proposal', 'openForums'));
+        return view('proposals.show', compact('proposal', 'openForums', 'reviewers'));
     }
 
     // Researcher: Show edit form for revision
@@ -306,40 +406,104 @@ class ResearchProposalController extends Controller
         $newStatus = 'pending_coordinator_endorsement';
         if ($proposal->status === 'revision_required' || $proposal->status === 'approved_with_revisions') {
             $newStatus = 'accepted_for_in_house_review';
+        } elseif ($proposal->status === 'returned_for_revision' && $proposal->returned_by_role === 'staff') {
+            // Option A: Fast-track directly back to Receiving Staff
+            $newStatus = 'submitted_to_research_unit';
         }
 
-        $proposal->update([
+        $updateData = [
             'title' => $request->title,
             'abstract' => $request->abstract,
             'rationale' => $request->rationale ?? $proposal->rationale,
             'research_field' => $request->research_field,
             'document_path' => $filePath, // Update main path for backwards compatibility
             'status' => $isDraft ? 'draft' : $newStatus,
-        ]);
+        ];
+
+        if (!$isDraft && $proposal->status === 'returned_for_revision') {
+            $updateData['return_reason'] = null;
+            $updateData['returned_by_role'] = null;
+            $updateData['returned_at'] = null;
+        }
+
+        $proposal->update($updateData);
 
         if ($request->has('collaborators')) {
             $proposal->collaborators()->sync($request->collaborators);
         }
 
-        $msg = $isDraft ? 'Draft updated successfully!' : 'Proposal submitted successfully!';
+        if (!$isDraft && $newStatus === 'submitted_to_research_unit') {
+            $staffUsers = User::where('role', 'staff')->get();
+            foreach ($staffUsers as $staff) {
+                $staff->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Revised Proposal Resubmitted',
+                    "Researcher {$proposal->user->name} resubmitted revised manuscript for '{$proposal->title}' addressing administrative completeness.",
+                    'bi-arrow-repeat',
+                    'text-info'
+                ));
+            }
+        } elseif (!$isDraft && $newStatus === 'pending_coordinator_endorsement') {
+            $coords = User::where('role', 'coordinator')
+                ->where('department', $proposal->user->department)
+                ->get();
+            foreach ($coords as $coord) {
+                $coord->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Proposal Resubmitted for Endorsement',
+                    "Researcher {$proposal->user->name} resubmitted revised proposal '{$proposal->title}' for your endorsement.",
+                    'bi-arrow-repeat',
+                    'text-primary'
+                ));
+            }
+        } elseif (!$isDraft && $newStatus === 'accepted_for_in_house_review') {
+            $assignments = \DB::table('proposal_assignments')->where('research_proposal_id', $proposal->id)->pluck('user_id');
+            $reviewers = User::whereIn('id', $assignments)->get();
+            foreach ($reviewers as $rev) {
+                $rev->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Revised Manuscript Resubmitted',
+                    "Researcher {$proposal->user->name} resubmitted revised manuscript for '{$proposal->title}' addressing reviewer comments.",
+                    'bi-arrow-repeat',
+                    'text-info'
+                ));
+            }
+        }
+
+        if ($isDraft) {
+            $msg = 'Draft updated successfully!';
+        } elseif ($newStatus === 'submitted_to_research_unit') {
+            $msg = 'Proposal updated and resubmitted directly to the Research Unit receiving queue!';
+        } else {
+            $msg = 'Proposal submitted successfully!';
+        }
         return redirect('/proposal/my')->with('success', $msg);
     }
 
     public function destroy($id)
     {
-        $proposal = ResearchProposal::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
+        $proposal = ResearchProposal::findOrFail($id);
 
-        // Security / Integrity check: Only draft proposals can be deleted
-        if (!in_array($proposal->status, ['draft'])) {
-            return redirect()->back()->with('error', 'Only draft proposals can be deleted. Proposals currently in the review or approval lifecycle cannot be deleted.');
+        if ($proposal->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized. Only the lead researcher can delete this proposal.');
+        }
+
+        // Allowed only as long as the college coordinator has not endorsed it yet
+        $deletableStatuses = ['draft', 'pending_coordinator_endorsement', 'returned_for_revision', 'pending'];
+
+        if (!in_array($proposal->status, $deletableStatuses)) {
+            return redirect()->back()->with('error', 'Proposals can only be deleted before they are endorsed by the college coordinator.');
         }
 
         \DB::transaction(function () use ($proposal) {
-            // Delete the file from storage
+            // Delete the main manuscript file from storage
             if ($proposal->document_path && \Storage::disk(config('filesystems.default', 'public'))->exists($proposal->document_path)) {
                 \Storage::disk(config('filesystems.default', 'public'))->delete($proposal->document_path);
+            }
+
+            // Delete terminal report file if any
+            if ($proposal->terminal_report_path && \Storage::disk(config('filesystems.default', 'public'))->exists($proposal->terminal_report_path)) {
+                \Storage::disk(config('filesystems.default', 'public'))->delete($proposal->terminal_report_path);
             }
 
             // Delete all versioned document files
@@ -349,10 +513,24 @@ class ResearchProposalController extends Controller
                 }
             }
 
+            // Detach relations
+            $proposal->collaborators()->detach();
+            $proposal->assignments()->detach();
+
+            // Clean up related notifications (PostgreSQL safe)
+            \Illuminate\Notifications\DatabaseNotification::where('data', 'like', '%"proposal_id":' . $proposal->id . '%')
+                ->orWhere('data', 'like', '%"proposal_id":"' . $proposal->id . '"%')
+                ->get()
+                ->filter(function ($n) use ($proposal) {
+                    return isset($n->data['proposal_id']) && (int)$n->data['proposal_id'] === (int)$proposal->id;
+                })
+                ->each->delete();
+
+            // Delete the proposal record
             $proposal->delete();
         });
 
-        return redirect()->back()->with('success', 'Proposal deleted successfully!');
+        return redirect()->route('proposal.index')->with('success', 'Proposal deleted successfully!');
     }
 
     public function downloadNoticeOfAcceptance($id)
@@ -476,6 +654,29 @@ class ResearchProposalController extends Controller
             'phase_updated_at' => now(),
         ]);
 
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Accepted for In-House Review',
+            "Notice of Acceptance issued: Your proposal '{$proposal->title}' was accepted for In-House Review and is moving to Phase 2 (Technical & Ethics Review).",
+            'bi-award-fill',
+            'text-success'
+        ));
+
+        // Notify College Coordinator
+        $coordinators = User::where('role', 'coordinator')
+            ->where('department', $proposal->user->department)
+            ->get();
+        foreach ($coordinators as $coord) {
+            $coord->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Accepted for In-House Review',
+                "Proposal '{$proposal->title}' ({$proposal->user->name}) was officially accepted by Research Director for In-House Review.",
+                'bi-award-fill',
+                'text-primary'
+            ));
+        }
+
         return redirect()->back()->with('success', 'Proposal accepted for In-House review. "IN-HOUSE REVIEW ACCEPTANCE FORM" issued.');
     }
 
@@ -494,6 +695,27 @@ class ResearchProposalController extends Controller
         $proposal->update([
             'status' => 'endorsed_to_vprei'
         ]);
+
+        // Notify VPREI
+        $vpreiUsers = User::where('role', 'vprei')->get();
+        foreach ($vpreiUsers as $vprei) {
+            $vprei->notify(new WorkflowStatusNotification(
+                $proposal,
+                'New Proposal Endorsed for Final Approval',
+                "Proposal '{$proposal->title}' has been endorsed by Research Director for your final approval and Notice to Proceed (NTP).",
+                'bi-send-check-fill',
+                'text-primary'
+            ));
+        }
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Endorsed to VPREI for Final Approval',
+            "Your proposal '{$proposal->title}' has been endorsed by the Research Director to the Office of the VPREI for final approval.",
+            'bi-send-check-fill',
+            'text-info'
+        ));
 
         return redirect()->back()->with('success', 'Proposal successfully endorsed to the VPREI.');
     }
@@ -533,6 +755,29 @@ class ResearchProposalController extends Controller
             'document_path' => $filePath,
             'status' => 'final_copy_submitted'
         ]);
+
+        // Notify College Dean
+        $deans = User::where('role', 'dean')
+            ->where('department', $proposal->user->department)
+            ->get();
+        foreach ($deans as $dean) {
+            $dean->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Final Copy Submitted for Executive Noting',
+                "Researcher {$proposal->user->name} submitted final revised copy of '{$proposal->title}' awaiting your noting.",
+                'bi-file-earmark-check-fill',
+                'text-primary'
+            ));
+        }
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Final Copy Submitted',
+            "Your final copy for '{$proposal->title}' was submitted successfully and is awaiting noting by your College Dean.",
+            'bi-check2-circle',
+            'text-success'
+        ));
 
         return redirect()->back()->with('success', 'Final copy of research proposal submitted successfully.');
     }

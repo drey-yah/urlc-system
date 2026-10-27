@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ResearchProposal;
+use App\Notifications\WorkflowStatusNotification;
 
 class CoordinatorController extends Controller
 {
@@ -82,15 +83,59 @@ class CoordinatorController extends Controller
         }
 
         if ($request->action === 'return') {
-            $proposal->update([
-                'status' => 'returned_for_revision'
+            $request->validate([
+                'return_reason' => 'required|string|max:3000',
+            ], [
+                'return_reason.required' => 'Please provide the reason or feedback for returning this proposal for revision.',
             ]);
-            return redirect()->back()->with('success', 'Proposal returned to researcher for revision.');
+
+            $proposal->update([
+                'status' => 'returned_for_revision',
+                'return_reason' => $request->return_reason,
+                'returned_by_role' => 'coordinator',
+                'returned_at' => now(),
+            ]);
+
+            // Notify Researcher
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Proposal Returned for Revision',
+                "Your proposal '{$proposal->title}' was returned by your College Coordinator for revision. Remarks: {$request->return_reason}",
+                'bi-arrow-return-left',
+                'text-danger'
+            ));
+
+            return redirect()->back()->with('success', 'Proposal returned to researcher for revision with your remarks.');
         }
 
         $proposal->update([
-            'status' => 'pending_dean_noting' // Moves to Dean for noting
+            'status' => 'pending_dean_noting', // Moves to Dean for noting
+            'return_reason' => null,
+            'returned_by_role' => null,
         ]);
+
+        // Notify Researcher & Collaborators
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Proposal Endorsed by Coordinator',
+            "Your proposal '{$proposal->title}' has been endorsed by your College Coordinator and forwarded to the College Dean for executive noting.",
+            'bi-check-circle-fill',
+            'text-success'
+        ));
+
+        // Notify College Dean
+        $deans = \App\Models\User::where('role', 'dean')
+            ->where('department', $proposal->user->department)
+            ->get();
+        foreach ($deans as $dean) {
+            $dean->notify(new WorkflowStatusNotification(
+                $proposal,
+                'New Endorsement for Noting',
+                "Coordinator endorsed proposal '{$proposal->title}' ({$proposal->user->name}) for your college executive noting.",
+                'bi-file-earmark-check-fill',
+                'text-primary'
+            ));
+        }
 
         return redirect()->back()->with('success', 'Proposal endorsed successfully. It is now awaiting Dean Noting.');
     }
@@ -110,6 +155,27 @@ class CoordinatorController extends Controller
         $proposal->update([
             'status' => 'submitted_to_research_unit'
         ]);
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Transmitted to Research Unit',
+            "Your proposal '{$proposal->title}' has been submitted to the Research Unit receiving staff for administrative completeness checking.",
+            'bi-send-fill',
+            'text-info'
+        ));
+
+        // Notify Receiving Support Staff
+        $staffMembers = \App\Models\User::where('role', 'staff')->get();
+        foreach ($staffMembers as $staff) {
+            $staff->notify(new WorkflowStatusNotification(
+                $proposal,
+                'New Proposal in Receiving Queue',
+                "Proposal '{$proposal->title}' from {$proposal->user->department} department was submitted to the Research Unit receiving queue.",
+                'bi-inbox-fill',
+                'text-primary'
+            ));
+        }
 
         return redirect()->back()->with('success', 'Endorsement list submitted to Research Unit successfully.');
     }

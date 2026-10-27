@@ -16,7 +16,7 @@ class DashboardController extends Controller
      */
     public function redirectByRole()
     {
-        $role = Auth::user()->role;
+        $role = Auth::user()->activeRole();
 
         switch ($role) {
             case 'super_admin':
@@ -46,6 +46,44 @@ class DashboardController extends Controller
             default:
                 return redirect('/researcher');
         }
+    }
+
+    /**
+     * Switch active role for users with multiple authorized roles.
+     */
+    public function switchRole(Request $request)
+    {
+        $request->validate([
+            'role' => 'required|string',
+        ]);
+
+        $targetRole = $request->role;
+        $user = auth()->user();
+
+        if (!$user->hasRole($targetRole) && !$user->isSuperAdmin()) {
+            return redirect()->back()->with('error', 'You are not authorized to switch to that role.');
+        }
+
+        session(['active_role' => $targetRole]);
+
+        $roleLabels = [
+            'researcher' => 'Researcher',
+            'reviewer' => 'Evaluator / Reviewer',
+            'coordinator' => 'College Coordinator',
+            'dean' => 'College Dean',
+            'vprei' => 'VPREI',
+            'president' => 'President',
+            'budget_officer' => 'Budget Officer',
+            'sao_finance' => 'Finance Officer',
+            'staff' => 'Receiving Staff',
+            'recording_staff' => 'Recording Staff',
+            'admin' => 'Research Director / Admin',
+            'super_admin' => 'Super Admin',
+        ];
+
+        $label = $roleLabels[$targetRole] ?? ucfirst(str_replace('_', ' ', $targetRole));
+
+        return $this->redirectByRole()->with('success', "Switched view to {$label} portal.");
     }
 
     /**
@@ -171,5 +209,77 @@ class DashboardController extends Controller
             auth()->user()->unreadNotifications->markAsRead();
         }
         return redirect()->back();
+    }
+
+    /**
+     * Mark a single notification as read and redirect to target URL.
+     */
+    public function markSingleNotificationAsRead($id)
+    {
+        if (auth()->check()) {
+            $notification = auth()->user()->notifications()->where('id', $id)->first();
+            if ($notification) {
+                $notification->markAsRead();
+
+                if (!empty($notification->data['proposal_id'])) {
+                    return redirect()->route('proposal.show', $notification->data['proposal_id']);
+                } elseif (!empty($notification->data['announcement_id'])) {
+                    return redirect()->route('announcements.index');
+                }
+            }
+        }
+        return redirect()->back();
+    }
+
+    /**
+     * Poll latest notifications and unread count for real-time live updates.
+     */
+    public function pollNotifications()
+    {
+        if (!auth()->check()) {
+            return response()->json(['unread_count' => 0, 'notifications' => []]);
+        }
+
+        $user = auth()->user();
+        $unreadCount = $user->unreadNotifications()->count();
+        $notifications = $user->notifications()->take(25)->get()->map(function ($notif) {
+            $titleLower = strtolower($notif->data['title'] ?? '');
+            
+            if (str_contains($titleLower, 'return')) {
+                $badgeBg = 'rgba(239, 68, 68, 0.12)';
+                $badgeColor = '#dc2626';
+                $itemIcon = 'bi-arrow-return-left';
+            } elseif (str_contains($titleLower, 'endorse') || str_contains($titleLower, 'noted') || str_contains($titleLower, 'accept') || str_contains($titleLower, 'approve')) {
+                $badgeBg = 'rgba(16, 185, 129, 0.12)';
+                $badgeColor = '#059669';
+                $itemIcon = 'bi-check-circle-fill';
+            } elseif (str_contains($titleLower, 'announcement')) {
+                $badgeBg = 'rgba(245, 158, 11, 0.12)';
+                $badgeColor = '#d97706';
+                $itemIcon = 'bi-megaphone-fill';
+            } else {
+                $badgeBg = 'rgba(59, 130, 246, 0.12)';
+                $badgeColor = '#2563eb';
+                $itemIcon = $notif->data['icon'] ?? 'bi-bell-fill';
+            }
+
+            return [
+                'id' => $notif->id,
+                'title' => $notif->data['title'] ?? 'Notification',
+                'message' => $notif->data['message'] ?? '',
+                'icon' => $itemIcon,
+                'badge_bg' => $badgeBg,
+                'badge_color' => $badgeColor,
+                'is_unread' => is_null($notif->read_at),
+                'created_at_human' => $notif->created_at->diffForHumans(),
+                'read_url' => route('notifications.readSingle', $notif->id),
+            ];
+        });
+
+        return response()->json([
+            'unread_count' => $unreadCount,
+            'total_count' => $user->notifications()->count(),
+            'notifications' => $notifications,
+        ]);
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ResearchProposal;
+use App\Models\User;
+use App\Notifications\WorkflowStatusNotification;
 use Illuminate\Http\Request;
 
 class BudgetOfficerController extends Controller
@@ -45,6 +47,27 @@ class BudgetOfficerController extends Controller
         $proposal->update([
             'status' => 'funds_certified'
         ]);
+
+        // Notify Research Director / Admins
+        $directors = User::whereIn('role', ['admin', 'super_admin'])->get();
+        foreach ($directors as $dir) {
+            $dir->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Funds Certified for Proposal',
+                "Budget Officer certified availability of funds for proposal '{$proposal->title}' ({$proposal->user->name}). Ready to endorse to VPREI.",
+                'bi-cash-coin',
+                'text-success'
+            ));
+        }
+
+        // Notify Lead Researcher
+        $proposal->user->notify(new WorkflowStatusNotification(
+            $proposal,
+            'Availability of Funds Certified',
+            "The Budget Officer has certified the availability of funds for your proposal '{$proposal->title}'.",
+            'bi-cash-coin',
+            'text-success'
+        ));
 
         return redirect()->back()->with('success', 'Research proposal certified for availability of funds successfully.');
     }

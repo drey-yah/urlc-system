@@ -17,11 +17,22 @@ class RoleMiddleware
     public function handle($request, Closure $next, $role)
     {
         if (auth()->check()) {
-            if (auth()->user()->role == $role || auth()->user()->isSuperAdmin()) {
+            $user = auth()->user();
+
+            if ($user->isSuperAdmin()) {
+                return $next($request);
+            }
+
+            // Check if user has the authorized role (either primary or in additional_roles)
+            if ($user->hasRole($role)) {
+                // If user accessed a section belonging to one of their valid roles, sync active_role
+                if (session('active_role') !== $role && in_array($role, $user->allRoles())) {
+                    session(['active_role' => $role]);
+                }
                 return $next($request);
             }
         }
 
-        abort(403, 'Unauthorized');
+        abort(403, 'Unauthorized access to this portal.');
     }
 }

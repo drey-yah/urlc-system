@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'additional_roles',
         'is_approved',
         'campus',
         'department',
@@ -48,14 +49,74 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_approved' => 'boolean',
+        'additional_roles' => 'array',
     ];
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['role', 'is_approved', 'campus', 'department'])
+            ->logOnly(['role', 'additional_roles', 'is_approved', 'campus', 'department'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    /**
+     * Get all assigned roles for this user (primary + additional).
+     *
+     * @return array<string>
+     */
+    public function allRoles(): array
+    {
+        $additional = is_array($this->additional_roles) ? $this->additional_roles : [];
+        return array_values(array_unique(array_filter(array_merge([$this->role], $additional))));
+    }
+
+    /**
+     * Check if user has a specific role (primary or additional).
+     */
+    public function hasRole(string $role): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        return in_array($role, $this->allRoles(), true);
+    }
+
+    /**
+     * Get the active role for the current session, fallback to primary role.
+     */
+    public function activeRole(): string
+    {
+        $sessionRole = session('active_role');
+        if ($sessionRole && ($this->hasRole($sessionRole) || $this->isSuperAdmin())) {
+            return $sessionRole;
+        }
+        return $this->role ?? 'researcher';
+    }
+
+    /**
+     * Check if user has multiple roles enabled.
+     */
+    public function isMultiRole(): bool
+    {
+        return count($this->allRoles()) > 1;
+    }
+
+    /**
+     * Query scope to find users who have a specific role either as primary or additional.
+     */
+    public function scopeWithRole($query, string $role)
+    {
+        return $query->where(function ($q) use ($role) {
+            $q->where('role', $role);
+
+            $driver = $q->getConnection()->getDriverName();
+            if ($driver === 'sqlite') {
+                $q->orWhere('additional_roles', 'like', '%"' . $role . '"%');
+            } else {
+                $q->orWhereJsonContains('additional_roles', $role);
+            }
+        });
     }
 
     public function isSuperAdmin()

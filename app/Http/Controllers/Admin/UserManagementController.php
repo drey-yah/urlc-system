@@ -28,6 +28,37 @@ class UserManagementController extends Controller
         return redirect()->back()->with('success', "Role for {$user->name} updated to {$user->role} successfully.");
     }
 
+    public function updateRoles(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $allowedRoles = [
+            'researcher', 'reviewer', 'coordinator', 'dean', 
+            'staff', 'recording_staff', 'budget_officer', 
+            'sao_finance', 'vprei', 'president', 'funding_agency', 'admin'
+        ];
+
+        $request->validate([
+            'primary_role' => 'required|in:' . implode(',', $allowedRoles),
+            'additional_roles' => 'nullable|array',
+            'additional_roles.*' => 'in:' . implode(',', $allowedRoles),
+        ]);
+
+        $primaryRole = $request->primary_role;
+        $additionalRoles = $request->additional_roles ?? [];
+
+        // Exclude primary role from additional_roles to prevent duplicates
+        $additionalRoles = array_values(array_diff($additionalRoles, [$primaryRole]));
+
+        $user->update([
+            'role' => $primaryRole,
+            'additional_roles' => !empty($additionalRoles) ? $additionalRoles : null,
+            'is_approved' => \DB::raw('true'),
+        ]);
+
+        return redirect()->back()->with('success', "Roles for {$user->name} have been updated successfully.");
+    }
+
     public function destroy($id)
     {
         $user = User::findOrFail($id);

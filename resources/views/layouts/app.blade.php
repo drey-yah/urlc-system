@@ -20,6 +20,49 @@
         <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
         <script src="{{ asset('js/app.js') }}" defer></script>
+        <script>
+            (function() {
+                try {
+                    if (window.innerWidth >= 992 && localStorage.getItem('sidebar_state') === 'closed') {
+                        document.documentElement.classList.add('sidebar-closed');
+                    }
+                } catch(e) {}
+            })();
+        </script>
+        <style>
+            /* Centered Flash Alert Pop-up Modal Styles */
+            .popup-alert-modal .modal-content {
+                border-radius: 24px !important;
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+                animation: popupModalBounce 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            @keyframes popupModalBounce {
+                0% { transform: scale(0.85); opacity: 0; }
+                60% { transform: scale(1.02); opacity: 1; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            .popup-icon-pulse-success {
+                animation: successPulse 2.2s infinite;
+            }
+            @keyframes successPulse {
+                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+                70% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            }
+            .popup-icon-pulse-error {
+                animation: errorPulse 2.2s infinite;
+            }
+            @keyframes errorPulse {
+                0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+                70% { box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            }
+            .modal-backdrop.show {
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+            }
+        </style>
     </head>
 
     <body class="antialiased" style="font-family: 'Inter', sans-serif; background-color: #FAF7F5;">
@@ -39,15 +82,37 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 @auth
+                    @include('layouts.partials.role_switcher', ['isMobile' => true])
+
+                    @include('layouts.partials.notification_bell', ['isMobile' => true])
+
                     <a href="{{ route('messages.index') }}" class="btn btn-link text-white p-1 text-decoration-none position-relative" title="Messages">
                         <i class="bi bi-envelope-fill fs-5" style="color: var(--ua-gold);"></i>
                     </a>
-                    <a href="{{ route('profile.show') }}" class="text-decoration-none ms-1" title="My Profile">
-                        <span class="rounded-circle fw-bold text-dark d-inline-flex align-items-center justify-content-center shadow-xs" 
-                              style="width: 32px; height: 32px; background: var(--ua-gold); font-size: 0.85rem;">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                        </span>
-                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-link p-0 text-decoration-none ms-1 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Account">
+                            <span class="rounded-circle fw-bold text-dark d-inline-flex align-items-center justify-content-center shadow-xs" 
+                                  style="width: 32px; height: 32px; background: var(--ua-gold); font-size: 0.85rem;">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3 py-2" style="min-width: 190px;">
+                            <li class="px-3 py-1.5 border-bottom">
+                                <div class="fw-bold text-dark small text-truncate">{{ auth()->user()->name }}</div>
+                                <div class="text-muted text-capitalize" style="font-size: 0.72rem;">{{ str_replace('_', ' ', auth()->user()->activeRole()) }}</div>
+                            </li>
+                            <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('profile.show') }}"><i class="bi bi-person text-muted"></i> Profile</a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item small py-2 text-danger d-flex align-items-center gap-2">
+                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
                 @endauth
             </div>
         </header>
@@ -59,6 +124,65 @@
             @include('layouts.navigation')
 
             <div class="main-content flex-grow-1" style="min-width: 0;">
+                <!-- Desktop Global Topbar (Upper Right Notification Bell & Controls) -->
+                @auth
+                <header class="d-none d-lg-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(140, 29, 44, 0.08) !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Desktop Sidebar Open/Close Toggle Button -->
+                        <button type="button" 
+                                class="btn btn-white bg-white border rounded-circle shadow-xs d-inline-flex align-items-center justify-content-center p-0 notif-bell-btn me-1" 
+                                id="desktopSidebarToggle" 
+                                title="Open / Close Sidebar" 
+                                style="width: 40px; height: 40px; color: #4b5563;">
+                            <i class="bi bi-list fs-4 text-dark"></i>
+                        </button>
+
+                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5" style="font-size: 1.15rem; letter-spacing: -0.01em;">
+                            Welcome back, <span style="color: var(--ua-maroon, #8C1D2C);">{{ auth()->user()->name }}</span> 👋
+                        </h4>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2.5">
+                        <!-- Role Switcher for Multi-Role Accounts -->
+                        @include('layouts.partials.role_switcher', ['isMobile' => false])
+
+                        <a href="{{ route('messages.index') }}" class="btn btn-white bg-white border rounded-circle shadow-xs position-relative d-inline-flex align-items-center justify-content-center p-0 notif-bell-btn" style="width: 40px; height: 40px; color: #4b5563;" title="Messages">
+                            <i class="bi bi-envelope fs-5" style="color: #6b7280;"></i>
+                        </a>
+
+                        <!-- Upper Right Corner Notification Bell Button -->
+                        @include('layouts.partials.notification_bell', ['isMobile' => false])
+
+                        <!-- User Profile Pill Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-white bg-white border rounded-pill shadow-xs d-flex align-items-center gap-2 py-1 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="rounded-circle text-white fw-bold d-inline-flex align-items-center justify-content-center shadow-xs" style="width: 28px; height: 28px; background: var(--ua-maroon, #8C1D2C); font-size: 0.78rem;">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </span>
+                                <span class="small fw-semibold text-dark text-truncate" style="max-width: 140px;">{{ auth()->user()->name }}</span>
+                                <i class="bi bi-chevron-down text-muted" style="font-size: 0.7rem;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3 py-2" style="min-width: 200px;">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="fw-bold text-dark small">{{ auth()->user()->name }}</div>
+                                    <div class="text-muted text-capitalize" style="font-size: 0.74rem;">{{ str_replace('_', ' ', auth()->user()->activeRole()) }}</div>
+                                </li>
+                                <li><a class="dropdown-item small py-2 d-flex align-items-center gap-2" href="{{ route('profile.show') }}"><i class="bi bi-person text-muted"></i> Profile</a></li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item small py-2 text-danger d-flex align-items-center gap-2">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </header>
+                @endauth
+
                 <!-- Page Heading -->
                 @isset($header)
                     <header class="bg-white shadow-sm mb-4 rounded-4 p-4 border">
@@ -68,87 +192,320 @@
 
                 <!-- Page Content -->
                 <div class="py-4">
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-
                     {{ $slot }}
                 </div>
             </div>
         </div>
 
+        <!-- Centered Flash Alert Pop-up Modals (Success / Error / Status) -->
+        @if(session('success'))
+            <div class="modal fade popup-alert-modal" id="flashSuccessModal" tabindex="-1" aria-labelledby="flashSuccessModalLabel" aria-hidden="true" data-bs-keyboard="true">
+                <div class="modal-dialog modal-dialog-centered" style="max-width: 430px;">
+                    <div class="modal-content border-0 shadow-2xl rounded-4 text-center p-4 position-relative overflow-hidden" style="background: #ffffff;">
+                        <!-- Top Green Gradient Accent Bar -->
+                        <div class="position-absolute top-0 start-0 w-100" style="height: 5px; background: linear-gradient(90deg, #10b981 0%, #34d399 100%);"></div>
+                        
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.82rem;"></button>
+
+                        <div class="pt-2 pb-1">
+                            <!-- Pulsing Green Checkmark -->
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle popup-icon-pulse-success" 
+                                 style="width: 76px; height: 76px; background: #ecfdf5; border: 2px solid #a7f3d0; color: #059669;">
+                                <i class="bi bi-check-lg" style="font-size: 2.6rem;"></i>
+                            </div>
+
+                            <h5 class="modal-title fw-bold text-dark mb-2" id="flashSuccessModalLabel" style="font-size: 1.3rem; letter-spacing: -0.02em;">
+                                Success!
+                            </h5>
+
+                            <p class="text-secondary mb-4 px-2" style="font-size: 0.96rem; line-height: 1.55; color: #4b5563;">
+                                {{ session('success') }}
+                            </p>
+
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        class="btn fw-semibold py-2.5 rounded-pill shadow-sm text-white" 
+                                        id="flashSuccessDismissBtn" 
+                                        data-bs-dismiss="modal" 
+                                        autofocus
+                                        style="background: linear-gradient(135deg, #8C1D2C 0%, #A52A3A 100%); font-size: 0.95rem; border: none;">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="modal fade popup-alert-modal" id="flashErrorModal" tabindex="-1" aria-labelledby="flashErrorModalLabel" aria-hidden="true" data-bs-keyboard="true">
+                <div class="modal-dialog modal-dialog-centered" style="max-width: 430px;">
+                    <div class="modal-content border-0 shadow-2xl rounded-4 text-center p-4 position-relative overflow-hidden" style="background: #ffffff;">
+                        <!-- Top Red Gradient Accent Bar -->
+                        <div class="position-absolute top-0 start-0 w-100" style="height: 5px; background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);"></div>
+                        
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.82rem;"></button>
+
+                        <div class="pt-2 pb-1">
+                            <!-- Pulsing Red Triangle Icon -->
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle popup-icon-pulse-error" 
+                                 style="width: 76px; height: 76px; background: #fef2f2; border: 2px solid #fecaca; color: #dc2626;">
+                                <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.3rem;"></i>
+                            </div>
+
+                            <h5 class="modal-title fw-bold text-dark mb-2" id="flashErrorModalLabel" style="font-size: 1.3rem; letter-spacing: -0.02em;">
+                                Attention Needed
+                            </h5>
+
+                            <p class="text-secondary mb-4 px-2" style="font-size: 0.96rem; line-height: 1.55; color: #4b5563;">
+                                {{ session('error') }}
+                            </p>
+
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        class="btn btn-secondary fw-semibold py-2.5 rounded-pill shadow-sm" 
+                                        id="flashErrorDismissBtn" 
+                                        data-bs-dismiss="modal" 
+                                        autofocus
+                                        style="font-size: 0.95rem;">
+                                    Understood
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if(session('status') && !session('success'))
+            <div class="modal fade popup-alert-modal" id="flashStatusModal" tabindex="-1" aria-labelledby="flashStatusModalLabel" aria-hidden="true" data-bs-keyboard="true">
+                <div class="modal-dialog modal-dialog-centered" style="max-width: 430px;">
+                    <div class="modal-content border-0 shadow-2xl rounded-4 text-center p-4 position-relative overflow-hidden" style="background: #ffffff;">
+                        <div class="position-absolute top-0 start-0 w-100" style="height: 5px; background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);"></div>
+                        
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.82rem;"></button>
+
+                        <div class="pt-2 pb-1">
+                            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" 
+                                 style="width: 76px; height: 76px; background: #eff6ff; border: 2px solid #bfdbfe; color: #2563eb;">
+                                <i class="bi bi-info-circle-fill" style="font-size: 2.3rem;"></i>
+                            </div>
+
+                            <h5 class="modal-title fw-bold text-dark mb-2" id="flashStatusModalLabel" style="font-size: 1.3rem; letter-spacing: -0.02em;">
+                                Notice
+                            </h5>
+
+                            <p class="text-secondary mb-4 px-2" style="font-size: 0.96rem; line-height: 1.55; color: #4b5563;">
+                                {{ session('status') }}
+                            </p>
+
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        class="btn btn-primary fw-semibold py-2.5 rounded-pill shadow-sm" 
+                                        data-bs-dismiss="modal" 
+                                        autofocus
+                                        style="background: var(--ua-maroon, #8C1D2C); border-color: var(--ua-maroon, #8C1D2C); font-size: 0.95rem;">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- Mobile Navigation Drawer Handler -->
+        <!-- Navigation Drawer & Sidebar Collapse Handler -->
         <script>
+            // ========================================================
+            // CENTERED FLASH ALERT POP-UP BOX AUTO-TRIGGER
+            // ========================================================
+            function triggerFlashModals() {
+                const successModalEl = document.getElementById('flashSuccessModal');
+                if (successModalEl && window.bootstrap && window.bootstrap.Modal) {
+                    const successModal = bootstrap.Modal.getOrCreateInstance(successModalEl);
+                    successModal.show();
+
+                    successModalEl.addEventListener('shown.bs.modal', function () {
+                        const btn = document.getElementById('flashSuccessDismissBtn');
+                        if (btn) btn.focus();
+                    });
+                }
+
+                const errorModalEl = document.getElementById('flashErrorModal');
+                if (errorModalEl && window.bootstrap && window.bootstrap.Modal) {
+                    const errorModal = bootstrap.Modal.getOrCreateInstance(errorModalEl);
+                    errorModal.show();
+
+                    errorModalEl.addEventListener('shown.bs.modal', function () {
+                        const btn = document.getElementById('flashErrorDismissBtn');
+                        if (btn) btn.focus();
+                    });
+                }
+
+                const statusModalEl = document.getElementById('flashStatusModal');
+                if (statusModalEl && window.bootstrap && window.bootstrap.Modal) {
+                    const statusModal = bootstrap.Modal.getOrCreateInstance(statusModalEl);
+                    statusModal.show();
+                }
+            }
+
+            // Execute immediately if DOM is already ready, or on DOMContentLoaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', triggerFlashModals);
+            } else {
+                triggerFlashModals();
+            }
+
             document.addEventListener('DOMContentLoaded', function () {
                 const sidebar = document.getElementById('sidebarNav') || document.querySelector('.sidebar');
                 const toggleBtn = document.getElementById('sidebarToggle');
+                const desktopToggleBtn = document.getElementById('desktopSidebarToggle');
                 const closeBtn = document.getElementById('sidebarCloseBtn');
                 const backdrop = document.getElementById('sidebarBackdrop');
 
-                function openSidebar() {
+                // Synchronize body class from documentElement on load
+                if (document.documentElement.classList.contains('sidebar-closed')) {
+                    document.body.classList.add('sidebar-closed');
+                }
+
+                function isDesktop() {
+                    return window.innerWidth >= 992;
+                }
+
+                function toggleDesktopSidebar() {
+                    const isClosed = document.body.classList.toggle('sidebar-closed');
+                    if (isClosed) {
+                        document.documentElement.classList.add('sidebar-closed');
+                        localStorage.setItem('sidebar_state', 'closed');
+                    } else {
+                        document.documentElement.classList.remove('sidebar-closed');
+                        localStorage.setItem('sidebar_state', 'open');
+                    }
+                }
+
+                function openMobileSidebar() {
                     if (sidebar) sidebar.classList.add('show');
                     if (backdrop) backdrop.classList.add('show');
                     document.body.style.overflow = 'hidden';
                 }
 
-                function closeSidebar() {
+                function closeMobileSidebar() {
                     if (sidebar) sidebar.classList.remove('show');
                     if (backdrop) backdrop.classList.remove('show');
                     document.body.style.overflow = '';
+                }
+
+                if (desktopToggleBtn) {
+                    desktopToggleBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (isDesktop()) {
+                            toggleDesktopSidebar();
+                        } else {
+                            openMobileSidebar();
+                        }
+                    });
                 }
 
                 if (toggleBtn) {
                     toggleBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        openSidebar();
+                        openMobileSidebar();
                     });
                 }
 
                 if (closeBtn) {
                     closeBtn.addEventListener('click', function(e) {
                         e.preventDefault();
-                        closeSidebar();
+                        if (isDesktop()) {
+                            toggleDesktopSidebar();
+                        } else {
+                            closeMobileSidebar();
+                        }
                     });
                 }
 
                 if (backdrop) {
-                    backdrop.addEventListener('click', closeSidebar);
+                    backdrop.addEventListener('click', closeMobileSidebar);
                 }
 
                 // Close on ESC key
                 document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('show')) {
-                        closeSidebar();
+                    if (e.key === 'Escape') {
+                        if (!isDesktop() && sidebar && sidebar.classList.contains('show')) {
+                            closeMobileSidebar();
+                        }
                     }
                 });
 
-                // Auto-close drawer when clicking on sidebar links (for smooth page transition)
+                // Auto-close drawer when clicking on sidebar links on mobile
                 if (sidebar) {
                     const links = sidebar.querySelectorAll('.sidebar-link');
                     links.forEach(function(link) {
                         link.addEventListener('click', function() {
-                            if (window.innerWidth < 992) {
-                                closeSidebar();
+                            if (!isDesktop()) {
+                                closeMobileSidebar();
                             }
                         });
                     });
                 }
+
+                // ========================================================
+                // GLOBAL DOUBLE-SUBMIT & MULTI-CLICK FLOODING PROTECTION
+                // ========================================================
+                document.addEventListener('submit', function (e) {
+                    const form = e.target;
+                    if (!form || form.tagName !== 'FORM') return;
+
+                    // If user cancelled confirmation or HTML5 validation failed, don't lock form
+                    if (e.defaultPrevented) return;
+
+                    // Prevent duplicate submission if form is already in-flight
+                    if (form.dataset.submitting === 'true') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+
+                    // Find the submit button
+                    const submitBtn = e.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+                    if (submitBtn) {
+                        form.dataset.submitting = 'true';
+
+                        const originalHtml = submitBtn.innerHTML;
+                        const originalWidth = submitBtn.offsetWidth;
+
+                        // Give small delay so browser registers form-data and dispatches request
+                        setTimeout(() => {
+                            if (submitBtn && form.dataset.submitting === 'true') {
+                                if (originalWidth) {
+                                    submitBtn.style.minWidth = originalWidth + 'px';
+                                }
+                                submitBtn.classList.add('disabled', 'opacity-75');
+                                submitBtn.style.pointerEvents = 'none';
+                                submitBtn.innerHTML = `
+                                    <span class="spinner-border spinner-border-sm me-1.5" role="status" aria-hidden="true" style="width: 0.9rem; height: 0.9rem;"></span>
+                                    <span>Processing...</span>
+                                `;
+                            }
+                        }, 50);
+
+                        // Safety timeout: re-enable after 8 seconds in case validation fails or connection stalls
+                        setTimeout(() => {
+                            if (submitBtn) {
+                                submitBtn.classList.remove('disabled', 'opacity-75');
+                                submitBtn.style.pointerEvents = '';
+                                submitBtn.style.minWidth = '';
+                                submitBtn.innerHTML = originalHtml;
+                            }
+                            form.dataset.submitting = 'false';
+                        }, 8000);
+                    }
+                });
             });
         </script>
     </body>

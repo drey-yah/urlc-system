@@ -43,6 +43,15 @@
                             <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Endorsement Form
                         </a>
                     @endif
+                    @if(auth()->user()->role === 'researcher' && auth()->id() === $proposal->user_id && in_array($proposal->status, ['draft', 'pending_coordinator_endorsement', 'returned_for_revision', 'pending']))
+                        <form action="{{ route('proposal.destroy', $proposal->id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('Are you sure you want to delete this proposal? This action cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 py-1.5 fw-bold shadow-sm">
+                                <i class="bi bi-trash-fill me-1"></i> Delete Proposal
+                            </button>
+                        </form>
+                    @endif
                     <span class="badge py-2 px-3 text-wrap text-start rounded-pill" style="background-color: rgba(255,255,255,0.22); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.35); color: white; font-size: 0.72rem; line-height: 1.2;">
                         {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
                     </span>
@@ -51,21 +60,140 @@
         </div>
     </div>
 
-    <!-- Quick Stats (2-col grid on mobile) -->
+    <style>
+        .proposal-nav-pills {
+            background: #ffffff;
+            border: 1px solid #e8ded6;
+            box-shadow: 0 2px 6px rgba(31, 8, 12, 0.04);
+        }
+        .proposal-nav-pills .nav-link {
+            color: #736760;
+            font-size: 0.88rem;
+            padding: 0.65rem 1.15rem;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            font-weight: 600;
+        }
+        .proposal-nav-pills .nav-link:hover {
+            color: #1F080C;
+            background-color: #faf7f5;
+        }
+        .proposal-nav-pills .nav-link.active {
+            color: #ffffff !important;
+            background: linear-gradient(135deg, #8C1D2C 0%, #4A0E18 100%) !important;
+            box-shadow: 0 4px 12px rgba(140, 29, 44, 0.25);
+            border-color: transparent;
+        }
+        .proposal-nav-pills .nav-link.active i {
+            color: #E5A93C !important;
+        }
+        .proposal-nav-pills .nav-link.active .badge {
+            background-color: rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+        }
+        .stepper-btn {
+            transition: all 0.2s ease;
+            text-align: left;
+            border-radius: 12px;
+        }
+        .stepper-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .stepper-btn.active-step {
+            border: 2px solid #8C1D2C !important;
+            background-color: #fdf2f2 !important;
+        }
+    </style>
+
+    <!-- Quick Summary Metric Cards -->
     <div class="row g-2 g-md-3 mb-3 mb-md-4">
-        <div class="col-6">
-            <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 h-100">
-                <small class="text-muted fw-bold text-uppercase mb-1 d-block" style="font-size: 0.7rem;">Phase</small>
-                <h2 class="h5 fs-md-4 fw-bold mb-0">Phase {{ $proposal->current_phase }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 h-100 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                        <i class="bi bi-diagram-3-fill" style="font-size: 0.8rem;"></i>
+                    </div>
+                    <small class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Current Phase</small>
+                </div>
+                <h2 class="h6 fs-md-5 fw-bold mb-0 text-dark">Phase {{ $proposal->current_phase }}</h2>
             </div>
         </div>
-        <div class="col-6">
-            <div class="card border-0 shadow-sm p-3 p-md-4 rounded-4 h-100">
-                <small class="text-muted fw-bold text-uppercase mb-1 d-block" style="font-size: 0.7rem;">Status</small>
-                <h2 class="h5 fs-md-4 fw-bold mb-0 text-capitalize text-wrap" style="font-size: 0.92rem; line-height: 1.25;">{{ str_replace('_', ' ', $proposal->status) }}</h2>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 h-100 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                        <i class="bi bi-check2-circle" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <small class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Workflow Status</small>
+                </div>
+                <h2 class="h6 fs-md-5 fw-bold mb-0 text-capitalize text-truncate" title="{{ str_replace('_', ' ', $proposal->status) }}">{{ str_replace('_', ' ', $proposal->status) }}</h2>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 h-100 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                        <i class="bi bi-cash-stack" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <small class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Proposed Budget</small>
+                </div>
+                <h2 class="h6 fs-md-5 fw-bold mb-0 text-dark">&#8369;{{ number_format($proposal->total_budget ?? 0, 2) }}</h2>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 h-100 bg-white">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="rounded-circle bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                        <i class="bi bi-bookmark-star" style="font-size: 0.85rem;"></i>
+                    </div>
+                    <small class="text-muted fw-bold text-uppercase" style="font-size: 0.68rem; letter-spacing: 0.05em;">Research Field</small>
+                </div>
+                <h2 class="h6 fs-md-5 fw-bold mb-0 text-dark text-truncate" title="{{ $proposal->research_field ?? 'Not Specified' }}">{{ $proposal->research_field ?? 'Not Specified' }}</h2>
             </div>
         </div>
     </div>
+
+    <!-- Proposal Returned for Revision Alert Banner -->
+    @if($proposal->status === 'returned_for_revision' && $proposal->return_reason)
+    <div class="card border-0 shadow-sm mb-4 border-start border-danger border-4" style="background: linear-gradient(to right, rgba(239, 68, 68, 0.05), #ffffff);">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2.5 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                    <i class="bi bi-arrow-return-left fs-5"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                        <h4 class="h6 fw-bold text-danger mb-0">Proposal Returned for Revision</h4>
+                        @if($proposal->returned_at)
+                            <span class="badge bg-light text-muted border small fw-normal">
+                                <i class="bi bi-clock me-1"></i>{{ \Carbon\Carbon::parse($proposal->returned_at)->diffForHumans() }}
+                            </span>
+                        @endif
+                    </div>
+                    <p class="text-muted small mb-2">
+                        Returned by <strong>{{ $proposal->returned_by_role === 'staff' ? 'Receiving Staff (Research Unit)' : ($proposal->returned_by_role === 'dean' ? 'College Dean' : ucfirst($proposal->returned_by_role ?? 'College Coordinator')) }}</strong>. 
+                        @if($proposal->returned_by_role === 'staff')
+                            Please review the administrative compliance feedback below and update your proposal submission (once updated, it will fast-track directly back to Receiving Staff):
+                        @else
+                            Please review the feedback below and update your proposal submission:
+                        @endif
+                    </p>
+                    <div class="p-3 bg-white rounded-3 border border-danger border-opacity-25 shadow-xs mb-3">
+                        <label class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Reason / Remarks:</label>
+                        <div class="text-dark small" style="white-space: pre-wrap; font-size: 0.88rem;">{{ $proposal->return_reason }}</div>
+                    </div>
+                    @if(auth()->user()->role === 'researcher' && auth()->id() === $proposal->user_id)
+                        <a href="{{ route('proposal.edit', $proposal->id) }}" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Edit & Resubmit Proposal
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Workflow Actions Card -->
     @php
@@ -101,15 +229,72 @@
             <!-- Coordinator Actions -->
             @if($userRole === 'coordinator')
                 @if($proposal->status === 'pending_coordinator_endorsement')
-                    <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-flex flex-wrap gap-2 gap-md-3">
-                        @csrf
-                        <button type="submit" name="action" value="return" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this proposal for revision?');">
+                    <div class="d-flex flex-wrap gap-2 gap-md-3 align-items-center">
+                        <button type="button" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#coordinatorReturnModal">
                             <i class="bi bi-arrow-return-left fs-6"></i> Return for Revision
                         </button>
-                        <button type="submit" name="action" value="endorse" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to endorse this proposal?');">
-                            <i class="bi bi-check2-circle fs-6"></i> Endorse & Forward to Dean
-                        </button>
-                    </form>
+                        <form action="{{ route('coordinator.proposals.endorse', $proposal->id) }}" method="POST" class="d-inline m-0">
+                            @csrf
+                            <input type="hidden" name="action" value="endorse">
+                            <button type="submit" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to endorse this proposal?');">
+                                <i class="bi bi-check2-circle fs-6"></i> Endorse & Forward to Dean
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Coordinator Return Modal -->
+                    <div class="modal fade" id="coordinatorReturnModal" tabindex="-1" aria-labelledby="coordinatorReturnModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-arrow-return-left fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="modal-title fw-bold text-dark mb-0" id="coordinatorReturnModalLabel">Return Proposal for Revision</h5>
+                                            <p class="text-muted small mb-0">Provide reasons and feedback for the researcher</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{{ route('coordinator.proposals.endorse', $proposal->id) }}">
+                                    @csrf
+                                    <input type="hidden" name="action" value="return">
+                                    <div class="modal-body px-4 py-3">
+                                        <div class="bg-light p-3 rounded-3 mb-3 border">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="badge bg-white text-dark border fw-mono">{{ $proposal->proposal_code ?? 'P-'.$proposal->id }}</span>
+                                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Pending Endorsement</span>
+                                            </div>
+                                            <div class="fw-semibold text-dark text-truncate">{{ $proposal->title }}</div>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <label for="coordReturnReasonText" class="form-label fw-semibold text-dark small">
+                                                Reason for Return / Revision Remarks <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control" 
+                                                      id="coordReturnReasonText" 
+                                                      name="return_reason" 
+                                                      rows="4" 
+                                                      required 
+                                                      placeholder="Explain why the proposal is being returned and describe what needs revision (e.g., missing attachments, budget adjustments, format or methodology improvements)..."></textarea>
+                                            <div class="form-text text-muted" style="font-size: 0.74rem;">
+                                                This feedback will be displayed directly to the researcher on their dashboard and proposal edit page.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                                            <i class="bi bi-arrow-return-left me-1"></i> Confirm Return
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 @elseif($proposal->status === 'noted_by_dean')
                     <form action="{{ route('coordinator.proposals.submitToUnit', $proposal->id) }}" method="POST">
                         @csrf
@@ -123,15 +308,72 @@
             <!-- Dean Actions -->
             @if($userRole === 'dean')
                 @if($proposal->status === 'pending_dean_noting')
-                    <form action="{{ route('dean.noteEndorsement', $proposal->id) }}" method="POST" class="d-flex flex-wrap gap-2 gap-md-3">
-                        @csrf
-                        <button type="submit" name="action" value="return" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to return this endorsement?');">
-                            <i class="bi bi-arrow-return-left fs-6"></i> Return to Coordinator
+                    <div class="d-flex flex-wrap gap-2 gap-md-3 align-items-center">
+                        <button type="button" class="btn btn-outline-danger px-4 py-2.5 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#deanReturnModal">
+                            <i class="bi bi-arrow-return-left fs-6"></i> Return Endorsement
                         </button>
-                        <button type="submit" name="action" value="note" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to note this endorsement?');">
-                            <i class="bi bi-journal-check fs-6"></i> Note Endorsement
-                        </button>
-                    </form>
+                        <form action="{{ route('dean.noteEndorsement', $proposal->id) }}" method="POST" class="d-inline m-0">
+                            @csrf
+                            <input type="hidden" name="action" value="note">
+                            <button type="submit" class="btn btn-success px-4 px-md-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Are you sure you want to note this endorsement?');">
+                                <i class="bi bi-journal-check fs-6"></i> Note Endorsement
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Dean Return Modal -->
+                    <div class="modal fade" id="deanReturnModal" tabindex="-1" aria-labelledby="deanReturnModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-arrow-return-left fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="modal-title fw-bold text-dark mb-0" id="deanReturnModalLabel">Return Endorsement for Revision</h5>
+                                            <p class="text-muted small mb-0">Provide reasons for the coordinator and researcher</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{{ route('dean.noteEndorsement', $proposal->id) }}">
+                                    @csrf
+                                    <input type="hidden" name="action" value="return">
+                                    <div class="modal-body px-4 py-3">
+                                        <div class="bg-light p-3 rounded-3 mb-3 border">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="badge bg-white text-dark border fw-mono">{{ $proposal->proposal_code ?? 'P-'.$proposal->id }}</span>
+                                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">Pending Dean Noting</span>
+                                            </div>
+                                            <div class="fw-semibold text-dark text-truncate">{{ $proposal->title }}</div>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <label for="deanReturnReasonTextModal" class="form-label fw-semibold text-dark small">
+                                                Reason for Return / Revision Remarks <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control" 
+                                                      id="deanReturnReasonTextModal" 
+                                                      name="return_reason" 
+                                                      rows="4" 
+                                                      required 
+                                                      placeholder="State your reasons for returning this endorsement (e.g., college alignment concerns, budget revision needed, missing prerequisites)..."></textarea>
+                                            <div class="form-text text-muted" style="font-size: 0.74rem;">
+                                                This feedback will notify both the college coordinator and the lead researcher.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                                            <i class="bi bi-arrow-return-left me-1"></i> Confirm Return
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 @elseif($proposal->status === 'final_copy_submitted')
                     <form action="{{ route('dean.noteFinal', $proposal->id) }}" method="POST">
                         @csrf
@@ -144,12 +386,144 @@
 
             <!-- Support Staff Actions -->
             @if($userRole === 'staff' && $proposal->status === 'submitted_to_research_unit')
-                <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-primary px-5 py-2.5 rounded-pill fw-bold shadow-sm" onclick="return confirm('Forward this proposal to the Research Director for review?');">
-                        <i class="bi bi-box-arrow-in-right fs-6"></i> Forward to Research Director
-                    </button>
-                </form>
+                <button type="button" class="btn btn-primary px-5 py-2.5 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#staffShowReceiveModal">
+                    <i class="bi bi-clipboard-check fs-6 me-1"></i> Completeness Check & Route
+                </button>
+
+                <!-- Staff Completeness Check Modal -->
+                <div class="modal fade" id="staffShowReceiveModal" tabindex="-1" aria-labelledby="staffShowReceiveModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered text-start">
+                        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                            <div class="modal-header border-0 bg-light rounded-top-4 px-4 pt-4 pb-3">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-clipboard-check fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="modal-title fw-bold text-dark mb-0" id="staffShowReceiveModalLabel">Administrative Completeness Check</h5>
+                                        <p class="text-muted small mb-0">{{ $proposal->proposal_code ?? 'P-'.$proposal->id }} • {{ \Illuminate\Support\Str::limit($proposal->title, 35) }}</p>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{{ route('staff.proposals.forward', $proposal->id) }}" method="POST" id="staffVerifyFormShow">
+                                @csrf
+                                <input type="hidden" name="action" id="staffActionShow" value="return">
+                                <div class="modal-body p-4 text-start">
+                                    <p class="text-muted small mb-3">Please verify the administrative compliance items below. If all pass, you can route the proposal to the Director. If any item is unchecked, you can return it to the researcher with required remarks.</p>
+                                    
+                                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                                        <div class="form-check mb-2.5">
+                                            <input class="form-check-input border-primary" 
+                                                   type="checkbox" 
+                                                   name="check_technical" 
+                                                   value="1" 
+                                                   id="check1Show" 
+                                                   onchange="toggleStaffChecklistShow()">
+                                            <label class="form-check-label small fw-semibold text-dark" for="check1Show">
+                                                1. Technical Checking Completed
+                                            </label>
+                                            <div class="text-muted" style="font-size: 0.72rem; margin-left: 1.5rem;">Verified proposal completeness, signatures, and endorsements.</div>
+                                        </div>
+                                        <div class="form-check mb-2.5">
+                                            <input class="form-check-input border-primary" 
+                                                   type="checkbox" 
+                                                   name="check_format" 
+                                                   value="1" 
+                                                   id="check2Show" 
+                                                   onchange="toggleStaffChecklistShow()">
+                                            <label class="form-check-label small fw-semibold text-dark" for="check2Show">
+                                                2. Format & Template Compliance Checked
+                                            </label>
+                                            <div class="text-muted" style="font-size: 0.72rem; margin-left: 1.5rem;">Compliant with prescribed University Research manual & font/margins.</div>
+                                        </div>
+                                        <div class="form-check mb-0">
+                                            <input class="form-check-input border-primary" 
+                                                   type="checkbox" 
+                                                   name="check_similarity" 
+                                                   value="1" 
+                                                   id="check3Show" 
+                                                   onchange="toggleStaffChecklistShow()">
+                                            <label class="form-check-label small fw-semibold text-dark" for="check3Show">
+                                                3. Similarity / Plagiarism Check Verified
+                                            </label>
+                                            <div class="text-muted" style="font-size: 0.72rem; margin-left: 1.5rem;">Similarity index passed and within acceptable institutional ceiling.</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Deficiencies Box (Shown when partially or not fully checked) -->
+                                    <div id="deficienciesBoxShow" class="mb-2">
+                                        <div class="alert alert-warning border-0 p-2.5 rounded-3 mb-2 small d-flex align-items-center gap-2">
+                                            <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0"></i>
+                                            <div>
+                                                <strong class="text-dark">Checklist is incomplete.</strong>
+                                                <span class="text-muted d-block" style="font-size: 0.74rem;">Proposal will be returned directly to researcher for revision.</span>
+                                            </div>
+                                        </div>
+                                        <label for="returnReasonStaffShow" class="form-label fw-semibold text-dark small mb-1">
+                                            Deficiencies / Revision Remarks <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea class="form-control" 
+                                                  id="returnReasonStaffShow" 
+                                                  name="return_reason" 
+                                                  rows="3" 
+                                                  required
+                                                  placeholder="Specify why the check is incomplete and what needs to be fixed (e.g., Plagiarism index is 26%, reduce below 15%; or use the prescribed RESU template)..."></textarea>
+                                        <div class="form-text text-muted" style="font-size: 0.72rem;">
+                                            Once the researcher updates this, it will be fast-tracked directly back to the Receiving Staff.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between align-items-center">
+                                    <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-medium text-muted" data-bs-dismiss="modal">Cancel</button>
+                                    
+                                    <!-- Forward Button (Hidden initially until all 3 checked) -->
+                                    <button type="submit" 
+                                            id="btnForwardShow" 
+                                            class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm d-none">
+                                        <i class="bi bi-send-check me-1"></i> Log & Route to Director
+                                    </button>
+                                    
+                                    <!-- Return Button (Active when 1 or more boxes unchecked) -->
+                                    <button type="submit" 
+                                            id="btnReturnShow" 
+                                            class="btn btn-danger px-4 py-2 rounded-pill fw-bold shadow-sm">
+                                        <i class="bi bi-arrow-return-left me-1"></i> Return for Incompleteness
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function toggleStaffChecklistShow() {
+                        const c1 = document.getElementById('check1Show');
+                        const c2 = document.getElementById('check2Show');
+                        const c3 = document.getElementById('check3Show');
+                        const defBox = document.getElementById('deficienciesBoxShow');
+                        const reasonInput = document.getElementById('returnReasonStaffShow');
+                        const btnForward = document.getElementById('btnForwardShow');
+                        const btnReturn = document.getElementById('btnReturnShow');
+                        const actionInput = document.getElementById('staffActionShow');
+
+                        const allChecked = c1 && c2 && c3 && c1.checked && c2.checked && c3.checked;
+
+                        if (allChecked) {
+                            actionInput.value = 'forward';
+                            defBox.classList.add('d-none');
+                            reasonInput.removeAttribute('required');
+                            btnForward.classList.remove('d-none');
+                            btnReturn.classList.add('d-none');
+                        } else {
+                            actionInput.value = 'return';
+                            defBox.classList.remove('d-none');
+                            reasonInput.setAttribute('required', 'required');
+                            btnForward.classList.add('d-none');
+                            btnReturn.classList.remove('d-none');
+                        }
+                    }
+                </script>
             @endif
 
             <!-- Research Director (Admin) Actions -->
@@ -209,8 +583,100 @@
     </div>
     @endif
 
-    <!-- Phase 1: Proposal Submission & Peer Review Workspace -->
-    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+    <!-- Master Proposal Navigation Tabs -->
+    <div class="card border-0 shadow-sm rounded-4 p-2 mb-4 bg-white">
+        <ul class="nav nav-pills proposal-nav-pills nav-fill flex-column flex-sm-row gap-1 gap-md-2 p-1 rounded-pill" id="proposalDetailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active py-2.5 px-3 rounded-pill fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100" 
+                        id="tab-overview-pill" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#tab-overview" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="tab-overview" 
+                        aria-selected="true">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>1. Proposal &amp; Evaluation</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-2.5 px-3 rounded-pill fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100" 
+                        id="tab-workspaces-pill" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#tab-workspaces" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="tab-workspaces" 
+                        aria-selected="false">
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span>2. Phase Workspaces</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Phase {{ $proposal->current_phase }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-2.5 px-3 rounded-pill fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100" 
+                        id="tab-budget-pill" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#tab-budget" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="tab-budget" 
+                        aria-selected="false">
+                    <i class="bi bi-wallet2"></i>
+                    <span>3. Budget &amp; Gantt</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-2.5 px-3 rounded-pill fw-bold d-inline-flex align-items-center justify-content-center gap-2 w-100" 
+                        id="tab-history-pill" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#tab-history" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="tab-history" 
+                        aria-selected="false">
+                    <i class="bi bi-clock-history"></i>
+                    <span>4. Timeline &amp; History</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">{{ $proposal->activities->count() ?: 1 }}</span>
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tab Contents Container -->
+    <div class="tab-content" id="proposalDetailTabsContent">
+        <!-- ========================================== -->
+        <!-- TAB 1: Proposal Overview & Evaluation      -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade show active" id="tab-overview" role="tabpanel" aria-labelledby="tab-overview-pill">
+            <!-- Official Documents (Notice & Certificate) -->
+            @if(in_array($proposal->status, ['accepted_for_in_house_review', 'revision_required', 'approved', 'final_copy_submitted', 'final_copy_noted_by_dean', 'endorsed_to_vprei', 'final_approved', 'ongoing', 'completed', 'archived']))
+            <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
+                <div class="card-body p-3 p-md-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
+                    <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 gap-md-3">
+                        <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-check"></i> <span>In-House Review Acceptance Form</span>
+                        </a>
+                        
+                        @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
+                        <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-dark rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
+                            <i class="bi bi-file-earmark-arrow-down"></i> <span>Notice to Proceed (NTP)</span>
+                        </a>
+                        @endif
+                        
+                        @if($proposal->current_phase >= 5)
+                        <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
+                            <i class="bi bi-award"></i> <span>Certificate of Completion</span>
+                        </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <!-- Phase 1: Proposal Submission & Peer Review Workspace -->
+            <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
         <div class="card-header bg-white border-bottom-0 py-3 px-3 px-lg-4 d-flex justify-content-between align-items-start align-items-sm-center flex-wrap gap-2 cursor-pointer accordion-workspace-header {{ $proposal->current_phase == 1 ? '' : 'collapsed' }}"
              data-bs-toggle="collapse" 
              data-bs-target="#phase1WorkspaceCollapse" 
@@ -259,6 +725,123 @@
                                 @if($proposal->funding_type)
                                     <span class="text-muted"><i class="bi bi-bank me-1"></i>Funding: <strong class="text-dark">{{ ucwords(str_replace('_', ' ', $proposal->funding_type)) }}</strong></span>
                                 @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Peer Reviewer Assignment Section (Admin / Super Admin) -->
+                    @if(in_array(auth()->user()->role, ['admin', 'super_admin']))
+                    <div class="col-12">
+                        <div class="p-3.5 p-md-4 bg-white rounded-3 border shadow-xs" style="border-left: 4px solid var(--bs-primary) !important;">
+                            <div class="d-flex flex-column flex-md-row md-align-items-center justify-content-between gap-2 mb-3">
+                                <div>
+                                    <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-1 text-dark">
+                                        <i class="bi bi-person-check-fill text-primary"></i> Assign Peer Reviewer
+                                    </h4>
+                                    <p class="text-muted small mb-0">Select and assign a reviewer to evaluate this research proposal manuscript.</p>
+                                </div>
+                                <span class="badge bg-light text-primary border border-primary-subtle align-self-start align-self-md-center px-2.5 py-1.5 fw-semibold" style="font-size: 0.72rem;">
+                                    <i class="bi bi-shield-lock-fill me-1"></i> Admin Action
+                                </span>
+                            </div>
+
+                            <!-- Currently Assigned Reviewers -->
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold text-uppercase mb-2 d-block" style="font-size: 0.72rem; letter-spacing: 0.04em;">
+                                    Assigned Reviewer(s):
+                                </label>
+                                @if($proposal->assignments && $proposal->assignments->count() > 0)
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($proposal->assignments as $assignedReviewer)
+                                            <div class="d-flex align-items-center gap-2.5 bg-light border rounded-3 px-3 py-2 shadow-xs">
+                                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                                    {{ strtoupper(substr($assignedReviewer->name, 0, 1)) }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold text-dark small lh-sm">{{ $assignedReviewer->name }}</div>
+                                                    <div class="text-muted lh-1" style="font-size: 0.7rem;">
+                                                        {{ $assignedReviewer->department ?? $assignedReviewer->email }}
+                                                    </div>
+                                                </div>
+                                                <form action="{{ route('admin.proposals.unassign', [$proposal->id, $assignedReviewer->id]) }}" method="POST" class="m-0 ms-1" onsubmit="return confirm('Remove {{ $assignedReviewer->name }} from reviewing this proposal?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1 rounded-circle" title="Remove Reviewer" style="line-height: 1;">
+                                                        <i class="bi bi-x-circle-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="alert alert-light border border-dashed text-secondary small py-2 px-3 mb-0 rounded-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-info-circle text-primary"></i>
+                                        <span>No peer reviewers assigned yet. Choose a reviewer below to evaluate this proposal.</span>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Assignment Form -->
+                            <form action="{{ route('admin.proposals.assign', $proposal->id) }}" method="POST" class="pt-2 border-top border-light-subtle">
+                                @csrf
+                                <label class="text-muted small fw-bold text-uppercase mb-1.5 d-block" style="font-size: 0.72rem; letter-spacing: 0.04em;">
+                                    Choose Reviewer to Evaluate:
+                                </label>
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-12 col-md-7 col-lg-6">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light text-muted border-end-0">
+                                                <i class="bi bi-person-badge"></i>
+                                            </span>
+                                            <select name="reviewer_id" class="form-select form-select-sm border-start-0" required>
+                                                <option value="" disabled selected>-- Select Reviewer to Evaluate Proposal --</option>
+                                                @if(isset($reviewers) && $reviewers->count() > 0)
+                                                    @foreach($reviewers as $reviewerOption)
+                                                        @php
+                                                            $alreadyAssigned = $proposal->assignments->contains('id', $reviewerOption->id);
+                                                        @endphp
+                                                        <option value="{{ $reviewerOption->id }}" {{ $alreadyAssigned ? 'disabled' : '' }}>
+                                                            {{ $reviewerOption->name }} @if($reviewerOption->department) ({{ $reviewerOption->department }}) @endif {{ $alreadyAssigned ? '— [Already Assigned]' : '' }}
+                                                        </option>
+                                                    @endforeach
+                                                @else
+                                                    <option value="" disabled>No registered reviewers found</option>
+                                                @endif
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-auto">
+                                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs d-inline-flex align-items-center gap-1.5 fw-semibold">
+                                            <i class="bi bi-person-plus-fill"></i> Assign Reviewer
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block mt-2" style="font-size: 0.72rem;">
+                                    <i class="bi bi-info-circle me-1"></i> Once assigned, the proposal becomes accessible on the reviewer's evaluation workspace and they are notified.
+                                </small>
+                            </form>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Revision Feedback Section -->
+                    @if($proposal->return_reason)
+                    <div class="col-12">
+                        <div class="p-3.5 p-md-4 bg-white rounded-3 border border-danger border-opacity-25">
+                            <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-2 text-danger">
+                                <i class="bi bi-arrow-return-left"></i> {{ ucfirst($proposal->returned_by_role ?? 'Coordinator') }} Revision Remarks
+                            </h4>
+                            <p class="text-muted mb-3 small fw-medium">
+                                Provided by: {{ ucfirst($proposal->returned_by_role ?? 'College Coordinator') }}
+                                @if($proposal->returned_at)
+                                    • {{ \Carbon\Carbon::parse($proposal->returned_at)->format('M d, Y h:i A') }}
+                                @endif
+                            </p>
+
+                            <div class="mb-0">
+                                <label class="text-muted small fw-bold text-uppercase mb-1.5 d-block" style="font-size: 0.72rem;">Remarks & Instructions:</label>
+                                <div class="feedback-box bg-light border p-3 rounded-2 text-dark small" style="white-space: pre-wrap;">{{ $proposal->return_reason }}</div>
                             </div>
                         </div>
                     </div>
@@ -326,35 +909,92 @@
             </div>
         </div>
     </div>
+    </div> <!-- End of #tab-overview -->
 
-    <!-- Proposal Lifecycle, Stage & Milestone History Section -->
-    @include('proposals.partials.lifecycle_timeline')
+    <!-- ========================================== -->
+    <!-- TAB 2: Phase Workspaces (Phases 1 - 5)     -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tab-workspaces" role="tabpanel" aria-labelledby="tab-workspaces-pill">
+        <!-- Visual Phase Roadmap Stepper -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="card-body p-3 p-md-4 bg-light bg-opacity-50">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-signpost-split-fill text-primary"></i> Research Phase Roadmap
+                        </h6>
+                        <small class="text-muted">Click any phase button to jump directly to its workspace.</small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill px-3 py-1.5 fw-bold">
+                        Active: Phase {{ $proposal->current_phase }}
+                    </span>
+                </div>
 
-    <!-- Official Documents (Notice & Certificate) -->
-    @if(in_array($proposal->status, ['accepted_for_in_house_review', 'revision_required', 'approved', 'final_copy_submitted', 'final_copy_noted_by_dean', 'endorsed_to_vprei', 'final_approved', 'ongoing', 'completed', 'archived']))
-    <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
-        <div class="card-body p-3 p-md-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-award text-warning"></i> Official Documents</h5>
-            <div class="d-flex flex-column flex-sm-row flex-wrap gap-2 gap-md-3">
-                <a href="{{ route('proposal.downloadNotice', $proposal->id) }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
-                    <i class="bi bi-file-earmark-check"></i> <span>In-House Review Acceptance Form</span>
-                </a>
-                
-                @if(in_array($proposal->status, ['final_approved', 'ongoing', 'completed', 'archived']))
-                <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-dark rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
-                    <i class="bi bi-file-earmark-arrow-down"></i> <span>Notice to Proceed (NTP)</span>
-                </a>
-                @endif
-                
-                @if($proposal->current_phase >= 5)
-                <a href="{{ route('proposal.downloadCertificate', $proposal->id) }}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
-                    <i class="bi bi-award"></i> <span>Certificate of Completion</span>
-                </a>
-                @endif
+                <!-- 5 Phase Stepper Grid -->
+                <div class="row g-2 text-center">
+                    @php
+                        $phasesInfo = [
+                            1 => ['title' => 'Phase 1', 'desc' => 'Proposal & Review', 'target' => '#tab-overview-pill', 'isTab' => true],
+                            2 => ['title' => 'Phase 2', 'desc' => 'Implementation & M&E', 'target' => '#phase2WorkspaceCollapse', 'isTab' => false],
+                            3 => ['title' => 'Phase 3', 'desc' => 'Dissemination (Appx B)', 'target' => '#phase3WorkspaceCollapse', 'isTab' => false],
+                            4 => ['title' => 'Phase 4', 'desc' => 'Publication (Appx C)', 'target' => '#phase4WorkspaceCollapse', 'isTab' => false],
+                            5 => ['title' => 'Phase 5', 'desc' => 'Local Forum (Appx D)', 'target' => '#phase5WorkspaceCollapse', 'isTab' => false],
+                        ];
+                    @endphp
+                    @foreach($phasesInfo as $pNum => $pData)
+                        @php
+                            $isCurrent = ($proposal->current_phase == $pNum);
+                            $isPassed = ($proposal->current_phase > $pNum);
+                            $isFuture = ($proposal->current_phase < $pNum);
+                        @endphp
+                        <div class="col-12 col-sm-6 col-lg">
+                            <button type="button" 
+                                    class="btn w-100 p-2.5 rounded-3 text-start d-flex align-items-center gap-2.5 transition-all shadow-xs border stepper-btn {{ $isCurrent ? 'active-step btn-light' : ($isPassed ? 'bg-white text-dark border-success-subtle' : 'bg-white text-dark border-light-subtle') }}"
+                                    onclick="goToPhase('{{ $pData['target'] }}', {{ $pData['isTab'] ? 'true' : 'false' }})">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 {{ $isCurrent ? 'bg-primary text-white' : ($isPassed ? 'bg-success text-white' : 'bg-light text-dark fw-bold border') }}" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                    @if($isPassed)
+                                        <i class="bi bi-check-lg fw-bold"></i>
+                                    @else
+                                        <span>{{ $pNum }}</span>
+                                    @endif
+                                </div>
+                                <div class="min-w-0 flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="fw-bold small {{ $isCurrent ? 'text-primary' : ($isPassed ? 'text-success' : 'text-dark') }}">{{ $pData['title'] }}</span>
+                                        @if($isCurrent)
+                                            <span class="badge bg-primary text-white rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;">Active</span>
+                                        @elseif($isPassed)
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;">Passed</span>
+                                        @else
+                                            <span class="badge bg-light text-secondary border rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;">Upcoming</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-truncate small {{ $isCurrent ? 'text-dark fw-medium' : 'text-secondary' }}" style="font-size: 0.72rem;">
+                                        {{ $pData['desc'] }}
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
-    </div>
-    @endif
+
+        <!-- Phase 1 Quick Reference Card (in Tab 2) -->
+        <div class="card border-0 shadow-sm mb-4 rounded-4 bg-light border-dashed">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-check-fill text-success fs-5"></i>
+                    <div>
+                        <span class="fw-bold text-dark small">Phase 1: Proposal Submission &amp; Peer Review</span>
+                        <span class="text-muted small ms-2 d-none d-md-inline">&bull; Manuscript, Collaborators &amp; Evaluation Feedback</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" onclick="document.getElementById('tab-overview-pill').click()">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> View in Tab 1
+                </button>
+            </div>
+        </div>
 
     <!-- Phase 2: Implementation, Monitoring & Evaluation Workspace -->
     <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
@@ -1609,7 +2249,12 @@
             </div>
         </div>
     @endif
+    </div> <!-- End of #tab-workspaces -->
 
+    <!-- ========================================== -->
+    <!-- TAB 3: Budget, Financials & Gantt Chart    -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tab-budget" role="tabpanel" aria-labelledby="tab-budget-pill">
     @php
         $canViewFinancials = auth()->user()->isSuperAdmin() 
             || in_array(auth()->user()->role, ['admin', 'budget_officer', 'finance_officer', 'vprei', 'director', 'suc_president', 'recording_staff', 'staff'])
@@ -2217,6 +2862,16 @@
         </div>
     </div>
 </div>
+    </div> <!-- End of #tab-budget -->
+
+    <!-- ========================================== -->
+    <!-- TAB 4: Timeline, Stage & Milestone History -->
+    <!-- ========================================== -->
+    <div class="tab-pane fade" id="tab-history" role="tabpanel" aria-labelledby="tab-history-pill">
+        @include('proposals.partials.lifecycle_timeline')
+    </div> <!-- End of #tab-history -->
+
+    </div> <!-- End of #proposalDetailTabsContent -->
 
     <!-- Modal: Add Work Plan Item -->
     @if(auth()->id() == $proposal->user_id)
@@ -2264,4 +2919,87 @@
         </div>
     </div>
     @endif
+
+    <script>
+        function goToPhase(target, isTab) {
+            if (isTab) {
+                const tabBtn = document.querySelector(target);
+                if (tabBtn) {
+                    const bsTab = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                    bsTab.show();
+                    window.scrollTo({ top: 350, behavior: 'smooth' });
+                }
+                return;
+            }
+            const collapseEl = document.querySelector(target);
+            if (collapseEl) {
+                const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+                bsCollapse.show();
+                setTimeout(() => {
+                    collapseEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // URL hash management for tabs
+            const hash = window.location.hash;
+            if (hash) {
+                const directPill = document.querySelector(`button[data-bs-target="${hash}"]`) || 
+                                   document.querySelector(`button#${hash.replace('#', '')}-pill`);
+                if (directPill) {
+                    bootstrap.Tab.getOrCreateInstance(directPill).show();
+                } else if (hash.includes('Workspace') || hash.includes('phase')) {
+                    const wsTabBtn = document.getElementById('tab-workspaces-pill');
+                    if (wsTabBtn) {
+                        bootstrap.Tab.getOrCreateInstance(wsTabBtn).show();
+                        const targetEl = document.querySelector(hash);
+                        if (targetEl) {
+                            bootstrap.Collapse.getOrCreateInstance(targetEl, { toggle: false }).show();
+                            setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+                        }
+                    }
+                } else if (hash.includes('budget') || hash.includes('gantt') || hash.includes('lib') || hash.includes('financial')) {
+                    const bTabBtn = document.getElementById('tab-budget-pill');
+                    if (bTabBtn) {
+                        bootstrap.Tab.getOrCreateInstance(bTabBtn).show();
+                    }
+                } else if (hash.includes('timeline') || hash.includes('history') || hash.includes('lifecycle')) {
+                    const hTabBtn = document.getElementById('tab-history-pill');
+                    if (hTabBtn) {
+                        bootstrap.Tab.getOrCreateInstance(hTabBtn).show();
+                    }
+                }
+            }
+
+            // Sync URL hash on tab switch without scrolling
+            const tabButtons = document.querySelectorAll('#proposalDetailTabs button[data-bs-toggle="pill"]');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('shown.bs.tab', function(e) {
+                    const target = e.target.getAttribute('data-bs-target');
+                    if (history.replaceState) {
+                        history.replaceState(null, null, target);
+                    }
+                });
+            });
+
+            // Cross-tab link delegation (e.g. from history or notifications linking to a workspace)
+            document.querySelectorAll('[data-bs-target^="#phase"], [href^="#phase"], [data-bs-target^="#lib"], [data-bs-target^="#financial"], [data-bs-target^="#gantt"]').forEach(el => {
+                el.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-bs-target') || this.getAttribute('href');
+                    if (!targetId || !targetId.startsWith('#')) return;
+                    const targetEl = document.querySelector(targetId);
+                    if (targetEl) {
+                        const parentPane = targetEl.closest('.tab-pane');
+                        if (parentPane) {
+                            const tabTrigger = document.querySelector(`button[data-bs-target="#${parentPane.id}"]`);
+                            if (tabTrigger && !tabTrigger.classList.contains('active')) {
+                                bootstrap.Tab.getOrCreateInstance(tabTrigger).show();
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </x-app-layout>
