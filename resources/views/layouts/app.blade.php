@@ -27,6 +27,19 @@
                         document.documentElement.classList.add('sidebar-closed');
                     }
                 } catch(e) {}
+
+                // bfcache protection: reload page if navigated via back/forward history so server-side auth is enforced
+                window.addEventListener('pageshow', function(event) {
+                    var perfEntries = (window.performance && window.performance.getEntriesByType)
+                        ? window.performance.getEntriesByType('navigation')
+                        : [];
+                    var isBackForward = (perfEntries.length > 0 && perfEntries[0].type === 'back_forward')
+                        || (window.performance && window.performance.navigation && window.performance.navigation.type === 2);
+
+                    if (event.persisted || isBackForward) {
+                        window.location.reload();
+                    }
+                });
             })();
         </script>
         <style>

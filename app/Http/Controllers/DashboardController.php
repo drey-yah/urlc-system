@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\ResearchProposal;
 use App\Models\User;
 use App\Models\Announcement;
@@ -163,7 +164,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Securely serve files from local public storage or cloud S3 with path traversal protection.
+     * Securely serve files from local public storage or cloud S3 with path traversal protection and authorization.
      */
     public function serveFile(Request $request)
     {
@@ -176,6 +177,11 @@ class DashboardController extends Controller
         // Strict path traversal defense
         if (str_contains($path, '..') || str_starts_with($path, '/') || str_starts_with($path, '\\')) {
             abort(403, 'Invalid file path.');
+        }
+
+        // Object-level authorization check (prevents IDOR)
+        if (!auth()->check() || !$this->authorizeFileAccess(auth()->user(), $path)) {
+            abort(403, 'Unauthorized access to this document.');
         }
 
         // 1. Check local public storage first if file exists locally
@@ -198,6 +204,177 @@ class DashboardController extends Controller
         }
 
         abort(404, 'Uploaded file not found on storage server.');
+    }
+
+    /**
+     * Authorize whether the authenticated user has permission to view the requested document.
+     */
+    protected function authorizeFileAccess(User $user, string $path): bool
+    {
+        // 1. Super Admins and central executive/administrative roles have full oversight
+        $activeRole = $user->activeRole();
+        if ($user->isSuperAdmin() || in_array($activeRole, [
+            'admin', 'super_admin', 'staff', 'recording_staff', 'vprei', 'president', 
+            'budget_officer', 'sao_finance'
+        ])) {
+            return true;
+        }
+
+        // 2. Announcement flyers and media are public to all logged-in portal users
+        if (str_starts_with($path, 'announcements/')) {
+            return true;
+        }
+
+        // 3. External Funding Project documents
+        if (str_starts_with($path, 'external_funding/') && Schema::hasTable('external_funding_projects')) {
+            $extProject = DB::table('external_funding_projects')
+                ->where('moa_mou_file', $path)
+                ->orWhere('terminal_report', $path)
+                ->first();
+
+            if ($extProject) {
+                if ($extProject->user_id === $user->id) {
+                    return true;
+                }
+                if ($activeRole === 'funding_agency' && $extProject->funding_agency_id === $user->id) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // 4. Resolve the associated ResearchProposal for proposal-related files
+        $proposalId = null;
+
+        // Check proposal_documents
+        if (Schema::hasTable('proposal_documents')) {
+            $doc = DB::table('proposal_documents')->where('file_path', $path)->first();
+            if ($doc) {
+                $proposalId = $doc->research_proposal_id;
+            }
+        }
+
+        // Check research_proposals directly
+        if (!$proposalId && Schema::hasTable('research_proposals')) {
+            $prop = DB::table('research_proposals')
+                ->where('document_path', $path)
+                ->orWhere('final_copy_path', $path)
+                ->first();
+            if ($prop) {
+                $proposalId = $prop->id;
+            }
+        }
+
+        // Check research_presentations
+        if (!$proposalId && Schema::hasTable('research_presentations')) {
+            $pres = DB::table('research_presentations')
+                ->where('presentation_file_path', $path)
+                ->orWhere('acceptance_letter_file_path', $path)
+                ->orWhere('certificate_file_path', $path)
+                ->first();
+            if ($pres) {
+                $proposalId = $pres->research_proposal_id;
+            }
+        }
+
+        // Check research_publications
+        if (!$proposalId && Schema::hasTable('research_publications')) {
+            $pub = DB::table('research_publications')
+                ->where('ip_registration_file_path', $path)
+                ->orWhere('intent_letter_file_path', $path)
+                ->orWhere('submission_proof_file_path', $path)
+                ->orWhere('published_copy_file_path', $path)
+                ->first();
+            if ($pub) {
+                $proposalId = $pub->research_proposal_id;
+            }
+        }
+
+        // Check local_forum_submissions
+        if (!$proposalId && Schema::hasTable('local_forum_submissions')) {
+            $forumSub = DB::table('local_forum_submissions')
+                ->where('presentation_file_path', $path)
+                ->orWhere('extended_abstract_file_path', $path)
+                ->orWhere('notice_file_path', $path)
+                ->orWhere('certificate_file_path', $path)
+                ->first();
+            if ($forumSub) {
+                $proposalId = $forumSub->research_proposal_id;
+            }
+        }
+
+        // Check phase 2 tables
+        if (!$proposalId && Schema::hasTable('purchase_requests')) {
+            $pr = DB::table('purchase_requests')->where('document_path', $path)->first();
+            if ($pr) {
+                $proposalId = $pr->research_proposal_id;
+            }
+        }
+
+        if (!$proposalId && Schema::hasTable('activity_designs')) {
+            $ad = DB::table('activity_designs')
+                ->where('activity_design_file', $path)
+                ->orWhere('budget_requirement_file', $path)
+                ->first();
+            if ($ad) {
+                $proposalId = $ad->research_proposal_id;
+            }
+        }
+
+        if (!$proposalId && Schema::hasTable('terminal_reports')) {
+            $tr = DB::table('terminal_reports')
+                ->where('terminal_report_file', $path)
+                ->orWhere('full_paper_file', $path)
+                ->orWhere('supporting_docs_file', $path)
+                ->orWhere('evaluation_form_file', $path)
+                ->first();
+            if ($tr) {
+                $proposalId = $tr->research_proposal_id;
+            }
+        }
+
+        if (!$proposalId && Schema::hasTable('project_monitoring')) {
+            $pm = DB::table('project_monitoring')->where('monitoring_form_path', $path)->first();
+            if ($pm) {
+                $proposalId = $pm->research_proposal_id;
+            }
+        }
+
+        if (!$proposalId && Schema::hasTable('research_milestones')) {
+            $rm = DB::table('research_milestones')->where('document_path', $path)->first();
+            if ($rm) {
+                $proposalId = $rm->research_proposal_id;
+            }
+        }
+
+        // If associated with a proposal, verify user authorization
+        if ($proposalId) {
+            $proposal = ResearchProposal::with(['collaborators', 'assignments', 'user'])->find($proposalId);
+            if ($proposal) {
+                // Author or Collaborator
+                if ($proposal->user_id === $user->id || $proposal->collaborators->contains('id', $user->id)) {
+                    return true;
+                }
+
+                // Assigned Reviewer
+                if ($activeRole === 'reviewer' && $proposal->assignments->contains('id', $user->id)) {
+                    return true;
+                }
+
+                // College Dean or Department Coordinator from the same college/department
+                if (in_array($activeRole, ['dean', 'coordinator'])) {
+                    if ($proposal->user && $proposal->user->department === $user->department) {
+                        return true;
+                    }
+                }
+            }
+
+            // Proposal exists but user is not authorized to view it
+            return false;
+        }
+
+        // Deny by default for unmapped files if the user does not have administrative oversight
+        return false;
     }
 
     /**

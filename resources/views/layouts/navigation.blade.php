@@ -80,6 +80,10 @@
                 <i class="bi bi-journal-text"></i>
                 <span>Tracking Dashboard</span>
             </a>
+            <a href="{{ route('recording_staff.budget_allocations.index') }}" class="sidebar-link {{ request()->routeIs('recording_staff.budget_allocations.*') ? 'active' : '' }}">
+                <i class="bi bi-pie-chart-fill"></i>
+                <span>Budget Allocations</span>
+            </a>
         @endif
 
         @if($currentRole === 'dean')

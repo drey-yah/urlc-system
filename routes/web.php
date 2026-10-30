@@ -196,6 +196,14 @@ Route::middleware(['auth', 'role:staff'])->group(function () {
 
 Route::middleware(['auth', 'role:recording_staff'])->group(function () {
     Route::get('/recording-staff/dashboard', [\App\Http\Controllers\RecordingStaffController::class, 'dashboard'])->name('recording_staff.dashboard');
+    Route::get('/recording-staff/budget-allocations', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'index'])->name('recording_staff.budget_allocations.index');
+    Route::post('/recording-staff/budget-allocations', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'store'])->name('recording_staff.budget_allocations.store');
+    Route::put('/recording-staff/budget-allocations/{id}', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'update'])->name('recording_staff.budget_allocations.update');
+    Route::post('/recording-staff/budget-allocations/update-college', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'updateCollege'])->name('recording_staff.budget_allocations.update_college');
+    Route::post('/recording-staff/budget-allocations/save-allotment', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'saveCollegeAllotment'])->name('recording_staff.budget_allocations.save_allotment');
+    Route::delete('/recording-staff/budget-allocations/delete-allotment', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'deleteCollegeAllotment'])->name('recording_staff.budget_allocations.delete_allotment');
+    Route::delete('/recording-staff/budget-allocations/{id}', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'destroy'])->name('recording_staff.budget_allocations.destroy');
+    Route::get('/recording-staff/budget-allocations/print', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'print'])->name('recording_staff.budget_allocations.print');
 });
 
 /*
