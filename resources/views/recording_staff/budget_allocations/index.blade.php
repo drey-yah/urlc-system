@@ -37,7 +37,7 @@
             <div>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-1 small text-muted">
-                        <li class="breadcrumb-item"><a href="{{ route('recording_staff.dashboard') }}" class="text-decoration-none text-muted">Recording Staff</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
                         <li class="breadcrumb-item active" aria-current="page">Budget Allocations</li>
                     </ol>
                 </nav>

@@ -31,11 +31,24 @@ class ResearchProposal extends Model
         'returned_at',
         'document_path',
         'terminal_report_path',
+        'extracted_text',
+        // Official Proposal Template Sections
+        'credentials',
+        'college_affiliation',
+        'sdgs_addressed',
+        'background_of_study',
+        'significance_of_study',
+        'definition_of_terms',
+        'literature_review',
+        'methodology',
+        'references',
+        'work_plan_matrix',
     ];
 
     protected $casts = [
         'returned_at' => 'datetime',
         'phase_updated_at' => 'datetime',
+        'work_plan_matrix' => 'array',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -129,5 +142,14 @@ class ResearchProposal extends Model
     public function externalFundingProject()
     {
         return $this->hasOne(ExternalFundingProject::class);
+    }
+
+    // Google Docs-style Inline Annotations & Comments
+    public function annotations()
+    {
+        return $this->hasMany(ProposalAnnotation::class)
+            ->whereNull('parent_id')
+            ->with(['user', 'taggedUser', 'replies.user'])
+            ->orderBy('created_at', 'asc');
     }
 }

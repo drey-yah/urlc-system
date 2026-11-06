@@ -242,12 +242,12 @@
                     <!-- Phase Filter Dropdown -->
                     <div class="col-6 col-md-2 col-lg-2">
                         <select id="proposalPhaseSelect" class="form-select bg-light rounded-pill py-2 text-dark fw-semibold" onchange="filterProposals()">
-                            <option value="all">All Phases</option>
-                            <option value="1">Phase 1: Review</option>
-                            <option value="2">Phase 2: Implementation</option>
-                            <option value="3">Phase 3: Dissemination</option>
-                            <option value="4">Phase 4: Publication</option>
-                            <option value="5">Phase 5: Forum</option>
+                            <option value="all">All Phases (Progress)</option>
+                            <option value="1">Phase 1: Review (20%)</option>
+                            <option value="2">Phase 2: Implementation (40%)</option>
+                            <option value="3">Phase 3: Dissemination (60%)</option>
+                            <option value="4">Phase 4: Publication (80%)</option>
+                            <option value="5">Phase 5: Forum (100%)</option>
                         </select>
                     </div>
 
@@ -360,13 +360,25 @@
                             </div>
 
                             <!-- Phase Progress Indicator -->
+                            @php
+                                $mPhaseNum = $proposal->current_phase ?? 1;
+                                $mProgressPercent = min(100, max(0, round(($mPhaseNum / 5) * 100)));
+                                $mPhaseNames = [
+                                    1 => 'Phase 1: Review',
+                                    2 => 'Phase 2: Implementation',
+                                    3 => 'Phase 3: Dissemination',
+                                    4 => 'Phase 4: Publication',
+                                    5 => 'Phase 5: Forum',
+                                ];
+                                $mPhaseText = $mPhaseNames[$mPhaseNum] ?? ('Phase ' . $mPhaseNum);
+                            @endphp
                             <div class="p-2 bg-light rounded-3 mb-3 border">
                                 <div class="d-flex justify-content-between align-items-center mb-1 small">
-                                    <span class="text-muted fw-semibold" style="font-size: 0.74rem;">Lifecycle Progress</span>
-                                    <span class="fw-bold text-primary" style="font-size: 0.74rem;">Phase {{ $proposal->current_phase }} of 5</span>
+                                    <span class="text-muted fw-semibold" style="font-size: 0.74rem;">{{ $mPhaseText }}</span>
+                                    <span class="fw-bold text-primary" style="font-size: 0.78rem;">{{ $mProgressPercent }}%</span>
                                 </div>
                                 <div class="progress rounded-pill" style="height: 6px;">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ ($proposal->current_phase / 5) * 100 }}%"></div>
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $mProgressPercent }}%" aria-valuenow="{{ $mProgressPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
 
@@ -374,6 +386,9 @@
                             <div class="d-flex align-items-center gap-2 pt-2 border-top">
                                 <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-primary btn-sm flex-grow-1 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5" style="font-size: 0.82rem;">
                                     <i class="bi bi-eye"></i> View Details
+                                </a>
+                                <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-2.5 py-1.5" style="font-size: 0.82rem;" title="Review Workspace">
+                                    <i class="bi bi-chat-quote-fill text-warning"></i>
                                 </a>
                                 @if(in_array($proposal->status, ['revision_required', 'draft', 'returned_for_revision']))
                                     <a href="{{ route('proposal.edit', $proposal->id) }}" class="btn btn-outline-primary btn-sm rounded-pill fw-bold px-3 py-1.5" style="font-size: 0.82rem;" title="Edit Proposal">
@@ -410,7 +425,7 @@
                                 <th class="py-3 small fw-bold text-primary border-0" style="letter-spacing: 0.04em;">TITLE &amp; FIELD</th>
                                 <th class="py-3 small fw-bold text-primary border-0" style="letter-spacing: 0.04em;">COLLABORATORS</th>
                                 <th class="py-3 small fw-bold text-primary border-0" style="letter-spacing: 0.04em;">STATUS</th>
-                                <th class="py-3 small fw-bold text-primary border-0" style="letter-spacing: 0.04em;">CURRENT PHASE</th>
+                                <th class="py-3 small fw-bold text-primary border-0" style="letter-spacing: 0.04em;">PROGRESS</th>
                                 <th class="pe-4 py-3 small fw-bold text-primary border-0 text-end" style="letter-spacing: 0.04em;">ACTIONS</th>
                             </tr>
                         </thead>
@@ -462,12 +477,27 @@
                                             {{ strtoupper(str_replace('_', ' ', $proposal->status)) }}
                                         </span>
                                     </td>
-                                    <td style="min-width: 140px;">
-                                        <div class="d-flex align-items-center gap-2">
+                                    <td style="min-width: 175px;">
+                                        @php
+                                            $phaseNum = $proposal->current_phase ?? 1;
+                                            $progressPercent = min(100, max(0, round(($phaseNum / 5) * 100)));
+                                            $phaseNames = [
+                                                1 => 'Phase 1: Review',
+                                                2 => 'Phase 2: Implementation',
+                                                3 => 'Phase 3: Dissemination',
+                                                4 => 'Phase 4: Publication',
+                                                5 => 'Phase 5: Forum',
+                                            ];
+                                            $phaseText = $phaseNames[$phaseNum] ?? ('Phase ' . $phaseNum);
+                                        @endphp
+                                        <div class="d-flex align-items-center gap-2 mb-1">
                                             <div class="progress flex-grow-1 rounded-pill" style="height: 6px;">
-                                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ ($proposal->current_phase / 5) * 100 }}%"></div>
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $progressPercent }}%" aria-valuenow="{{ $progressPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
-                                            <span class="small fw-bold text-dark text-nowrap" style="font-size: 0.76rem;">Ph {{ $proposal->current_phase }}</span>
+                                            <span class="small fw-bold text-dark text-nowrap" style="font-size: 0.78rem;">{{ $progressPercent }}%</span>
+                                        </div>
+                                        <div class="text-muted text-nowrap" style="font-size: 0.72rem;">
+                                            <i class="bi bi-layers-fill text-primary me-1 opacity-75"></i>{{ $phaseText }}
                                         </div>
                                     </td>
                                     <td class="pe-4 text-end text-nowrap">
@@ -483,6 +513,7 @@
                                                 <i class="bi bi-three-dots-vertical"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                                <li><a class="dropdown-item py-2 text-dark" href="{{ route('proposal.reviewWorkspace', $proposal->id) }}"><i class="bi bi-chat-quote-fill text-warning me-2"></i> Review Workspace</a></li>
                                                 @if(in_array($proposal->status, ['revision_required', 'draft', 'returned_for_revision']))
                                                     <li><a class="dropdown-item py-2 text-primary" href="{{ route('proposal.edit', $proposal->id) }}"><i class="bi bi-pencil-square me-2"></i> Edit Proposal</a></li>
                                                 @endif
@@ -560,13 +591,25 @@
                             </div>
 
                             <!-- Phase Progress Indicator -->
+                            @php
+                                $cPhaseNum = $proposal->current_phase ?? 1;
+                                $cProgressPercent = min(100, max(0, round(($cPhaseNum / 5) * 100)));
+                                $cPhaseNames = [
+                                    1 => 'Phase 1: Review',
+                                    2 => 'Phase 2: Implementation',
+                                    3 => 'Phase 3: Dissemination',
+                                    4 => 'Phase 4: Publication',
+                                    5 => 'Phase 5: Forum',
+                                ];
+                                $cPhaseText = $cPhaseNames[$cPhaseNum] ?? ('Phase ' . $cPhaseNum);
+                            @endphp
                             <div class="p-2 bg-light rounded-3 mb-3 border">
                                 <div class="d-flex justify-content-between align-items-center mb-1 small">
-                                    <span class="text-muted fw-semibold" style="font-size: 0.74rem;">Current Phase</span>
-                                    <span class="fw-bold text-info" style="font-size: 0.74rem;">Phase {{ $proposal->current_phase }} of 5</span>
+                                    <span class="text-muted fw-semibold" style="font-size: 0.74rem;">{{ $cPhaseText }}</span>
+                                    <span class="fw-bold text-info" style="font-size: 0.78rem;">{{ $cProgressPercent }}%</span>
                                 </div>
                                 <div class="progress rounded-pill" style="height: 6px;">
-                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ ($proposal->current_phase / 5) * 100 }}%"></div>
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ $cProgressPercent }}%" aria-valuenow="{{ $cProgressPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
 

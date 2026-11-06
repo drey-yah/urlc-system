@@ -5,7 +5,10 @@
             <h1 class="h4 h-md-3 fw-bold text-dark mb-1">Research Dashboard</h1>
             <p class="text-muted small mb-0">Track your research proposals, monitor review progress, and submit new research.</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route('template.download.proposal') }}" class="btn btn-sm btn-md-md btn-outline-primary d-flex align-items-center gap-2 shadow-sm rounded-3 py-2 px-3" title="Download Form RESU-FM-015 Word Document">
+                <i class="bi bi-file-earmark-word"></i> <span class="d-none d-sm-inline">Download Template</span><span class="d-sm-none">Template</span>
+            </a>
             <a href="{{ route('proposal.create') }}" class="btn btn-sm btn-md-md btn-primary d-flex align-items-center gap-2 shadow-sm rounded-3 py-2 px-3">
                 <i class="bi bi-plus-circle"></i> <span class="d-none d-sm-inline">Submit New Proposal</span><span class="d-sm-none">Submit</span>
             </a>
@@ -113,7 +116,7 @@
                                                 <div class="fw-semibold text-dark text-truncate" style="max-width: 230px;" title="{{ $proposal->title }}">
                                                     {{ $proposal->title }}
                                                 </div>
-                                                <div class="text-muted fs-7">Phase {{ $proposal->current_phase ?? 1 }}</div>
+                                                <div class="text-muted fs-7">{{ min(100, max(0, round((($proposal->current_phase ?? 1) / 5) * 100))) }}% &bull; Phase {{ $proposal->current_phase ?? 1 }}</div>
                                             </td>
                                             <td class="py-3">
                                                 @if($proposal->user_id === Auth::id())
@@ -182,7 +185,7 @@
                                             {{ $proposal->proposal_code ?? 'P-'.$proposal->id }}
                                         </span>
                                         <div class="d-flex align-items-center gap-1.5">
-                                            <span class="text-muted" style="font-size: 0.72rem;">Phase {{ $proposal->current_phase ?? 1 }}</span>
+                                            <span class="text-muted" style="font-size: 0.72rem;">{{ min(100, max(0, round((($proposal->current_phase ?? 1) / 5) * 100))) }}% (Phase {{ $proposal->current_phase ?? 1 }})</span>
                                             @if($proposal->user_id === Auth::id())
                                                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2" style="font-size: 0.65rem;">Lead</span>
                                             @else

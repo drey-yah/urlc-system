@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ResearchProposalController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProposalAnnotationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,30 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Session Keep-Alive & CSRF Token Refresh endpoint
+Route::get('/ping-session', function () {
+    return response()->json([
+        'status' => 'alive',
+        'csrf_token' => csrf_token(),
+    ]);
+})->middleware(['web']);
+
+// Download Official University Research Proposal Template (.docx)
+Route::get('/templates/download/proposal', function () {
+    $filePath = public_path('templates/UA-RESEARCH-PROPOSAL-TEMPLATE-RESU-FM-015.docx');
+    if (!file_exists($filePath)) {
+        abort(404, 'Official template document not found.');
+    }
+    return response()->streamDownload(function () use ($filePath) {
+        $stream = fopen($filePath, 'rb');
+        fpassthru($stream);
+        fclose($stream);
+    }, '15-RESEARCH-PROPOSAL-TEMPLATE-REVISED (RESU-FM-015).docx', [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'Content-Length' => filesize($filePath),
+    ]);
+})->middleware(['auth', 'approved', 'verified'])->name('template.download.proposal');
+
 /*
 |--------------------------------------------------------------------------
 | Redirect After Login (Role-Based)
@@ -22,11 +47,11 @@ Route::get('/', function () {
 */
 
 Route::get('/redirect', [DashboardController::class, 'redirectByRole'])
-    ->middleware(['auth', 'approved'])
+    ->middleware(['auth', 'approved', 'verified'])
     ->name('redirect');
 
 Route::post('/switch-role', [DashboardController::class, 'switchRole'])
-    ->middleware(['auth', 'approved'])
+    ->middleware(['auth', 'approved', 'verified'])
     ->name('role.switch');
 
 /*
@@ -36,22 +61,22 @@ Route::post('/switch-role', [DashboardController::class, 'switchRole'])
 */
 
 Route::get('/admin', [DashboardController::class, 'adminDashboard'])
-    ->middleware(['auth', 'role:admin', 'approved'])
+    ->middleware(['auth', 'role:admin', 'approved', 'verified'])
     ->name('admin.dashboard');
 
 Route::get('/reviewer', [DashboardController::class, 'reviewerDashboard'])
-    ->middleware(['auth', 'role:reviewer', 'approved'])
+    ->middleware(['auth', 'role:reviewer', 'approved', 'verified'])
     ->name('reviewer.dashboard');
 
 Route::get('/researcher', [DashboardController::class, 'researcherDashboard'])
-    ->middleware(['auth', 'role:researcher', 'approved'])
+    ->middleware(['auth', 'role:researcher', 'approved', 'verified'])
     ->name('researcher.dashboard');
 
 Route::get('/coordinator', [\App\Http\Controllers\CoordinatorController::class, 'dashboard'])
-    ->middleware(['auth', 'role:coordinator', 'approved'])->name('coordinator.dashboard');
+    ->middleware(['auth', 'role:coordinator', 'approved', 'verified'])->name('coordinator.dashboard');
 
 Route::get('/staff', [\App\Http\Controllers\StaffController::class, 'dashboard'])
-    ->middleware(['auth', 'role:staff', 'approved'])->name('staff.dashboard');
+    ->middleware(['auth', 'role:staff', 'approved', 'verified'])->name('staff.dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -59,9 +84,10 @@ Route::get('/staff', [\App\Http\Controllers\StaffController::class, 'dashboard']
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:researcher', 'approved'])->group(function () {
+Route::middleware(['auth', 'role:researcher', 'approved', 'verified'])->group(function () {
     Route::get('/proposal/create', [ResearchProposalController::class, 'create'])->name('proposal.create');
     Route::post('/proposal/store', [ResearchProposalController::class, 'store'])->name('proposal.store');
+    Route::post('/proposal/extract-pdf', [ResearchProposalController::class, 'extractPdfMetadata'])->name('proposal.extractPdf');
     Route::get('/proposal/my', [ResearchProposalController::class, 'index'])->name('proposal.index');
 
     Route::get('/proposal/{id}/edit', [ResearchProposalController::class, 'edit'])->name('proposal.edit');
@@ -81,9 +107,14 @@ Route::middleware(['auth', 'role:researcher', 'approved'])->group(function () {
 });
 
 // Shared Proposal Routes (All authenticated users)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/external-funding', [\App\Http\Controllers\ExternalFundingController::class, 'index'])->middleware('approved')->name('external-funding.index');
     Route::get('/proposal/{id}', [ResearchProposalController::class, 'show'])->name('proposal.show');
+    Route::get('/proposal/{id}/review-workspace', [ProposalAnnotationController::class, 'workspace'])->name('proposal.reviewWorkspace');
+    Route::post('/proposal/{id}/annotations', [ProposalAnnotationController::class, 'store'])->name('proposal.annotations.store');
+    Route::patch('/annotations/{id}/toggle-resolve', [ProposalAnnotationController::class, 'toggleResolve'])->name('proposal.annotations.toggleResolve');
+    Route::delete('/annotations/{id}', [ProposalAnnotationController::class, 'destroy'])->name('proposal.annotations.destroy');
+    Route::get('/proposal/{id}/review-summary', [ProposalAnnotationController::class, 'exportSummary'])->name('proposal.reviewSummary');
     Route::get('/proposal/{id}/endorsement-form', [\App\Http\Controllers\CoordinatorController::class, 'generateEndorsementForm'])->name('proposal.endorsement_form');
     Route::get('/proposal/{id}/resu-fm015', [\App\Http\Controllers\ResearchProposalController::class, 'exportResuFm015'])->name('proposal.resu_fm015');
     Route::get('/proposal/{id}/notice', [ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');
@@ -152,7 +183,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Admin ONLY Announcements CRUD
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin', 'verified'])->group(function () {
     Route::post('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'store'])->name('announcements.store');
     Route::delete('/announcements/{id}', [\App\Http\Controllers\AnnouncementController::class, 'destroy'])->name('announcements.destroy');
 });
@@ -163,7 +194,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:reviewer'])->group(function () {
+Route::middleware(['auth', 'role:reviewer', 'verified'])->group(function () {
     Route::get('/reviewer/proposals', [ResearchProposalController::class, 'reviewerIndex'])->name('reviewer.proposals');
     Route::post('/reviewer/proposals/{id}/update-status', [ResearchProposalController::class, 'updateStatus'])->name('reviewer.proposals.updateStatus');
     Route::post('/phase2/terminal-report/{id}/evaluate', [\App\Http\Controllers\TerminalReportController::class, 'evaluate'])->name('reviewer.phase2.evaluate');
@@ -175,7 +206,7 @@ Route::middleware(['auth', 'role:reviewer'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:coordinator'])->group(function () {
+Route::middleware(['auth', 'role:coordinator', 'verified'])->group(function () {
     Route::get('/coordinator/proposals', [\App\Http\Controllers\CoordinatorController::class, 'index'])->name('coordinator.proposals');
     Route::post('/coordinator/proposals/{id}/endorse', [\App\Http\Controllers\CoordinatorController::class, 'endorse'])->name('coordinator.proposals.endorse');
     Route::post('/coordinator/proposals/{id}/submit-to-unit', [\App\Http\Controllers\CoordinatorController::class, 'submitToResearchUnit'])->name('coordinator.proposals.submitToUnit');
@@ -189,13 +220,16 @@ Route::middleware(['auth', 'role:coordinator'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:staff'])->group(function () {
+Route::middleware(['auth', 'role:staff', 'verified'])->group(function () {
     Route::get('/staff/proposals', [\App\Http\Controllers\StaffController::class, 'index'])->name('staff.proposals');
     Route::post('/staff/proposals/{id}/forward', [\App\Http\Controllers\StaffController::class, 'forward'])->name('staff.proposals.forward');
 });
 
-Route::middleware(['auth', 'role:recording_staff'])->group(function () {
+Route::middleware(['auth', 'role:recording_staff', 'verified'])->group(function () {
     Route::get('/recording-staff/dashboard', [\App\Http\Controllers\RecordingStaffController::class, 'dashboard'])->name('recording_staff.dashboard');
+});
+
+Route::middleware(['auth', 'role:recording_staff,admin,budget_officer', 'verified'])->group(function () {
     Route::get('/recording-staff/budget-allocations', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'index'])->name('recording_staff.budget_allocations.index');
     Route::post('/recording-staff/budget-allocations', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'store'])->name('recording_staff.budget_allocations.store');
     Route::put('/recording-staff/budget-allocations/{id}', [\App\Http\Controllers\RecordingStaffBudgetAllocationController::class, 'update'])->name('recording_staff.budget_allocations.update');
@@ -212,7 +246,7 @@ Route::middleware(['auth', 'role:recording_staff'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:dean', 'approved'])->group(function () {
+Route::middleware(['auth', 'role:dean', 'approved', 'verified'])->group(function () {
     Route::get('/dean', [\App\Http\Controllers\DeanController::class, 'dashboard'])->name('dean.dashboard');
     Route::post('/dean/proposals/{id}/note-endorsement', [\App\Http\Controllers\DeanController::class, 'noteEndorsement'])->name('dean.noteEndorsement');
     Route::post('/dean/proposals/{id}/note-final', [\App\Http\Controllers\DeanController::class, 'noteFinalCopy'])->name('dean.noteFinal');
@@ -224,7 +258,7 @@ Route::middleware(['auth', 'role:dean', 'approved'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
+Route::middleware(['auth', 'role:vprei', 'approved', 'verified'])->group(function () {
     Route::get('/vprei', [\App\Http\Controllers\VpreiController::class, 'dashboard'])->name('vprei.dashboard');
     Route::post('/vprei/proposals/{id}/approve', [\App\Http\Controllers\VpreiController::class, 'approve'])->name('vprei.approve');
     Route::post('/phase2/activity-design/{id}/vprei-approve', [\App\Http\Controllers\ActivityDesignController::class, 'vpreiApprove'])->name('vprei.phase2.approveActivity');
@@ -236,7 +270,7 @@ Route::middleware(['auth', 'role:vprei', 'approved'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:president', 'approved'])->group(function () {
+Route::middleware(['auth', 'role:president', 'approved', 'verified'])->group(function () {
     Route::get('/president', [\App\Http\Controllers\PresidentController::class, 'dashboard'])->name('president.dashboard');
     Route::post('/president/approve-presentation/{id}', [\App\Http\Controllers\PresidentController::class, 'approvePresentation'])->name('president.approvePresentation');
     Route::post('/external-funding/{id}/endorse-agency', [\App\Http\Controllers\ExternalFundingController::class, 'endorseToAgency'])->name('external-funding.endorse-agency');
@@ -249,7 +283,7 @@ Route::middleware(['auth', 'role:president', 'approved'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:budget_officer', 'approved'])->group(function () {
+Route::middleware(['auth', 'role:budget_officer', 'approved', 'verified'])->group(function () {
     Route::get('/budget', [\App\Http\Controllers\BudgetOfficerController::class, 'dashboard'])->name('budget.dashboard');
     Route::post('/budget/proposals/{id}/certify', [\App\Http\Controllers\BudgetOfficerController::class, 'certify'])->name('budget.certify');
     Route::post('/phase2/activity-design/{id}/budget-note', [\App\Http\Controllers\ActivityDesignController::class, 'budgetNote'])->name('budget.phase2.noteActivity');
@@ -261,7 +295,7 @@ Route::middleware(['auth', 'role:budget_officer', 'approved'])->group(function (
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:sao_finance', 'approved'])->group(function () {
+Route::middleware(['auth', 'role:sao_finance', 'approved', 'verified'])->group(function () {
     Route::get('/finance', [\App\Http\Controllers\FinanceOfficerController::class, 'dashboard'])->name('finance.dashboard');
     Route::post('/finance/pr/{id}/approve', [\App\Http\Controllers\FinanceOfficerController::class, 'approvePR'])->name('finance.pr.approve');
     Route::post('/finance/pr/{id}/reject', [\App\Http\Controllers\FinanceOfficerController::class, 'rejectPR'])->name('finance.pr.reject');
@@ -273,7 +307,7 @@ Route::middleware(['auth', 'role:sao_finance', 'approved'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin', 'verified'])->group(function () {
     Route::get('/admin/proposals', [ResearchProposalController::class, 'adminIndex'])->name('admin.proposals');
     Route::post('/admin/proposals/{id}/final-decision', [ResearchProposalController::class, 'adminFinalDecision'])->name('admin.proposals.finalDecision');
     Route::patch('/admin/proposals/{id}/phase', [ResearchProposalController::class, 'updatePhase'])->name('admin.proposals.updatePhase');
@@ -301,7 +335,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/milestones/{id}/status', [\App\Http\Controllers\ResearchMilestoneController::class, 'updateStatus'])->name('admin.milestones.updateStatus');
 });
 
-Route::middleware(['auth', 'approved'])->group(function () {
+Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::post('/external-funding/{id}/endorse-university', [\App\Http\Controllers\ExternalFundingController::class, 'endorseUniversity'])->name('external-funding.endorse-university');
     Route::post('/external-funding/{id}/agency-decision', [\App\Http\Controllers\ExternalFundingController::class, 'recordAgencyDecision'])->name('external-funding.agency-decision');
     Route::post('/external-funding/{id}/monitor', [\App\Http\Controllers\ExternalFundingController::class, 'markMonitoring'])->name('external-funding.monitor');
@@ -314,7 +348,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'superadmin'])->group(function () {
+Route::middleware(['auth', 'superadmin', 'verified'])->group(function () {
     Route::get('/superadmin', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('superadmin.dashboard');
     Route::get('/superadmin/users', [\App\Http\Controllers\SuperAdminController::class, 'users'])->name('superadmin.users');
     Route::post('/superadmin/users/{id}/approve', [\App\Http\Controllers\SuperAdminController::class, 'approveAdmin'])->name('superadmin.users.approve');
@@ -333,7 +367,7 @@ Route::middleware(['auth', 'superadmin'])->group(function () {
 */
 
 Route::get('/dashboard', [DashboardController::class, 'redirectByRole'])
-    ->middleware(['auth', 'approved'])
+    ->middleware(['auth', 'approved', 'verified'])
     ->name('dashboard');
 
 /*

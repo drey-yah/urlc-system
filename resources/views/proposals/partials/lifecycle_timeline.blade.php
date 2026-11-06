@@ -38,11 +38,11 @@
 
 <div class="card border-0 shadow-sm mb-4 rounded-4 overflow-hidden">
     <!-- Collapsible Header -->
-    <div class="card-header bg-white py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center cursor-pointer accordion-workspace-header collapsed"
+    <div class="card-header bg-white py-3 px-3 px-lg-4 d-flex justify-content-between align-items-center cursor-pointer accordion-workspace-header"
          data-bs-toggle="collapse" 
          data-bs-target="#lifecycleHistoryCollapse" 
          role="button" 
-         aria-expanded="false"
+         aria-expanded="true"
          id="lifecycleHistoryHeader">
         <div class="d-flex align-items-center gap-2 gap-md-3 flex-grow-1 min-w-0">
             <i class="bi bi-chevron-down fs-5 text-muted workspace-chevron flex-shrink-0"></i>
@@ -72,14 +72,14 @@
                 {{ str_replace('_', ' ', $proposal->status) }}
             </span>
             <span class="btn btn-sm btn-light border rounded-pill px-3 py-1 text-muted small fw-medium d-inline-flex align-items-center gap-1.5" style="font-size: 0.75rem;">
-                <span class="toggle-text">Show History</span>
+                <span class="toggle-text">Hide History</span>
                 <i class="bi bi-chevron-down small"></i>
             </span>
         </div>
     </div>
 
-    <!-- Collapsible Container (starts collapsed to save space) -->
-    <div class="collapse" id="lifecycleHistoryCollapse">
+    <!-- Collapsible Container (starts open by default for immediate visibility) -->
+    <div class="collapse show" id="lifecycleHistoryCollapse">
         <!-- Sub Tabs inside collapsible -->
         <div class="bg-light bg-opacity-50 px-3 px-md-4 pt-3 border-top border-bottom">
             <ul class="nav nav-tabs border-bottom-0 gap-2" id="historyTabs" role="tablist">
@@ -399,6 +399,7 @@
 
         </div>
     </div>
+</div>
 </div>
 
 <script>

@@ -14,7 +14,7 @@ class RoleMiddleware
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle($request, Closure $next, $role)
+    public function handle($request, Closure $next, ...$roles)
     {
         if (auth()->check()) {
             $user = auth()->user();
@@ -23,13 +23,20 @@ class RoleMiddleware
                 return $next($request);
             }
 
-            // Check if user has the authorized role (either primary or in additional_roles)
-            if ($user->hasRole($role)) {
-                // If user accessed a section belonging to one of their valid roles, sync active_role
-                if (session('active_role') !== $role && in_array($role, $user->allRoles())) {
-                    session(['active_role' => $role]);
+            // Support either array of roles or comma-separated roles
+            $allowedRoles = [];
+            foreach ($roles as $r) {
+                $allowedRoles = array_merge($allowedRoles, array_map('trim', explode(',', $r)));
+            }
+
+            foreach ($allowedRoles as $role) {
+                if ($user->hasRole($role)) {
+                    // If user accessed a section belonging to one of their valid roles, sync active_role
+                    if (session('active_role') !== $role && in_array($role, $user->allRoles())) {
+                        session(['active_role' => $role]);
+                    }
+                    return $next($request);
                 }
-                return $next($request);
             }
         }
 

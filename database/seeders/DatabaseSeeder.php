@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'System Administrator',
                 'password' => Hash::make('marie@2025'),
                 'role' => 'admin',
+                'is_approved' => true,
             ]
         );
 
@@ -29,6 +30,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Dr. Juan Dela Cruz',
                 'password' => Hash::make('password'),
                 'role' => 'researcher',
+                'is_approved' => true,
             ]
         );
 
@@ -38,7 +40,61 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Prof. Maria Santos',
                 'password' => Hash::make('password'),
                 'role' => 'reviewer',
+                'is_approved' => true,
             ]
         );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'rjvtongcua@antiquespride.edu.ph'],
+            [
+                'name' => 'Recording Staff',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'recording_staff',
+                'is_approved' => true,
+            ]
+        );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'mixedsignals790@gmail.com'],
+            [
+                'name' => 'Budget Officer',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'budget_officer',
+                'is_approved' => true,
+            ]
+        );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'collegecoordinator4@gmail.com'],
+            [
+                'name' => 'College Coordinator',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'coordinator',
+                'is_approved' => true,
+            ]
+        );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'collegedean626@gmail.com'],
+            [
+                'name' => 'College Dean',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'dean',
+                'is_approved' => true,
+            ]
+        );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'andreana@gmail.com'],
+            [
+                'name' => 'VPREI',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'vprei',
+                'is_approved' => true,
+            ]
+        );
+
+        // Seed Institutional Budget Allocations Matrix
+        $this->call(BudgetAllocationSeeder::class);
     }
 }

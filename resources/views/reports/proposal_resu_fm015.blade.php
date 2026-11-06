@@ -137,13 +137,13 @@
         <div class="field-row">
             <div class="field-label">Credentials of Key Proponents</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->proponent_credentials ?? 'Faculty Researcher, University of Antique' }}</div>
+            <div class="field-content">{{ $proposal->credentials ?: ($proposal->proponent_credentials ?? 'Faculty Researcher, University of Antique') }}</div>
         </div>
 
         <div class="field-row">
             <div class="field-label">College Affiliation</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->user->department ?? 'College of Computer Studies' }}</div>
+            <div class="field-content">{{ $proposal->college_affiliation ?: ($proposal->user->department ?? 'College of Computer Studies') }}</div>
         </div>
 
         <div class="field-row">
@@ -156,9 +156,13 @@
             <div class="field-label">Background of the Study</div>
             <div class="field-colon">:</div>
             <div class="field-content text-justify">
-                {{ $proposal->abstract }}
-                @if($proposal->rationale)
-                    <br><br><strong>Rationale & Framework:</strong> {{ $proposal->rationale }}
+                @if($proposal->background_of_study)
+                    {!! nl2br(e($proposal->background_of_study)) !!}
+                @else
+                    {{ $proposal->abstract }}
+                    @if($proposal->rationale)
+                        <br><br><strong>Rationale & Framework:</strong> {{ $proposal->rationale }}
+                    @endif
                 @endif
             </div>
         </div>
@@ -166,25 +170,49 @@
         <div class="field-row">
             <div class="field-label">Significance of the Study</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->significance ?? 'This research provides baseline framework and institutional technology solutions for SUC research governance.' }}</div>
+            <div class="field-content">
+                @if($proposal->significance_of_study)
+                    {!! nl2br(e($proposal->significance_of_study)) !!}
+                @else
+                    {{ $proposal->significance ?? 'This research provides baseline framework and institutional technology solutions for SUC research governance.' }}
+                @endif
+            </div>
         </div>
 
         <div class="field-row">
             <div class="field-label">Definition of Terms</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->definition_of_terms ?? 'URLC: University Research Lifecycle Center; SUC: State Universities and Colleges.' }}</div>
+            <div class="field-content">
+                @if($proposal->definition_of_terms)
+                    {!! nl2br(e($proposal->definition_of_terms)) !!}
+                @else
+                    {{ $proposal->definition_of_terms ?? 'URLC: University Research Lifecycle Center; SUC: State Universities and Colleges.' }}
+                @endif
+            </div>
         </div>
 
         <div class="field-row">
             <div class="field-label">Review of Related Literature</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->literature_review ?? 'Literature emphasizes automated workflow systems and institutional grant monitoring.' }}</div>
+            <div class="field-content">
+                @if($proposal->literature_review)
+                    {!! nl2br(e($proposal->literature_review)) !!}
+                @else
+                    {{ $proposal->literature_review ?? 'Literature emphasizes automated workflow systems and institutional grant monitoring.' }}
+                @endif
+            </div>
         </div>
 
         <div class="field-row">
             <div class="field-label">Methodology</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->methodology ?? 'Agile Development Methodology, System Usability Scale (SUS), and ISO 25010 Software Quality Assessment.' }}</div>
+            <div class="field-content">
+                @if($proposal->methodology)
+                    {!! nl2br(e($proposal->methodology)) !!}
+                @else
+                    {{ $proposal->methodology ?? 'Agile Development Methodology, System Usability Scale (SUS), and ISO 25010 Software Quality Assessment.' }}
+                @endif
+            </div>
         </div>
 
         <div class="field-row">
@@ -226,7 +254,13 @@
         <div class="field-row">
             <div class="field-label">References</div>
             <div class="field-colon">:</div>
-            <div class="field-content">{{ $proposal->references ?? 'APA 7th Edition Academic References.' }}</div>
+            <div class="field-content">
+                @if($proposal->references)
+                    {!! nl2br(e($proposal->references)) !!}
+                @else
+                    {{ $proposal->references ?? 'APA 7th Edition Academic References.' }}
+                @endif
+            </div>
         </div>
 
         <!-- Signature -->
@@ -254,6 +288,34 @@
 
         <!-- Work Plan (Gantt Chart) -->
         <div class="fw-bold fs-6 mb-2">Work Plan (Gantt Chart):</div>
+        @if(!empty($proposal->work_plan_matrix) && is_array($proposal->work_plan_matrix))
+        <table class="table-6ps mb-4 text-center" style="font-size: 0.8rem;">
+            <thead>
+                <tr class="bg-light">
+                    <th class="text-start" style="width: 40%;">Activities</th>
+                    @for($m = 1; $m <= 12; $m++)
+                        <th style="width: 5%;">M{{ $m }}</th>
+                    @endfor
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($proposal->work_plan_matrix as $wp)
+                    @php
+                        $actTitle = is_array($wp) ? ($wp['activity'] ?? '') : ($wp->activity ?? '');
+                        $wpMonths = is_array($wp) ? ($wp['months'] ?? []) : ($wp->months ?? []);
+                    @endphp
+                    <tr>
+                        <td class="text-start fw-medium">{{ $actTitle }}</td>
+                        @for($m = 1; $m <= 12; $m++)
+                            <td style="{{ in_array($m, $wpMonths) ? 'background-color: #444; color: #fff; font-weight: bold;' : '' }}">
+                                {{ in_array($m, $wpMonths) ? '✓' : '' }}
+                            </td>
+                        @endfor
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @else
         <table class="table-6ps mb-4">
             <thead>
                 <tr class="bg-light text-center">
@@ -266,7 +328,7 @@
                 @forelse($proposal->milestones as $m)
                     <tr>
                         <td class="fw-semibold">{{ $m->title }}</td>
-                        <td class="text-center">{{ $m->target_date ? $m->target_date->format('M d, Y') : 'Phase '.$m->phase }}</td>
+                        <td class="text-center">{{ $m->target_date ? \Carbon\Carbon::parse($m->target_date)->format('M d, Y') : 'Phase '.$m->phase }}</td>
                         <td class="text-center">{{ ucfirst($m->status) }}</td>
                     </tr>
                 @empty
@@ -298,6 +360,7 @@
                 @endforelse
             </tbody>
         </table>
+        @endif
 
         <!-- Line Item Budget -->
         <div class="fw-bold fs-6 mb-2">Line Item Budget:</div>
@@ -334,9 +397,9 @@
                 @forelse($mooeItems as $item)
                     <tr>
                         <td>{{ $item->item_description ?? $item->item_name }}</td>
-                        <td class="text-center">{{ $item->funding_source ?? 'RESU' }}</td>
-                        <td></td>
-                        <td></td>
+                        <td class="text-center">{{ $item->funding_agency ?? ($item->funding_source ?? 'RESU') }}</td>
+                        <td class="text-center">{{ $item->equivalent_teaching_unit ?? '' }}</td>
+                        <td class="text-center">{{ $item->existing_resources ?? 'RESU' }}</td>
                         <td class="text-end">₱{{ number_format($item->amount, 2) }}</td>
                         <td class="text-end fw-bold">₱{{ number_format($item->amount, 2) }}</td>
                     </tr>
@@ -379,9 +442,9 @@
                 @forelse($coItems as $item)
                     <tr>
                         <td>{{ $item->item_description ?? $item->item_name }}</td>
-                        <td class="text-center">{{ $item->funding_source ?? 'RESU' }}</td>
-                        <td></td>
-                        <td></td>
+                        <td class="text-center">{{ $item->funding_agency ?? ($item->funding_source ?? 'RESU') }}</td>
+                        <td class="text-center">{{ $item->equivalent_teaching_unit ?? '' }}</td>
+                        <td class="text-center">{{ $item->existing_resources ?? 'RESU' }}</td>
                         <td class="text-end">₱{{ number_format($item->amount, 2) }}</td>
                         <td class="text-end fw-bold">₱{{ number_format($item->amount, 2) }}</td>
                     </tr>

@@ -35,6 +35,9 @@
                     };
                 @endphp
                 <div class="d-flex align-items-center gap-2 flex-wrap w-100 w-md-auto justify-content-start justify-content-md-end mt-2 mt-md-0">
+                    <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-pencil-square text-warning"></i> Review Workspace
+                    </a>
                     <a href="{{ route('proposal.resu_fm015', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm">
                         <i class="bi bi-file-earmark-text-fill text-primary me-1"></i> RESU-FM-015 Form
                     </a>
@@ -702,22 +705,41 @@
             <div class="card-body p-3 p-md-4 p-lg-5 border-top">
                 <div class="row g-4">
                     <!-- Proposal Overview / Summary -->
-                    @if($proposal->abstract || $proposal->rationale)
+                    @if($proposal->abstract || $proposal->rationale || $proposal->background_of_study)
                     <div class="col-12">
                         <div class="p-3.5 p-md-4 bg-light rounded-3 border">
-                            <h5 class="fw-bold text-dark mb-2 fs-6"><i class="bi bi-card-text text-primary me-1.5"></i> Proposal Overview &amp; Abstract</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                <h5 class="fw-bold text-dark mb-0 fs-6"><i class="bi bi-card-text text-primary me-1.5"></i> Proposal Overview &amp; Abstract</h5>
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <span class="badge bg-white text-muted border rounded-pill px-2.5 py-1 small" style="font-size: 0.72rem;">FORM RESU-FM-015</span>
+                                    <a href="{{ route('proposal.resu_fm015', $proposal->id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.74rem;">
+                                        <i class="bi bi-printer me-1"></i> Print / Export Form
+                                    </a>
+                                </div>
+                            </div>
                             @if($proposal->abstract)
                                 <p class="text-secondary small mb-2 lh-base" style="font-size: 0.85rem;">{{ $proposal->abstract }}</p>
                             @endif
-                            @if($proposal->rationale)
+                            @if($proposal->background_of_study)
+                                <div class="mt-2 pt-2 border-top border-light-subtle">
+                                    <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.68rem;">Background of the Study &amp; Problem Statement:</small>
+                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">{{ \Illuminate\Support\Str::limit($proposal->background_of_study, 450) }}</p>
+                                </div>
+                            @elseif($proposal->rationale)
                                 <div class="mt-2 pt-2 border-top border-light-subtle">
                                     <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.68rem;">Rationale &amp; Background:</small>
                                     <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">{{ $proposal->rationale }}</p>
                                 </div>
                             @endif
                             <div class="d-flex align-items-center gap-3 flex-wrap mt-3 pt-2 border-top border-light-subtle" style="font-size: 0.75rem;">
+                                @if($proposal->college_affiliation)
+                                    <span class="text-muted"><i class="bi bi-building me-1"></i>College: <strong class="text-dark">{{ $proposal->college_affiliation }}</strong></span>
+                                @endif
                                 @if($proposal->research_field)
                                     <span class="text-muted"><i class="bi bi-tag me-1"></i>Field: <strong class="text-dark">{{ $proposal->research_field }}</strong></span>
+                                @endif
+                                @if($proposal->sdgs_addressed)
+                                    <span class="text-muted"><i class="bi bi-globe me-1"></i>SDGs: <strong class="text-dark">{{ $proposal->sdgs_addressed }}</strong></span>
                                 @endif
                                 @if($proposal->total_budget)
                                     <span class="text-muted"><i class="bi bi-cash-stack me-1"></i>Proposed Budget: <strong class="text-dark">&#8369;{{ number_format($proposal->total_budget, 2) }}</strong></span>
@@ -852,9 +874,27 @@
                     <div class="col-12">
                         <div class="p-3.5 p-md-4 bg-white rounded-3 border">
                             <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-chat-left-text text-primary"></i> Reviewer Feedback
+                                <i class="bi bi-chat-left-text text-primary"></i> Reviewer Feedback &amp; Document Annotations
                             </h4>
                             <p class="text-muted mb-3 small fw-medium">Reviewed by: {{ $proposal->reviewer->name ?? 'Under Review' }}</p>
+
+                            <!-- Interactive Annotator Callout -->
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border mb-3 flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-chat-quote-fill text-warning"></i> In-Line Document Annotations &amp; Comments
+                                        @if($proposal->annotations && $proposal->annotations->count() > 0)
+                                            <span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                                {{ $proposal->annotations->where('is_resolved', false)->count() }} Open Revisions
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <small class="text-muted">Reviewers highlighted specific sentences and chapters with revision suggestions.</small>
+                                </div>
+                                <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5 text-nowrap" style="font-size: 0.8rem;">
+                                    <i class="bi bi-layout-split"></i> Open Review Workspace
+                                </a>
+                            </div>
 
                             <div class="mb-3">
                                 <label class="text-muted small fw-bold text-uppercase mb-1.5 d-block" style="font-size: 0.72rem;">Comments:</label>

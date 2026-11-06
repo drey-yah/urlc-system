@@ -27,6 +27,52 @@ class ResearchProposalController extends Controller
         return view('researcher.create_proposal', compact('researchers'));
     }
 
+    /**
+     * AJAX: Extract text, title, abstract, and keywords from uploaded proposal document.
+     */
+    public function extractPdfMetadata(Request $request)
+    {
+        $request->validate([
+            'document' => 'required|file|max:20480',
+        ]);
+
+        $file = $request->file('document');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if ($ext !== 'pdf') {
+            return response()->json([
+                'success' => false,
+                'message' => 'The uploaded file must be a PDF document.',
+            ], 422);
+        }
+
+        try {
+            $tempPath = $file->getRealPath();
+
+            $text = \App\Services\PdfTextExtractor::extractText($tempPath);
+            $meta = \App\Services\PdfTextExtractor::parseMetadata($text, $file->getClientOriginalName());
+            $wordCount = !empty($text) ? str_word_count($text) : 0;
+
+            return response()->json([
+                'success' => true,
+                'has_text' => !empty($text),
+                'word_count' => $wordCount,
+                'title' => $meta['title'],
+                'title_suggestions' => $meta['title_suggestions'] ?? [],
+                'abstract' => $meta['abstract'],
+                'research_field' => $meta['research_field'],
+                'extracted_text' => $text,
+                'message' => !empty($text) 
+                    ? "Document analyzed successfully! Extracted {$wordCount} words." 
+                    : "No digital text stream detected in PDF (may be a scanned image).",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error analyzing document: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     // Researcher: Store proposal
     public function store(Request $request)
     {
@@ -34,12 +80,22 @@ class ResearchProposalController extends Controller
 
         $request->validate([
             'title' => 'required',
-            'abstract' => 'required',
+            'abstract' => 'nullable|string',
             'rationale' => 'nullable|string',
             'research_field' => 'nullable|string',
-            'document' => $isDraft ? 'nullable|file|mimes:pdf|max:20480' : 'required|file|mimes:pdf|max:20480',
+            'document' => 'nullable|file|mimes:pdf|max:20480',
             'collaborators' => 'nullable|array',
             'collaborators.*' => 'exists:users,id',
+            // Template fields validation
+            'credentials' => 'nullable|string',
+            'college_affiliation' => 'nullable|string',
+            'sdgs_addressed' => 'nullable|string',
+            'background_of_study' => 'nullable|string',
+            'significance_of_study' => 'nullable|string',
+            'definition_of_terms' => 'nullable|string',
+            'literature_review' => 'nullable|string',
+            'methodology' => 'nullable|string',
+            'references' => 'nullable|string',
         ]);
 
         $filePath = null;
@@ -48,6 +104,36 @@ class ResearchProposalController extends Controller
             $filePath = $request->file('document')->store('documents', config('filesystems.default', 'public'));
         }
 
+        $extractedText = $request->extracted_text;
+        if (empty($extractedText) && $filePath) {
+            try {
+                $disk = config('filesystems.default', 'public');
+                $fullPath = \Storage::disk($disk)->path($filePath);
+                if (file_exists($fullPath)) {
+                    $extractedText = \App\Services\PdfTextExtractor::extractText($fullPath);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('PDF extraction failed: ' . $e->getMessage());
+            }
+        }
+
+        // If template sections were filled and extracted text is empty, synthesize structured manuscript text
+        if (empty($extractedText)) {
+            $sections = [];
+            if ($request->title) $sections[] = "RESEARCH TITLE:\n" . $request->title;
+            if ($request->credentials) $sections[] = "KEY PROPONENTS & CREDENTIALS:\n" . $request->credentials;
+            if ($request->background_of_study) $sections[] = "BACKGROUND OF THE STUDY & THEORETICAL FRAMEWORK:\n" . $request->background_of_study;
+            if ($request->significance_of_study) $sections[] = "SIGNIFICANCE OF THE STUDY:\n" . $request->significance_of_study;
+            if ($request->definition_of_terms) $sections[] = "DEFINITION OF TERMS:\n" . $request->definition_of_terms;
+            if ($request->literature_review) $sections[] = "REVIEW OF RELATED LITERATURE:\n" . $request->literature_review;
+            if ($request->methodology) $sections[] = "METHODOLOGY & RESEARCH DESIGN:\n" . $request->methodology;
+            if ($request->references) $sections[] = "REFERENCES:\n" . $request->references;
+            $extractedText = implode("\n\n", $sections);
+        }
+
+        $abstractText = $request->abstract ?: ($request->background_of_study ? \Illuminate\Support\Str::limit($request->background_of_study, 500) : $request->title);
+        $rationaleText = $request->rationale ?: $request->background_of_study;
+
         $year = date('Y');
         $latestProposal = ResearchProposal::latest('id')->first();
         $nextId = $latestProposal ? $latestProposal->id + 1 : 1;
@@ -55,17 +141,67 @@ class ResearchProposalController extends Controller
         $proposalCode = "RP-{$year}-{$sequence}";
 
         $proposal = null;
-        \DB::transaction(function () use ($request, $isDraft, $filePath, $proposalCode, &$proposal) {
+        \DB::transaction(function () use ($request, $isDraft, $filePath, $proposalCode, $extractedText, $abstractText, $rationaleText, &$proposal) {
             $proposal = ResearchProposal::create([
                 'user_id' => auth()->id(),
                 'proposal_code' => $proposalCode,
                 'title' => $request->title,
-                'abstract' => $request->abstract,
-                'rationale' => $request->rationale ?? null,
+                'abstract' => $abstractText,
+                'rationale' => $rationaleText,
                 'research_field' => $request->research_field,
+                'credentials' => $request->credentials,
+                'college_affiliation' => $request->college_affiliation ?: auth()->user()->department,
+                'sdgs_addressed' => $request->sdgs_addressed,
+                'background_of_study' => $request->background_of_study,
+                'significance_of_study' => $request->significance_of_study,
+                'definition_of_terms' => $request->definition_of_terms,
+                'literature_review' => $request->literature_review,
+                'methodology' => $request->methodology,
+                'references' => $request->references,
+                'work_plan_matrix' => $request->work_plan_matrix,
                 'document_path' => $filePath, // Kept for backwards compatibility
+                'extracted_text' => $extractedText,
                 'status' => $isDraft ? 'draft' : 'pending_coordinator_endorsement',
             ]);
+
+            // Save line-item budget if provided
+            if ($request->has('budget_items') && is_array($request->budget_items)) {
+                $totalBudget = 0;
+                foreach ($request->budget_items as $bItem) {
+                    if (!empty($bItem['item_name']) && isset($bItem['amount']) && $bItem['amount'] !== '') {
+                        $cost = floatval(str_replace(',', '', $bItem['amount']));
+                        $catGroup = $bItem['category_group'] ?? ($bItem['category'] ?? 'supplies');
+                        $catType = $bItem['category_type'] ?? (in_array($catGroup, ['capital_outlay', 'co']) ? 'co' : 'mooe');
+                        $proposal->budgetItems()->create([
+                            'category_type' => $catType,
+                            'category_group' => $catGroup,
+                            'item_name' => $bItem['item_name'],
+                            'funding_agency' => $bItem['funding_agency'] ?? 'University of Antique',
+                            'existing_resources' => $bItem['existing_resources'] ?? null,
+                            'amount' => $cost,
+                        ]);
+                        $totalBudget += $cost;
+                    }
+                }
+                if ($totalBudget > 0) {
+                    $proposal->update(['total_budget' => $totalBudget]);
+                }
+            }
+
+            // Save work plan milestones if provided
+            if ($request->has('milestones') && is_array($request->milestones)) {
+                foreach ($request->milestones as $ms) {
+                    if (!empty($ms['title'])) {
+                        $proposal->milestones()->create([
+                            'title' => $ms['title'],
+                            'start_date' => !empty($ms['start_date']) ? $ms['start_date'] : null,
+                            'target_date' => !empty($ms['target_date']) ? $ms['target_date'] : null,
+                            'description' => $ms['description'] ?? 'Work plan activity',
+                            'status' => 'pending',
+                        ]);
+                    }
+                }
+            }
 
             if ($filePath) {
                 $documentTag = "{$proposalCode}-PH1-MANUSCRIPT-V1";
@@ -349,7 +485,8 @@ class ResearchProposalController extends Controller
     // Researcher: Show edit form for revision
     public function edit($id)
     {
-        $proposal = ResearchProposal::where('id', $id)
+        $proposal = ResearchProposal::with(['collaborators', 'budgetItems', 'milestones'])
+            ->where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
@@ -357,7 +494,11 @@ class ResearchProposalController extends Controller
             abort(403, 'You cannot edit this proposal.');
         }
 
-        return view('researcher.edit_proposal', compact('proposal'));
+        $researchers = User::where('role', 'researcher')
+            ->where('id', '!=', auth()->id())
+            ->get();
+
+        return view('researcher.edit_proposal', compact('proposal', 'researchers'));
     }
 
     // Researcher: Update and resubmit proposal
@@ -375,12 +516,22 @@ class ResearchProposalController extends Controller
 
         $request->validate([
             'title' => 'required',
-            'abstract' => 'required',
+            'abstract' => 'nullable|string',
             'rationale' => 'nullable|string',
             'research_field' => 'nullable|string',
             'document' => 'nullable|file|mimes:pdf|max:20480',
             'collaborators' => 'nullable|array',
             'collaborators.*' => 'exists:users,id',
+            // Template fields
+            'credentials' => 'nullable|string',
+            'college_affiliation' => 'nullable|string',
+            'sdgs_addressed' => 'nullable|string',
+            'background_of_study' => 'nullable|string',
+            'significance_of_study' => 'nullable|string',
+            'definition_of_terms' => 'nullable|string',
+            'literature_review' => 'nullable|string',
+            'methodology' => 'nullable|string',
+            'references' => 'nullable|string',
         ]);
 
         $filePath = $proposal->document_path;
@@ -401,6 +552,22 @@ class ResearchProposalController extends Controller
                 'version' => $nextVersion,
                 'file_path' => $filePath,
             ]);
+
+            $extractedText = $request->extracted_text;
+            if (empty($extractedText)) {
+                try {
+                    $disk = config('filesystems.default', 'public');
+                    $fullPath = \Storage::disk($disk)->path($filePath);
+                    if (file_exists($fullPath)) {
+                        $extractedText = \App\Services\PdfTextExtractor::extractText($fullPath);
+                    }
+                } catch (\Throwable $e) {
+                    \Log::warning('PDF extraction failed on update: ' . $e->getMessage());
+                }
+            }
+            if (!empty($extractedText)) {
+                $updateData['extracted_text'] = $extractedText;
+            }
         }
 
         $newStatus = 'pending_coordinator_endorsement';
@@ -411,14 +578,84 @@ class ResearchProposalController extends Controller
             $newStatus = 'submitted_to_research_unit';
         }
 
+        // Re-synthesize extracted text if template sections were updated
+        $updatedExtractedText = $proposal->extracted_text;
+        if ($request->background_of_study || $request->methodology || $request->literature_review) {
+            $sections = [];
+            if ($request->title) $sections[] = "RESEARCH TITLE:\n" . $request->title;
+            if ($request->credentials) $sections[] = "KEY PROPONENTS & CREDENTIALS:\n" . $request->credentials;
+            if ($request->background_of_study) $sections[] = "BACKGROUND OF THE STUDY & THEORETICAL FRAMEWORK:\n" . $request->background_of_study;
+            if ($request->significance_of_study) $sections[] = "SIGNIFICANCE OF THE STUDY:\n" . $request->significance_of_study;
+            if ($request->definition_of_terms) $sections[] = "DEFINITION OF TERMS:\n" . $request->definition_of_terms;
+            if ($request->literature_review) $sections[] = "REVIEW OF RELATED LITERATURE:\n" . $request->literature_review;
+            if ($request->methodology) $sections[] = "METHODOLOGY & RESEARCH DESIGN:\n" . $request->methodology;
+            if ($request->references) $sections[] = "REFERENCES:\n" . $request->references;
+            $updatedExtractedText = implode("\n\n", $sections);
+        }
+
+        $abstractText = $request->abstract ?: ($request->background_of_study ? \Illuminate\Support\Str::limit($request->background_of_study, 500) : $proposal->abstract);
+        $rationaleText = $request->rationale ?: ($request->background_of_study ?: $proposal->rationale);
+
         $updateData = [
             'title' => $request->title,
-            'abstract' => $request->abstract,
-            'rationale' => $request->rationale ?? $proposal->rationale,
+            'abstract' => $abstractText,
+            'rationale' => $rationaleText,
             'research_field' => $request->research_field,
+            'credentials' => $request->credentials ?? $proposal->credentials,
+            'college_affiliation' => $request->college_affiliation ?: ($proposal->college_affiliation ?: auth()->user()->department),
+            'sdgs_addressed' => $request->sdgs_addressed ?? $proposal->sdgs_addressed,
+            'background_of_study' => $request->background_of_study ?? $proposal->background_of_study,
+            'significance_of_study' => $request->significance_of_study ?? $proposal->significance_of_study,
+            'definition_of_terms' => $request->definition_of_terms ?? $proposal->definition_of_terms,
+            'literature_review' => $request->literature_review ?? $proposal->literature_review,
+            'methodology' => $request->methodology ?? $proposal->methodology,
+            'references' => $request->references ?? $proposal->references,
+            'work_plan_matrix' => $request->work_plan_matrix ?? $proposal->work_plan_matrix,
+            'extracted_text' => $updatedExtractedText,
             'document_path' => $filePath, // Update main path for backwards compatibility
             'status' => $isDraft ? 'draft' : $newStatus,
         ];
+
+        // Update line-item budget if provided
+        if ($request->has('budget_items') && is_array($request->budget_items)) {
+            $proposal->budgetItems()->delete();
+            $totalBudget = 0;
+            foreach ($request->budget_items as $bItem) {
+                if (!empty($bItem['item_name']) && isset($bItem['amount']) && $bItem['amount'] !== '') {
+                    $cost = floatval(str_replace(',', '', $bItem['amount']));
+                    $catGroup = $bItem['category_group'] ?? ($bItem['category'] ?? 'supplies');
+                    $catType = $bItem['category_type'] ?? (in_array($catGroup, ['capital_outlay', 'co']) ? 'co' : 'mooe');
+                    $proposal->budgetItems()->create([
+                        'category_type' => $catType,
+                        'category_group' => $catGroup,
+                        'item_name' => $bItem['item_name'],
+                        'funding_agency' => $bItem['funding_agency'] ?? 'University of Antique',
+                        'existing_resources' => $bItem['existing_resources'] ?? null,
+                        'amount' => $cost,
+                    ]);
+                    $totalBudget += $cost;
+                }
+            }
+            if ($totalBudget > 0) {
+                $updateData['total_budget'] = $totalBudget;
+            }
+        }
+
+        // Update work plan milestones if provided
+        if ($request->has('milestones') && is_array($request->milestones)) {
+            $proposal->milestones()->delete();
+            foreach ($request->milestones as $ms) {
+                if (!empty($ms['title'])) {
+                    $proposal->milestones()->create([
+                        'title' => $ms['title'],
+                        'start_date' => !empty($ms['start_date']) ? $ms['start_date'] : null,
+                        'target_date' => !empty($ms['target_date']) ? $ms['target_date'] : null,
+                        'description' => $ms['description'] ?? 'Work plan activity',
+                        'status' => 'pending',
+                    ]);
+                }
+            }
+        }
 
         if (!$isDraft && $proposal->status === 'returned_for_revision') {
             $updateData['return_reason'] = null;

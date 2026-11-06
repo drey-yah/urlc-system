@@ -53,13 +53,16 @@
                                             <span class="text-truncate" style="max-width: 140px;">{{ $proposal->user->name ?? 'Unknown' }}</span>
                                         </div>
                                         <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-                                            Phase {{ $proposal->current_phase }}
+                                            {{ min(100, max(0, round(($proposal->current_phase / 5) * 100))) }}% &bull; Phase {{ $proposal->current_phase }}
                                         </span>
                                     </div>
 
-                                    <div class="d-flex gap-2 pt-2 border-top">
+                                    <div class="d-flex gap-2 pt-2 border-top flex-wrap">
+                                        <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill flex-fill text-center py-1.5 fw-bold" style="font-size: 0.78rem;">
+                                            <i class="bi bi-chat-quote-fill text-warning me-0.5"></i> Annotate
+                                        </a>
                                         <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill flex-fill text-center py-1.5" style="font-size: 0.8rem;">
-                                            View Details
+                                            Details
                                         </a>
                                         <button class="btn btn-sm btn-primary rounded-pill flex-fill text-center py-1.5 shadow-xs select-proposal" 
                                                 data-id="{{ $proposal->id }}" 
@@ -68,7 +71,7 @@
                                                 data-comments="{{ $proposal->review_comments }}"
                                                 data-suggestions="{{ $proposal->review_suggestions }}"
                                                 style="font-size: 0.8rem;">
-                                            <i class="bi bi-pencil-square me-1"></i> Review
+                                            <i class="bi bi-pencil-square me-1"></i> Quick Decision
                                         </button>
                                     </div>
                                 </div>
@@ -88,7 +91,7 @@
                                 <tr>
                                     <th class="ps-4 py-3 fw-semibold border-0">Proposal Title</th>
                                     <th class="py-3 fw-semibold border-0 text-center">Status</th>
-                                    <th class="py-3 fw-semibold border-0 text-center">Phase</th>
+                                    <th class="py-3 fw-semibold border-0 text-center">Progress</th>
                                     <th class="pe-4 py-3 fw-semibold border-0 text-end">Actions</th>
                                 </tr>
                             </thead>
@@ -114,20 +117,24 @@
                                             </span>
                                         </td>
                                         <td class="py-3 text-center">
-                                            <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small fw-medium">Phase {{ $proposal->current_phase }}</span>
+                                            <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small fw-medium">{{ min(100, max(0, round(($proposal->current_phase / 5) * 100))) }}% (Phase {{ $proposal->current_phase }})</span>
                                         </td>
                                         <td class="pe-4 py-3 text-end">
-                                            <div class="d-flex justify-content-end gap-2">
-                                                <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill px-3">
+                                            <div class="d-flex justify-content-end gap-1.5 flex-wrap">
+                                                <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                                                    <i class="bi bi-chat-quote-fill text-warning"></i> Annotate Document
+                                                </a>
+                                                <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1" style="font-size: 0.8rem;">
                                                     View
                                                 </a>
-                                                <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm select-proposal" 
+                                                <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm select-proposal" 
                                                         data-id="{{ $proposal->id }}" 
                                                         data-title="{{ $proposal->title }}"
                                                         data-status="{{ $proposal->status }}"
                                                         data-comments="{{ $proposal->review_comments }}"
-                                                        data-suggestions="{{ $proposal->review_suggestions }}">
-                                                    <i class="bi bi-pencil-square me-1"></i> Review
+                                                        data-suggestions="{{ $proposal->review_suggestions }}"
+                                                        style="font-size: 0.8rem;">
+                                                    <i class="bi bi-pencil-square me-1"></i> Decision
                                                 </button>
                                             </div>
                                         </td>
@@ -162,7 +169,10 @@
                         @csrf
                         <div class="bg-primary bg-opacity-10 p-3 rounded-3 mb-3 border border-primary border-opacity-10">
                             <small class="text-primary fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Selected Proposal:</small>
-                            <p class="fw-bold mb-0 text-dark small" id="selected-proposal-title"></p>
+                            <p class="fw-bold mb-2 text-dark small" id="selected-proposal-title"></p>
+                            <a href="#" id="selected-workspace-link" class="btn btn-warning bg-opacity-25 text-dark border border-warning border-opacity-50 btn-sm w-100 rounded-pill py-1.5 fw-bold d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.78rem;">
+                                <i class="bi bi-chat-quote-fill text-warning"></i> Open In-Line Document Annotator
+                            </a>
                         </div>
                         
                         <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2.5 rounded-3 border">
@@ -240,6 +250,8 @@
                     form.action = `/reviewer/proposals/${id}/update-status`;
                     titleDisplay.textContent = title;
                     statusSelect.value = status;
+                    const workspaceLink = document.getElementById('selected-workspace-link');
+                    if (workspaceLink) workspaceLink.href = `/proposal/${id}/review-workspace`;
                     // Ensure comments and suggestions start completely blank for reviewer input
                     commentsText.value = '';
                     suggestionsText.value = '';

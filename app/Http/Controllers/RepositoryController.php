@@ -19,7 +19,8 @@ class RepositoryController extends Controller
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('abstract', 'like', "%{$search}%")
                   ->orWhere('research_field', 'like', "%{$search}%")
-                  ->orWhere('proposal_code', 'like', "%{$search}%");
+                  ->orWhere('proposal_code', 'like', "%{$search}%")
+                  ->orWhere('extracted_text', 'like', "%{$search}%");
             });
         }
 

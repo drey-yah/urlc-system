@@ -33,6 +33,10 @@
                 <i class="bi bi-people-fill"></i>
                 <span>User Management</span>
             </a>
+            <a href="{{ route('recording_staff.budget_allocations.index') }}" class="sidebar-link {{ request()->routeIs('recording_staff.budget_allocations.*') ? 'active' : '' }}">
+                <i class="bi bi-pie-chart-fill"></i>
+                <span>Budget Allocations</span>
+            </a>
             <a href="{{ route('superadmin.settings') }}" class="sidebar-link {{ request()->routeIs('superadmin.settings') ? 'active' : '' }}">
                 <i class="bi bi-gear-fill"></i>
                 <span>System Settings</span>
@@ -47,6 +51,10 @@
             <a href="{{ route('admin.proposals') }}" class="sidebar-link {{ request()->routeIs('admin.proposals') ? 'active' : '' }}">
                 <i class="bi bi-collection-fill"></i>
                 <span>All Proposals</span>
+            </a>
+            <a href="{{ route('recording_staff.budget_allocations.index') }}" class="sidebar-link {{ request()->routeIs('recording_staff.budget_allocations.*') ? 'active' : '' }}">
+                <i class="bi bi-pie-chart-fill"></i>
+                <span>Budget Allocations</span>
             </a>
             <a href="{{ route('superadmin.logs') }}" class="sidebar-link {{ request()->routeIs('superadmin.logs') ? 'active' : '' }}">
                 <i class="bi bi-journal-text"></i>
@@ -112,6 +120,10 @@
                 <i class="bi bi-cash-stack"></i>
                 <span>Budget Certification</span>
             </a>
+            <a href="{{ route('recording_staff.budget_allocations.index') }}" class="sidebar-link {{ request()->routeIs('recording_staff.budget_allocations.*') ? 'active' : '' }}">
+                <i class="bi bi-pie-chart-fill"></i>
+                <span>Budget Allocations</span>
+            </a>
         @endif
 
         @if($currentRole === 'sao_finance')
@@ -148,6 +160,11 @@
             <i class="bi bi-book-half"></i>
             <span>Submission Guidelines</span>
         </button>
+
+        <a href="{{ route('template.download.proposal') }}" class="sidebar-link" title="Download Form RESU-FM-015 Word Template">
+            <i class="bi bi-file-earmark-word"></i>
+            <span>Download Template</span>
+        </a>
 
         <a href="{{ route('repository.index') }}" class="sidebar-link {{ request()->routeIs('repository.index') ? 'active' : '' }}">
             <i class="bi bi-journal-bookmark-fill"></i>
@@ -364,8 +381,10 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="modal-footer border-0 p-3 p-md-4 pt-2 bg-light d-flex justify-content-between align-items-center">
-                <span class="text-muted small d-none d-sm-inline" style="font-size: 0.78rem;">University Research &amp; Development Unit (URLC)</span>
+            <div class="modal-footer border-0 p-3 p-md-4 pt-2 bg-light d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <a href="{{ route('template.download.proposal') }}" class="btn btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-2" style="font-size: 0.82rem;">
+                    <i class="bi bi-file-earmark-word-fill"></i> Download Official Template (RESU-FM-015 .docx)
+                </a>
                 <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-dismiss="modal">
                     <i class="bi bi-check-lg"></i> Understood &amp; Close
                 </button>

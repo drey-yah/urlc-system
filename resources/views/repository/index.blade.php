@@ -18,7 +18,7 @@
                                 <i class="bi bi-search"></i>
                             </span>
                             <input type="text" name="search" value="{{ request('search') }}" 
-                                   placeholder="Search by code, title, abstract, or field..." 
+                                   placeholder="Search by code, title, abstract, field, or inside document text..." 
                                    class="form-control bg-light border-0 py-2.5 px-2"
                                    style="font-size: 0.9rem;">
                             @if(request('search'))
@@ -87,6 +87,11 @@
                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1.5 rounded-pill text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.04em;">
                                     {{ $research->research_field }}
                                 </span>
+                                @if(request('search') && !empty($research->extracted_text) && stripos($research->extracted_text, request('search')) !== false)
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1.5 rounded-pill fw-semibold" style="font-size: 0.75rem;">
+                                        <i class="bi bi-file-earmark-text-fill me-1"></i> Match Inside Document Text
+                                    </span>
+                                @endif
                             </div>
                             <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5 rounded-pill fw-semibold" style="font-size: 0.75rem;">
                                 <i class="bi bi-check-circle-fill me-1"></i> Completed: {{ $research->phase_updated_at ? \Carbon\Carbon::parse($research->phase_updated_at)->format('M d, Y') : 'Archived' }}

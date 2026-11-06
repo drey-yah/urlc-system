@@ -166,7 +166,7 @@
                                     </div>
                                     <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
                                         <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0.5 fw-semibold" style="font-size: 0.7rem;">
-                                            Phase {{ $proposal->current_phase }}
+                                            {{ min(100, max(0, round(($proposal->current_phase / 5) * 100))) }}% &bull; Phase {{ $proposal->current_phase }}
                                         </span>
                                         @if($proposal->assignments && $proposal->assignments->count() > 0)
                                             <span class="badge bg-white text-muted border px-1.5 py-0.5" style="font-size: 0.65rem;" title="{{ $proposal->assignments->count() }} assigned reviewer(s)">
@@ -269,7 +269,7 @@
                                 <tr>
                                     <th class="ps-4 py-3 fw-medium border-0 rounded-start">Title &amp; Researcher</th>
                                     <th class="text-center py-3 fw-medium border-0">Status</th>
-                                    <th class="text-center py-3 fw-medium border-0">Phase</th>
+                                    <th class="text-center py-3 fw-medium border-0">Progress</th>
                                     <th class="pe-4 py-3 fw-medium border-0 rounded-end text-end">Management</th>
                                 </tr>
                             </thead>
@@ -338,7 +338,7 @@
                                         </td>
                                         <td class="text-center py-3">
                                             <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill" style="font-size: 0.72rem;">
-                                                Phase {{ $proposal->current_phase }}
+                                                {{ min(100, max(0, round(($proposal->current_phase / 5) * 100))) }}% (Phase {{ $proposal->current_phase }})
                                             </span>
                                         </td>
                                         <td class="pe-4 py-3 text-end">

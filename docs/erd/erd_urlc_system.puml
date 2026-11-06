@@ -1,0 +1,203 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam monochrome false
+skinparam roundcorner 4
+skinparam shadowing true
+skinparam classAttributeIconSize 0
+
+entity "users" as users {
+  * id : BIGINT <<PK>>
+  --
+  name : VARCHAR
+  email : VARCHAR <<UNIQUE>>
+  password : VARCHAR
+  role : VARCHAR
+  additional_roles : JSON
+  campus : VARCHAR
+  department : VARCHAR
+  is_approved : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "research_proposals" as props {
+  * id : BIGINT <<PK>>
+  --
+  * user_id : BIGINT <<FK>>
+  reviewer_id : BIGINT <<FK>>
+  proposal_code : VARCHAR <<UNIQUE>>
+  title : TEXT
+  abstract : TEXT
+  research_field : VARCHAR
+  funding_type : VARCHAR
+  total_budget : DECIMAL(15,2)
+  status : VARCHAR
+  current_phase : INTEGER
+  dean_endorsed_at : TIMESTAMP
+  budget_certified_at : TIMESTAMP
+  vprei_approved_at : TIMESTAMP
+  return_reason : TEXT
+}
+
+entity "proposal_collaborators" as collab {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  * user_id : BIGINT <<FK>>
+}
+
+entity "proposal_assignments" as assign {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  * user_id : BIGINT <<FK>>
+}
+
+entity "proposal_documents" as docs {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  document_tag : VARCHAR <<UNIQUE>>
+  document_type : VARCHAR
+  phase : INTEGER
+  version : INTEGER
+  file_path : VARCHAR
+}
+
+entity "proposal_budget_items" as pbi {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  category_type : VARCHAR
+  category_group : VARCHAR
+  item_name : TEXT
+  amount : DECIMAL(12,2)
+  equivalent_teaching_unit : VARCHAR
+}
+
+entity "budget_allocations" as ba {
+  * id : BIGINT <<PK>>
+  --
+  fiscal_year : INTEGER
+  campus : VARCHAR
+  college : VARCHAR
+  program_name : VARCHAR
+  traveling_local_gaa : DECIMAL(12,2)
+  traveling_local_tf : DECIMAL(12,2)
+  traveling_foreign_tf : DECIMAL(12,2)
+  implementation_tf : DECIMAL(12,2)
+  total_allocation : DECIMAL(12,2)
+  is_allotment_row : BOOLEAN
+  created_by : BIGINT <<FK>>
+}
+
+entity "research_milestones" as miles {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  title : VARCHAR
+  status : VARCHAR
+  document_path : VARCHAR
+}
+
+entity "activity_designs" as act {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  * user_id : BIGINT <<FK>>
+  activity_title : VARCHAR
+  proposed_budget : DECIMAL(12,2)
+  director_noted : BOOLEAN
+  budget_officer_noted : BOOLEAN
+  vprei_approved : BOOLEAN
+  status : VARCHAR
+}
+
+entity "purchase_requests" as pr {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  * user_id : BIGINT <<FK>>
+  pr_number : VARCHAR
+  total_amount : DECIMAL(12,2)
+  director_countersigned : BOOLEAN
+  finance_approved : BOOLEAN
+  status : VARCHAR
+}
+
+entity "terminal_reports" as term {
+  * id : BIGINT <<PK>>
+  --
+  * research_proposal_id : BIGINT <<FK>>
+  * user_id : BIGINT <<FK>>
+  evaluator_score : DECIMAL(5,2)
+  terminal_report_file : VARCHAR
+  full_paper_file : VARCHAR
+  certificate_completion_file : VARCHAR
+  status : VARCHAR
+}
+
+entity "announcements" as ann {
+  * id : BIGINT <<PK>>
+  --
+  * user_id : BIGINT <<FK>>
+  title : VARCHAR
+  content : TEXT
+}
+
+entity "announcement_interactions" as inter {
+  * id : BIGINT <<PK>>
+  --
+  * user_id : BIGINT <<FK>>
+  * announcement_id : BIGINT <<FK>>
+  type : VARCHAR
+  body : TEXT
+  parent_id : BIGINT <<FK>>
+}
+
+entity "activity_log" as audit {
+  * id : BIGINT <<PK>>
+  --
+  log_name : VARCHAR
+  description : TEXT
+  subject_type : VARCHAR
+  subject_id : BIGINT
+  causer_id : BIGINT <<FK>>
+  properties : JSON
+}
+
+entity "notifications" as notif {
+  * id : CHAR(36) <<PK>>
+  --
+  type : VARCHAR
+  notifiable_id : BIGINT <<FK>>
+  data : JSON
+  read_at : TIMESTAMP
+}
+
+entity "system_settings" as sett {
+  * id : BIGINT <<PK>>
+  --
+  key : VARCHAR <<UNIQUE>>
+  value : TEXT
+}
+
+users ||--o{ props : "authors (user_id)"
+users ||--o{ props : "evaluates (reviewer_id)"
+users ||--o{ collab : "participates"
+props ||--o{ collab : "includes"
+users ||--o{ assign : "assigned"
+props ||--o{ assign : "reviewed by"
+props ||--o{ docs : "contains"
+props ||--o{ pbi : "itemizes (LIB)"
+users ||--o{ ba : "creates allocation"
+props ||--o{ miles : "tracks"
+props ||--o{ act : "executes"
+props ||--o{ pr : "requisitions"
+props ||--o{ term : "concludes"
+users ||--o{ ann : "publishes"
+ann ||--o{ inter : "engages"
+inter ||--o{ inter : "nested reply (parent_id)"
+users ||--o{ audit : "initiates"
+users ||--o{ notif : "receives"
+@enduml
