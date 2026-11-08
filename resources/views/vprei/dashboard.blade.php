@@ -5,7 +5,22 @@
             <h1 class="h3 fs-4 fs-md-3 fw-bold text-dark mb-1">VPREI Executive Approvals & NTP Issuance</h1>
             <p class="text-muted small mb-0">Welcome, <strong>Vice President {{ Auth::user()->name }}</strong> | Office of the Vice President for Research, Extension & Innovation</p>
         </div>
-        <div class="d-flex gap-2 w-100 w-md-auto">
+        <div class="d-flex gap-2 w-100 w-md-auto flex-wrap">
+            <a href="{{ route('service_credits.index') }}" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 fw-semibold" style="font-size: 0.85rem;" title="List of Researchers Qualified to Avail Service Credits">
+                <i class="bi bi-award"></i> Service Credits
+            </a>
+            <a href="{{ route('published_researches_dossiers.index') }}" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 fw-semibold" style="font-size: 0.85rem;" title="List of Published Researches">
+                <i class="bi bi-journal-bookmark"></i> Published Lists
+            </a>
+            <a href="{{ route('ongoing_researches.index') }}" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 fw-semibold" style="font-size: 0.85rem;" title="List of On-going Researches">
+                <i class="bi bi-play-circle"></i> On-going Researches
+            </a>
+            <a href="{{ route('in_house_reviews.index') }}" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 fw-semibold" style="font-size: 0.85rem;" title="In-house Reviewed Research Proposals">
+                <i class="bi bi-mortarboard"></i> In-house Reviews
+            </a>
+            <a href="{{ route('approved_researches.index') }}" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 fw-semibold" style="font-size: 0.85rem;" title="List of Approved Researches Dossiers">
+                <i class="bi bi-file-earmark-check"></i> Approved Researches
+            </a>
             <a href="{{ route('announcements.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 fw-semibold" style="font-size: 0.85rem;">
                 <i class="bi bi-megaphone"></i> Announcements
             </a>
@@ -467,7 +482,7 @@
                                     <i class="bi bi-archive fs-5"></i>
                                 </div>
                                 <div class="flex-grow-1 min-w-0">
-                                    <div class="fw-semibold text-dark small">Research Repository</div>
+                                    <div class="fw-semibold text-dark small">Published Researches</div>
                                     <div class="text-muted" style="font-size: 0.72rem; line-height: 1.25;">Browse completed studies</div>
                                 </div>
                                 <i class="bi bi-arrow-right text-muted fs-7"></i>

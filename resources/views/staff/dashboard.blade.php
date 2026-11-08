@@ -5,7 +5,12 @@
             <h1 class="h3 fw-bold text-dark mb-1">Receiving Queue & Document Logging</h1>
             <p class="text-muted small mb-0">Welcome, <strong>{{ Auth::user()->name }}</strong> | Receiving Staff & Completeness Verification</p>
         </div>
-        <div class="row g-2 w-100 w-md-auto m-0">
+        <div class="row g-2 w-100 w-md-auto m-0 flex-wrap">
+            <div class="col-12 col-md-auto p-0 pe-md-1">
+                <a href="{{ route('presented_researches.index') }}" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-3 w-100 py-2 px-3 fw-semibold" style="font-size: 0.8rem;" title="List of Presented Researches">
+                    <i class="bi bi-easel"></i> <span class="text-truncate">Presented Lists</span>
+                </a>
+            </div>
             <div class="col-6 col-md-auto p-0 pe-1 pe-md-0">
                 <a href="{{ route('announcements.index') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-3 w-100 py-2 px-2" style="font-size: 0.8rem;">
                     <i class="bi bi-megaphone"></i> <span class="text-truncate">Announcements</span>
@@ -566,7 +571,7 @@
                                     <i class="bi bi-archive"></i>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="fw-semibold text-dark small">Research Repository</div>
+                                    <div class="fw-semibold text-dark small">Published Researches</div>
                                     <div class="text-muted fs-7">Browse institutional manuscripts</div>
                                 </div>
                                 <i class="bi bi-arrow-right text-muted fs-7"></i>

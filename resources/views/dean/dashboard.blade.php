@@ -8,17 +8,19 @@
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold">{{ strtoupper($department) }} College</span>
             </p>
         </div>
-        <div class="row g-2 w-100 w-md-auto m-0">
-            <div class="col-6 col-md-auto p-0 pe-1 pe-md-0">
-                <a href="{{ route('announcements.index') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-3 w-100 py-2 px-2" style="font-size: 0.8rem;">
-                    <i class="bi bi-megaphone"></i> <span class="text-truncate">Announcements</span>
-                </a>
-            </div>
-            <div class="col-6 col-md-auto p-0 ps-1 ps-md-0">
-                <a href="{{ route('messages.index') }}" class="btn btn-sm btn-primary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-3 w-100 py-2 px-2" style="font-size: 0.8rem;">
-                    <i class="bi bi-envelope"></i> <span class="text-truncate">Messages</span>
-                </a>
-            </div>
+        <div class="d-flex gap-2 w-100 w-md-auto flex-wrap">
+            <a href="{{ route('accomplishment_reports.index') }}" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-pill py-2 px-3 fw-bold" style="font-size: 0.8rem;" title="Research Accomplishment Reports">
+                <i class="bi bi-file-earmark-bar-graph"></i> <span>Accomplishment Reports</span>
+            </a>
+            <a href="{{ route('completed_researches_summary.index') }}" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-pill py-2 px-3 fw-bold" style="font-size: 0.8rem;">
+                <i class="bi bi-file-earmark-ruled"></i> <span>Completed Summaries</span>
+            </a>
+            <a href="{{ route('announcements.index') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-pill py-2 px-3" style="font-size: 0.8rem;">
+                <i class="bi bi-megaphone"></i> <span class="text-truncate">Announcements</span>
+            </a>
+            <a href="{{ route('messages.index') }}" class="btn btn-sm btn-primary d-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-pill py-2 px-3" style="font-size: 0.8rem;">
+                <i class="bi bi-envelope"></i> <span class="text-truncate">Messages</span>
+            </a>
         </div>
     </div>
 
@@ -514,7 +516,7 @@
                                     <i class="bi bi-archive"></i>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="fw-semibold text-dark small">Research Repository</div>
+                                    <div class="fw-semibold text-dark small">Published Researches</div>
                                     <div class="text-muted fs-7">Browse published college studies</div>
                                 </div>
                                 <i class="bi bi-arrow-right text-muted fs-7"></i>

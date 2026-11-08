@@ -94,6 +94,9 @@ Route::middleware(['auth', 'role:researcher', 'approved', 'verified'])->group(fu
     Route::put('/proposal/{id}/update', [ResearchProposalController::class, 'update'])->name('proposal.update');
     Route::delete('/proposal/{id}', [ResearchProposalController::class, 'destroy'])->name('proposal.destroy');
     Route::post('/proposal/{id}/submit-final-copy', [ResearchProposalController::class, 'submitFinalCopy'])->name('proposal.submitFinalCopy');
+    Route::post('/proposal/{id}/collaboration/{action}', [ResearchProposalController::class, 'respondToCollaboration'])
+        ->name('collaboration.respond')
+        ->where('action', 'accept|decline');
 
     // Phase 2 Implementation Routes (Researcher Submissions)
     Route::post('/proposal/{id}/activity-design', [\App\Http\Controllers\ActivityDesignController::class, 'store'])->name('activity_design.store');
@@ -174,6 +177,88 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Secure File Serving — serves files seamlessly with path traversal protection
     Route::get('/files/serve', [DashboardController::class, 'serveFile'])->name('file.serve');
+
+    // List of Approved Researches (Institutional Dossier: Prepared by Director, Noted by VPREI)
+    Route::get('/approved-researches', [\App\Http\Controllers\ApprovedResearchListController::class, 'index'])->name('approved_researches.index');
+    Route::get('/approved-researches/create', [\App\Http\Controllers\ApprovedResearchListController::class, 'create'])->name('approved_researches.create');
+    Route::post('/approved-researches', [\App\Http\Controllers\ApprovedResearchListController::class, 'store'])->name('approved_researches.store');
+    Route::get('/approved-researches/{id}', [\App\Http\Controllers\ApprovedResearchListController::class, 'show'])->name('approved_researches.show');
+    Route::post('/approved-researches/{id}/note', [\App\Http\Controllers\ApprovedResearchListController::class, 'note'])->name('approved_researches.note');
+    Route::get('/approved-researches/{id}/pdf', [\App\Http\Controllers\ApprovedResearchListController::class, 'exportPdf'])->name('approved_researches.pdf');
+    Route::delete('/approved-researches/{id}', [\App\Http\Controllers\ApprovedResearchListController::class, 'destroy'])->name('approved_researches.destroy');
+
+    // In-house Reviewed Research Proposals (Institutional Dossier: Prepared by Director, Noted by VPREI)
+    Route::get('/in-house-reviewed-proposals', [\App\Http\Controllers\InHouseReviewListController::class, 'index'])->name('in_house_reviews.index');
+    Route::get('/in-house-reviewed-proposals/create', [\App\Http\Controllers\InHouseReviewListController::class, 'create'])->name('in_house_reviews.create');
+    Route::post('/in-house-reviewed-proposals', [\App\Http\Controllers\InHouseReviewListController::class, 'store'])->name('in_house_reviews.store');
+    Route::get('/in-house-reviewed-proposals/{id}', [\App\Http\Controllers\InHouseReviewListController::class, 'show'])->name('in_house_reviews.show');
+    Route::post('/in-house-reviewed-proposals/{id}/note', [\App\Http\Controllers\InHouseReviewListController::class, 'note'])->name('in_house_reviews.note');
+    Route::get('/in-house-reviewed-proposals/{id}/pdf', [\App\Http\Controllers\InHouseReviewListController::class, 'exportPdf'])->name('in_house_reviews.pdf');
+    Route::delete('/in-house-reviewed-proposals/{id}', [\App\Http\Controllers\InHouseReviewListController::class, 'destroy'])->name('in_house_reviews.destroy');
+
+    // List of On-going Researches (Institutional Dossier: Prepared by Director, Noted by VPREI)
+    Route::get('/ongoing-researches', [\App\Http\Controllers\OngoingResearchListController::class, 'index'])->name('ongoing_researches.index');
+    Route::get('/ongoing-researches/create', [\App\Http\Controllers\OngoingResearchListController::class, 'create'])->name('ongoing_researches.create');
+    Route::post('/ongoing-researches', [\App\Http\Controllers\OngoingResearchListController::class, 'store'])->name('ongoing_researches.store');
+    Route::get('/ongoing-researches/{id}', [\App\Http\Controllers\OngoingResearchListController::class, 'show'])->name('ongoing_researches.show');
+    Route::post('/ongoing-researches/{id}/note', [\App\Http\Controllers\OngoingResearchListController::class, 'note'])->name('ongoing_researches.note');
+    Route::get('/ongoing-researches/{id}/pdf', [\App\Http\Controllers\OngoingResearchListController::class, 'exportPdf'])->name('ongoing_researches.pdf');
+    Route::delete('/ongoing-researches/{id}', [\App\Http\Controllers\OngoingResearchListController::class, 'destroy'])->name('ongoing_researches.destroy');
+
+    // List of Published Researches (Institutional Dossier: Prepared by Director, Noted by VPREI)
+    Route::get('/published-researches-dossiers', [\App\Http\Controllers\PublishedResearchListController::class, 'index'])->name('published_researches_dossiers.index');
+    Route::get('/published-researches-dossiers/create', [\App\Http\Controllers\PublishedResearchListController::class, 'create'])->name('published_researches_dossiers.create');
+    Route::post('/published-researches-dossiers', [\App\Http\Controllers\PublishedResearchListController::class, 'store'])->name('published_researches_dossiers.store');
+    Route::get('/published-researches-dossiers/{id}', [\App\Http\Controllers\PublishedResearchListController::class, 'show'])->name('published_researches_dossiers.show');
+    Route::post('/published-researches-dossiers/{id}/note', [\App\Http\Controllers\PublishedResearchListController::class, 'note'])->name('published_researches_dossiers.note');
+    Route::get('/published-researches-dossiers/{id}/pdf', [\App\Http\Controllers\PublishedResearchListController::class, 'exportPdf'])->name('published_researches_dossiers.pdf');
+    Route::delete('/published-researches-dossiers/{id}', [\App\Http\Controllers\PublishedResearchListController::class, 'destroy'])->name('published_researches_dossiers.destroy');
+
+    // List of Presented Researches (Institutional Dossier: Prepared by Receiving Staff, Noted by Director)
+    Route::get('/presented-researches', [\App\Http\Controllers\PresentedResearchListController::class, 'index'])->name('presented_researches.index');
+    Route::get('/presented-researches/create', [\App\Http\Controllers\PresentedResearchListController::class, 'create'])->name('presented_researches.create');
+    Route::post('/presented-researches', [\App\Http\Controllers\PresentedResearchListController::class, 'store'])->name('presented_researches.store');
+    Route::get('/presented-researches/{id}', [\App\Http\Controllers\PresentedResearchListController::class, 'show'])->name('presented_researches.show');
+    Route::post('/presented-researches/{id}/note', [\App\Http\Controllers\PresentedResearchListController::class, 'note'])->name('presented_researches.note');
+    Route::get('/presented-researches/{id}/pdf', [\App\Http\Controllers\PresentedResearchListController::class, 'exportPdf'])->name('presented_researches.pdf');
+    Route::delete('/presented-researches/{id}', [\App\Http\Controllers\PresentedResearchListController::class, 'destroy'])->name('presented_researches.destroy');
+
+    // List of Research for Inception (Institutional Dossier: Prepared by Recording Staff, Noted by Director)
+    Route::get('/inception-researches', [\App\Http\Controllers\InceptionResearchListController::class, 'index'])->name('inception_researches.index');
+    Route::get('/inception-researches/create', [\App\Http\Controllers\InceptionResearchListController::class, 'create'])->name('inception_researches.create');
+    Route::post('/inception-researches', [\App\Http\Controllers\InceptionResearchListController::class, 'store'])->name('inception_researches.store');
+    Route::get('/inception-researches/{id}', [\App\Http\Controllers\InceptionResearchListController::class, 'show'])->name('inception_researches.show');
+    Route::post('/inception-researches/{id}/note', [\App\Http\Controllers\InceptionResearchListController::class, 'note'])->name('inception_researches.note');
+    Route::get('/inception-researches/{id}/pdf', [\App\Http\Controllers\InceptionResearchListController::class, 'exportPdf'])->name('inception_researches.pdf');
+    Route::delete('/inception-researches/{id}', [\App\Http\Controllers\InceptionResearchListController::class, 'destroy'])->name('inception_researches.destroy');
+
+    // List of Researchers Qualified to Avail Service Credits (Institutional Dossier: Prepared by Director, Approved by VPREI)
+    Route::get('/service-credits', [\App\Http\Controllers\ServiceCreditListController::class, 'index'])->name('service_credits.index');
+    Route::get('/service-credits/create', [\App\Http\Controllers\ServiceCreditListController::class, 'create'])->name('service_credits.create');
+    Route::post('/service-credits', [\App\Http\Controllers\ServiceCreditListController::class, 'store'])->name('service_credits.store');
+    Route::get('/service-credits/{id}', [\App\Http\Controllers\ServiceCreditListController::class, 'show'])->name('service_credits.show');
+    Route::post('/service-credits/{id}/approve', [\App\Http\Controllers\ServiceCreditListController::class, 'approve'])->name('service_credits.approve');
+    Route::get('/service-credits/{id}/pdf', [\App\Http\Controllers\ServiceCreditListController::class, 'exportPdf'])->name('service_credits.pdf');
+    Route::delete('/service-credits/{id}', [\App\Http\Controllers\ServiceCreditListController::class, 'destroy'])->name('service_credits.destroy');
+
+    // Completed Researches Summary Form (Institutional Dossier: Prepared by College Coordinator, Noted by College Dean)
+    Route::get('/completed-researches-summary', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'index'])->name('completed_researches_summary.index');
+    Route::get('/completed-researches-summary/create', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'create'])->name('completed_researches_summary.create');
+    Route::post('/completed-researches-summary', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'store'])->name('completed_researches_summary.store');
+    Route::get('/completed-researches-summary/{id}', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'show'])->name('completed_researches_summary.show');
+    Route::post('/completed-researches-summary/{id}/note', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'note'])->name('completed_researches_summary.note');
+    Route::get('/completed-researches-summary/{id}/pdf', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'exportPdf'])->name('completed_researches_summary.pdf');
+    Route::delete('/completed-researches-summary/{id}', [\App\Http\Controllers\CompletedResearchSummaryController::class, 'destroy'])->name('completed_researches_summary.destroy');
+
+    // Research Accomplishment Report (RESU-FM-004: Prepared by Coordinator, Noted & Submitted by Dean, Received by Director)
+    Route::get('/accomplishment-reports', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'index'])->name('accomplishment_reports.index');
+    Route::get('/accomplishment-reports/create', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'create'])->name('accomplishment_reports.create');
+    Route::post('/accomplishment-reports', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'store'])->name('accomplishment_reports.store');
+    Route::get('/accomplishment-reports/{id}', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'show'])->name('accomplishment_reports.show');
+    Route::post('/accomplishment-reports/{id}/note-and-submit', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'noteAndSubmit'])->name('accomplishment_reports.note_and_submit');
+    Route::post('/accomplishment-reports/{id}/acknowledge', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'acknowledge'])->name('accomplishment_reports.acknowledge');
+    Route::get('/accomplishment-reports/{id}/pdf', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'exportPdf'])->name('accomplishment_reports.pdf');
+    Route::delete('/accomplishment-reports/{id}', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'destroy'])->name('accomplishment_reports.destroy');
 
     // Profile Routes
     Route::get('/profile/{id?}', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');

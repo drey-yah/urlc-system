@@ -280,7 +280,7 @@
                                     <i class="bi bi-archive"></i>
                                 </div>
                                 <div class="flex-grow-1 min-w-0">
-                                    <div class="fw-semibold text-dark small">Research Repository</div>
+                                    <div class="fw-semibold text-dark small">Published Researches</div>
                                     <div class="text-muted fs-7 text-truncate">Reference past approved studies</div>
                                 </div>
                                 <i class="bi bi-arrow-right text-muted fs-7"></i>

@@ -240,7 +240,7 @@
                                     <div class="alert alert-info border-0 rounded-4 d-flex align-items-center gap-3 py-3 mb-0">
                                         <i class="bi bi-shield-check fs-4 flex-shrink-0 text-info"></i>
                                         <p class="mb-0 small" style="font-size: 0.8rem; line-height: 1.4;">
-                                            Selected co-proponents are credited in official Form RESU-FM-015 and have co-ownership tracking from their researcher portals.
+                                            Tagging faculty members will send them a collaboration invitation with an <strong>Accept or Decline</strong> option. Only researchers who have set their profile to <strong>Public (Allow Tagging)</strong> appear here.
                                         </p>
                                     </div>
                                 </div>

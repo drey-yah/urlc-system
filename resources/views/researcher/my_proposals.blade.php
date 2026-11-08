@@ -602,8 +602,10 @@
                                     5 => 'Phase 5: Forum',
                                 ];
                                 $cPhaseText = $cPhaseNames[$cPhaseNum] ?? ('Phase ' . $cPhaseNum);
+                                $myCollab = $proposal->collaborators->firstWhere('id', auth()->id());
+                                $collabStatus = $myCollab->pivot->status ?? 'pending';
                             @endphp
-                            <div class="p-2 bg-light rounded-3 mb-3 border">
+                            <div class="p-2 bg-light rounded-3 mb-2 border">
                                 <div class="d-flex justify-content-between align-items-center mb-1 small">
                                     <span class="text-muted fw-semibold" style="font-size: 0.74rem;">{{ $cPhaseText }}</span>
                                     <span class="fw-bold text-info" style="font-size: 0.78rem;">{{ $cProgressPercent }}%</span>
@@ -613,8 +615,31 @@
                                 </div>
                             </div>
 
-                            <div class="pt-2 border-top">
-                                <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5" style="font-size: 0.82rem;">
+                            @if($collabStatus === 'pending')
+                                <div class="p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 mb-2">
+                                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                        <span class="small fw-bold text-dark" style="font-size: 0.76rem;"><i class="bi bi-person-plus-fill text-warning me-1"></i> Collaboration Invitation</span>
+                                        <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Action Needed</span>
+                                    </div>
+                                    <div class="d-flex gap-1.5">
+                                        <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'accept']) }}" class="flex-grow-1 m-0">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill py-1 fw-bold" style="font-size: 0.75rem;">
+                                                <i class="bi bi-check-lg"></i> Accept
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'decline']) }}" class="flex-grow-1 m-0" onsubmit="return confirm('Decline this invitation?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-1 fw-semibold" style="font-size: 0.75rem;">
+                                                <i class="bi bi-x-lg"></i> Decline
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="pt-2 border-top d-flex gap-2">
+                                <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5" style="font-size: 0.82rem;">
                                     <i class="bi bi-eye"></i> View Proposal Details
                                 </a>
                             </div>
@@ -638,13 +663,17 @@
                                 <th class="ps-4 py-3 small fw-bold text-info border-0">PROPOSAL CODE</th>
                                 <th class="py-3 small fw-bold text-info border-0">TITLE</th>
                                 <th class="py-3 small fw-bold text-info border-0">LEAD RESEARCHER</th>
-                                <th class="py-3 small fw-bold text-info border-0">COLLABORATORS</th>
-                                <th class="py-3 small fw-bold text-info border-0">STATUS</th>
+                                <th class="py-3 small fw-bold text-info border-0">INVITATION STATUS</th>
+                                <th class="py-3 small fw-bold text-info border-0">PROPOSAL STAGE</th>
                                 <th class="pe-4 py-3 small fw-bold text-info border-0 text-end">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($collaboratedProposals as $proposal)
+                                @php
+                                    $myCollab = $proposal->collaborators->firstWhere('id', auth()->id());
+                                    $collabStatus = $myCollab->pivot->status ?? 'pending';
+                                @endphp
                                 <tr>
                                     <td class="ps-4 py-3">
                                         <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 font-monospace" style="font-size: 0.72rem;">{{ $proposal->proposal_code ?? 'NO TAG' }}</span>
@@ -662,15 +691,19 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach($proposal->collaborators as $collab)
-                                                @if($collab->id !== auth()->id())
-                                                    <span class="badge bg-light text-muted border px-2 py-1 rounded-pill" style="font-size: 0.68rem;">{{ $collab->name }}</span>
-                                                @else
-                                                    <span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-1 rounded-pill" style="font-size: 0.68rem;">You</span>
-                                                @endif
-                                            @endforeach
-                                        </div>
+                                        @if($collabStatus === 'accepted')
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Accepted
+                                            </span>
+                                        @elseif($collabStatus === 'declined')
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 small fw-bold">
+                                                <i class="bi bi-x-circle me-1"></i> Declined
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning bg-opacity-20 text-warning-emphasis border border-warning border-opacity-50 rounded-pill px-2.5 py-1 small fw-bold">
+                                                <i class="bi bi-clock me-1"></i> Invitation Pending
+                                            </span>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge {{ 
@@ -681,9 +714,25 @@
                                         </span>
                                     </td>
                                     <td class="pe-4 text-end">
-                                        <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-xs">
-                                            <i class="bi bi-eye me-1"></i> View
-                                        </a>
+                                        <div class="d-inline-flex align-items-center gap-1.5">
+                                            @if($collabStatus === 'pending')
+                                                <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'accept']) }}" class="m-0">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-xs" title="Accept Collaboration Invitation">
+                                                        <i class="bi bi-check-lg me-0.5"></i> Accept
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'decline']) }}" class="m-0" onsubmit="return confirm('Decline this invitation?');">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" title="Decline Invitation">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-xs">
+                                                <i class="bi bi-eye me-1"></i> View
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

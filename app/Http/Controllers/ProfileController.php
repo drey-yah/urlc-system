@@ -66,9 +66,13 @@ class ProfileController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'campus' => ['nullable', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
+            'allow_collaboration' => ['nullable', 'boolean'],
         ]);
 
-        $user->update($request->only('name', 'email', 'campus', 'department'));
+        $data = $request->only('name', 'email', 'campus', 'department');
+        $data['allow_collaboration'] = $request->boolean('allow_collaboration', true);
+
+        $user->update($data);
 
         return redirect()->route('profile.show')->with('success', 'Profile updated successfully.');
     }

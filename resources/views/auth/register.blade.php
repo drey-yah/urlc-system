@@ -549,7 +549,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label-custom" for="email">Institutional Email</label>
+                        <label class="form-label-custom" for="email">Email</label>
                         <div class="input-wrapper">
                             <input id="email" class="form-input" type="email" name="email"
                                 value="{{ old('email') }}" placeholder="username@antiquespride.edu.ph"
@@ -609,8 +609,8 @@
                                 <option value="Main Campus (Sibalom)" {{ old('campus') == 'Main Campus (Sibalom)' ? 'selected' : '' }}>Main Campus (Sibalom)</option>
                                 <option value="TLMC (Tibiao)" {{ old('campus') == 'TLMC (Tibiao)' ? 'selected' : '' }}>TLMC - Tario Lim Memorial Campus</option>
                                 <option value="Hamtic Campus" {{ old('campus') == 'Hamtic Campus' ? 'selected' : '' }}>Hamtic Campus</option>
-                                <option value="Libertad Campus" {{ old('campus') == 'Libertad Campus' ? 'selected' : '' }}>Libertad Campus</option>
-                                <option value="Caluya Campus" {{ old('campus') == 'Caluya Campus' ? 'selected' : '' }}>Caluya Campus</option>
+                                <option value="Libertad Extension Campus" {{ in_array(old('campus'), ['Libertad Extension Campus', 'Libertad Campus']) ? 'selected' : '' }}>Libertad Extension Campus</option>
+                                <option value="Caluya Extension Campus" {{ in_array(old('campus'), ['Caluya Extension Campus', 'Caluya Campus']) ? 'selected' : '' }}>Caluya Extension Campus</option>
                             </select>
                             <i class="bi bi-geo-alt input-icon"></i>
                         </div>

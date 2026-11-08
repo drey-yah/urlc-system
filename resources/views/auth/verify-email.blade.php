@@ -242,12 +242,12 @@
         </div>
 
         <div class="inst-sublabel">University of Antique &bull; Research & Development Services</div>
-        <h1 class="verify-title">Verify Your Institutional Email</h1>
+        <h1 class="verify-title">Verify Your Email</h1>
 
         <!-- Recipient Email Pill -->
         <div class="email-badge">
             <i class="bi bi-envelope-at-fill"></i>
-            <span>{{ auth()->user()->email ?? 'your institutional email' }}</span>
+            <span>{{ auth()->user()->email ?? 'your email' }}</span>
         </div>
 
         <!-- Description -->

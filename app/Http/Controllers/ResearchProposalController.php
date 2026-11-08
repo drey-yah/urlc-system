@@ -23,6 +23,11 @@ class ResearchProposalController extends Controller
     {
         $researchers = \App\Models\User::where('role', 'researcher')
             ->where('id', '!=', auth()->id())
+            ->where(function ($q) {
+                $q->where('allow_collaboration', true)
+                  ->orWhereNull('allow_collaboration');
+            })
+            ->orderBy('name')
             ->get();
         return view('researcher.create_proposal', compact('researchers'));
     }
@@ -214,8 +219,21 @@ class ResearchProposalController extends Controller
                 ]);
             }
 
-            if ($request->has('collaborators')) {
-                $proposal->collaborators()->sync($request->collaborators);
+            if ($request->has('collaborators') && is_array($request->collaborators)) {
+                $syncData = [];
+                foreach ($request->collaborators as $collabId) {
+                    $syncData[$collabId] = [
+                        'status' => 'pending',
+                        'invited_at' => now(),
+                    ];
+                }
+                $proposal->collaborators()->sync($syncData);
+
+                // Notify invited collaborators with Accept/Decline action
+                $invitedUsers = \App\Models\User::whereIn('id', $request->collaborators)->get();
+                foreach ($invitedUsers as $invitedUser) {
+                    $invitedUser->notify(new \App\Notifications\CollaborationInvitationNotification($proposal, auth()->user()));
+                }
             }
         });
 
@@ -496,6 +514,12 @@ class ResearchProposalController extends Controller
 
         $researchers = User::where('role', 'researcher')
             ->where('id', '!=', auth()->id())
+            ->where(function ($q) use ($proposal) {
+                $q->where('allow_collaboration', true)
+                  ->orWhereNull('allow_collaboration')
+                  ->orWhereIn('id', $proposal->collaborators->pluck('id'));
+            })
+            ->orderBy('name')
             ->get();
 
         return view('researcher.edit_proposal', compact('proposal', 'researchers'));
@@ -665,8 +689,38 @@ class ResearchProposalController extends Controller
 
         $proposal->update($updateData);
 
-        if ($request->has('collaborators')) {
-            $proposal->collaborators()->sync($request->collaborators);
+        if ($request->has('collaborators') && is_array($request->collaborators)) {
+            $existing = $proposal->collaborators()->get()->keyBy('id');
+            $syncData = [];
+            $newlyInvitedIds = [];
+
+            foreach ($request->collaborators as $collabId) {
+                if ($existing->has($collabId)) {
+                    $item = $existing->get($collabId);
+                    $syncData[$collabId] = [
+                        'status' => $item->pivot->status ?? 'pending',
+                        'invited_at' => $item->pivot->invited_at ?? now(),
+                        'responded_at' => $item->pivot->responded_at ?? null,
+                    ];
+                } else {
+                    $syncData[$collabId] = [
+                        'status' => 'pending',
+                        'invited_at' => now(),
+                        'responded_at' => null,
+                    ];
+                    $newlyInvitedIds[] = $collabId;
+                }
+            }
+            $proposal->collaborators()->sync($syncData);
+
+            if (!empty($newlyInvitedIds)) {
+                $newlyInvited = User::whereIn('id', $newlyInvitedIds)->get();
+                foreach ($newlyInvited as $collabUser) {
+                    $collabUser->notify(new \App\Notifications\CollaborationInvitationNotification($proposal, auth()->user()));
+                }
+            }
+        } else {
+            $proposal->collaborators()->detach();
         }
 
         if (!$isDraft && $newStatus === 'submitted_to_research_unit') {
@@ -1041,5 +1095,67 @@ class ResearchProposalController extends Controller
         ])->findOrFail($id);
 
         return view('reports.proposal_resu_fm015', compact('proposal'));
+    }
+
+    /**
+     * Collaborator: Accept or decline a collaboration invitation.
+     */
+    public function respondToCollaboration($id, $action)
+    {
+        $proposal = ResearchProposal::with(['user', 'collaborators'])->findOrFail($id);
+        $user = auth()->user();
+
+        $collaborator = $proposal->collaborators()->where('users.id', $user->id)->first();
+        if (!$collaborator) {
+            abort(403, 'You are not invited as a collaborator for this proposal.');
+        }
+
+        if ($action === 'accept') {
+            $proposal->collaborators()->updateExistingPivot($user->id, [
+                'status' => 'accepted',
+                'responded_at' => now(),
+            ]);
+
+            // Notify Lead Researcher
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Collaboration Accepted',
+                $user->name . ' accepted your invitation to collaborate on "' . \Illuminate\Support\Str::limit($proposal->title, 60) . '".',
+                'bi-check-circle-fill',
+                'text-success'
+            ));
+
+            // Mark invitation notifications for this proposal as read
+            $user->unreadNotifications
+                ->where('data.proposal_id', $proposal->id)
+                ->where('data.type', 'collaboration_invitation')
+                ->markAsRead();
+
+            return redirect()->back()->with('success', 'You have accepted the collaboration invitation. You are now officially a co-proponent on this research.');
+        } elseif ($action === 'decline') {
+            $proposal->collaborators()->updateExistingPivot($user->id, [
+                'status' => 'declined',
+                'responded_at' => now(),
+            ]);
+
+            // Notify Lead Researcher
+            $proposal->user->notify(new WorkflowStatusNotification(
+                $proposal,
+                'Collaboration Declined',
+                $user->name . ' declined the invitation to collaborate on "' . \Illuminate\Support\Str::limit($proposal->title, 60) . '".',
+                'bi-x-circle-fill',
+                'text-danger'
+            ));
+
+            // Mark invitation notifications for this proposal as read
+            $user->unreadNotifications
+                ->where('data.proposal_id', $proposal->id)
+                ->where('data.type', 'collaboration_invitation')
+                ->markAsRead();
+
+            return redirect()->back()->with('info', 'You have declined the collaboration invitation.');
+        }
+
+        return redirect()->back();
     }
 }

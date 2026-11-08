@@ -79,7 +79,17 @@ class ResearchProposal extends Model
 
     public function collaborators()
     {
-        return $this->belongsToMany(\App\Models\User::class, 'proposal_collaborators');
+        return $this->belongsToMany(\App\Models\User::class, 'proposal_collaborators')
+            ->withPivot('status', 'invited_at', 'responded_at')
+            ->withTimestamps();
+    }
+
+    public function confirmedCollaborators()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'proposal_collaborators')
+            ->wherePivot('status', 'accepted')
+            ->withPivot('status', 'invited_at', 'responded_at')
+            ->withTimestamps();
     }
 
     // Relationship: Proposal has many milestones

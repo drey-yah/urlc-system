@@ -26,9 +26,9 @@
                                     <option value="Main Campus (Sibalom)" {{ old('campus', $user->campus) == 'Main Campus (Sibalom)' ? 'selected' : '' }}>Main Campus (Sibalom)</option>
                                     <option value="TLMC (Tibiao)" {{ old('campus', $user->campus) == 'TLMC (Tibiao)' ? 'selected' : '' }}>TLMC - Tario Lim Memorial Campus</option>
                                     <option value="Hamtic Campus" {{ old('campus', $user->campus) == 'Hamtic Campus' ? 'selected' : '' }}>Hamtic Campus</option>
-                                    <option value="Libertad Campus" {{ old('campus', $user->campus) == 'Libertad Campus' ? 'selected' : '' }}>Libertad Campus</option>
-                                    <option value="Caluya Campus" {{ old('campus', $user->campus) == 'Caluya Campus' ? 'selected' : '' }}>Caluya Campus</option>
-                                    @if($user->campus && !in_array($user->campus, ['Main Campus (Sibalom)', 'TLMC (Tibiao)', 'Hamtic Campus', 'Libertad Campus', 'Caluya Campus']))
+                                    <option value="Libertad Extension Campus" {{ in_array(old('campus', $user->campus), ['Libertad Extension Campus', 'Libertad Campus']) ? 'selected' : '' }}>Libertad Extension Campus</option>
+                                    <option value="Caluya Extension Campus" {{ in_array(old('campus', $user->campus), ['Caluya Extension Campus', 'Caluya Campus']) ? 'selected' : '' }}>Caluya Extension Campus</option>
+                                    @if($user->campus && !in_array($user->campus, ['Main Campus (Sibalom)', 'TLMC (Tibiao)', 'Hamtic Campus', 'Libertad Extension Campus', 'Libertad Campus', 'Caluya Extension Campus', 'Caluya Campus']))
                                         <option value="{{ $user->campus }}" selected>{{ $user->campus }}</option>
                                     @endif
                                 </select>
@@ -36,6 +36,45 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted text-uppercase">Department</label>
                                 <input type="text" name="department" class="form-control border-0 bg-light py-2 px-3 rounded-3" value="{{ old('department', $user->department) }}" placeholder="e.g. College of Engineering">
+                            </div>
+
+                            <!-- Collaboration & Tagging Privacy -->
+                            <div class="col-12 mt-3 pt-3 border-top">
+                                <label class="form-label small fw-bold text-muted text-uppercase d-flex align-items-center gap-1.5 mb-1">
+                                    <i class="bi bi-shield-lock-fill text-primary"></i> Collaboration &amp; Tagging Privacy
+                                </label>
+                                <p class="text-muted small mb-3">
+                                    Control whether other faculty researchers can search, tag, and invite you as a research co-proponent when creating proposals (just like Facebook profile privacy).
+                                </p>
+                                
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="p-3 border rounded-3 d-flex align-items-start gap-2.5 h-100 cursor-pointer transition-all bg-white shadow-xs" style="cursor: pointer;">
+                                            <input type="radio" name="allow_collaboration" value="1" class="form-check-input mt-1 border-primary" {{ old('allow_collaboration', $user->allow_collaboration ?? true) ? 'checked' : '' }}>
+                                            <div>
+                                                <div class="fw-bold text-dark small d-flex align-items-center gap-1">
+                                                    <i class="bi bi-globe text-success"></i> Public (Allow Tagging)
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.76rem; line-height: 1.35;">
+                                                    Your name appears in the Available Researchers list. Other lead researchers can tag and invite you as a co-proponent (you still get to Accept or Decline each invitation).
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="p-3 border rounded-3 d-flex align-items-start gap-2.5 h-100 cursor-pointer transition-all bg-white shadow-xs" style="cursor: pointer;">
+                                            <input type="radio" name="allow_collaboration" value="0" class="form-check-input mt-1 border-secondary" {{ !old('allow_collaboration', $user->allow_collaboration ?? true) ? 'checked' : '' }}>
+                                            <div>
+                                                <div class="fw-bold text-dark small d-flex align-items-center gap-1">
+                                                    <i class="bi bi-lock-fill text-danger"></i> Private (Do Not Tag)
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.76rem; line-height: 1.35;">
+                                                    Keep your profile hidden from the collaborator selection picker. Other researchers cannot tag or add your name to their research proposals.
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

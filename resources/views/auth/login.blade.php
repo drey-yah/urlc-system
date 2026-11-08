@@ -558,7 +558,7 @@
 
                 <!-- Email Address -->
                 <div class="form-group">
-                    <label class="form-label-custom" for="email">Institutional Email</label>
+                    <label class="form-label-custom" for="email">Email</label>
                     <div class="input-wrapper">
                         <input
                             id="email"

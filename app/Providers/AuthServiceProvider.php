@@ -32,7 +32,7 @@ class AuthServiceProvider extends ServiceProvider
                 ->subject('Verify Your Email Address — URLC Research Portal')
                 ->greeting('Hello ' . ($notifiable->name ?? 'Researcher') . '!')
                 ->line('Welcome to the University Research Lifecycle – Digital Platform (URLC) at the University of Antique.')
-                ->line('Please click the button below to verify your institutional email address and complete your account setup:')
+                ->line('Please click the button below to verify your email address and complete your account setup:')
                 ->action('Verify Email Address', $url)
                 ->line('This verification link will expire in 60 minutes for your security.')
                 ->line('If you did not register for an account on the URLC portal, please disregard this email.')

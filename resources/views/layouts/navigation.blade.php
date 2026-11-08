@@ -74,6 +74,14 @@
                 <i class="bi bi-check-circle-fill"></i>
                 <span>Endorsements</span>
             </a>
+            <a href="{{ route('completed_researches_summary.index') }}" class="sidebar-link {{ request()->routeIs('completed_researches_summary.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-ruled-fill"></i>
+                <span>Completed Summaries</span>
+            </a>
+            <a href="{{ route('accomplishment_reports.index') }}" class="sidebar-link {{ request()->routeIs('accomplishment_reports.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Accomplishment Reports</span>
+            </a>
         @endif
 
         @if($currentRole === 'staff')
@@ -92,6 +100,22 @@
                 <i class="bi bi-pie-chart-fill"></i>
                 <span>Budget Allocations</span>
             </a>
+            <a href="{{ route('inception_researches.index') }}" class="sidebar-link {{ request()->routeIs('inception_researches.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                <span>Inception Lists</span>
+            </a>
+            <a href="{{ route('service_credits.index') }}" class="sidebar-link {{ request()->routeIs('service_credits.*') ? 'active' : '' }}">
+                <i class="bi bi-award-fill"></i>
+                <span>Service Credits</span>
+            </a>
+            <a href="{{ route('completed_researches_summary.index') }}" class="sidebar-link {{ request()->routeIs('completed_researches_summary.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-ruled-fill"></i>
+                <span>Completed Summaries</span>
+            </a>
+            <a href="{{ route('accomplishment_reports.index') }}" class="sidebar-link {{ request()->routeIs('accomplishment_reports.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Accomplishment Reports</span>
+            </a>
         @endif
 
         @if($currentRole === 'dean')
@@ -99,12 +123,24 @@
                 <i class="bi bi-bank2"></i>
                 <span>Dean Noting</span>
             </a>
+            <a href="{{ route('completed_researches_summary.index') }}" class="sidebar-link {{ request()->routeIs('completed_researches_summary.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-ruled-fill"></i>
+                <span>Completed Summaries</span>
+            </a>
+            <a href="{{ route('accomplishment_reports.index') }}" class="sidebar-link {{ request()->routeIs('accomplishment_reports.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Accomplishment Reports</span>
+            </a>
         @endif
 
         @if($currentRole === 'vprei')
             <a href="{{ route('vprei.dashboard') }}" class="sidebar-link {{ request()->routeIs('vprei.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-award-fill"></i>
                 <span>VPREI Approvals</span>
+            </a>
+            <a href="{{ route('service_credits.index') }}" class="sidebar-link {{ request()->routeIs('service_credits.*') ? 'active' : '' }}">
+                <i class="bi bi-award"></i>
+                <span>Service Credits</span>
             </a>
         @endif
 
@@ -166,9 +202,48 @@
             <span>Download Template</span>
         </a>
 
+        @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'president', 'staff', 'recording_staff']))
+            <a href="{{ route('approved_researches.index') }}" class="sidebar-link {{ request()->routeIs('approved_researches.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-check-fill"></i>
+                <span>Approved Researches</span>
+            </a>
+            <a href="{{ route('in_house_reviews.index') }}" class="sidebar-link {{ request()->routeIs('in_house_reviews.*') ? 'active' : '' }}">
+                <i class="bi bi-mortarboard-fill"></i>
+                <span>In-house Reviews</span>
+            </a>
+            <a href="{{ route('ongoing_researches.index') }}" class="sidebar-link {{ request()->routeIs('ongoing_researches.*') ? 'active' : '' }}">
+                <i class="bi bi-play-circle-fill"></i>
+                <span>On-going Researches</span>
+            </a>
+            <a href="{{ route('published_researches_dossiers.index') }}" class="sidebar-link {{ request()->routeIs('published_researches_dossiers.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                <span>Published Lists</span>
+            </a>
+            <a href="{{ route('presented_researches.index') }}" class="sidebar-link {{ request()->routeIs('presented_researches.*') ? 'active' : '' }}">
+                <i class="bi bi-easel-fill"></i>
+                <span>Presented Lists</span>
+            </a>
+            <a href="{{ route('inception_researches.index') }}" class="sidebar-link {{ request()->routeIs('inception_researches.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                <span>Inception Lists</span>
+            </a>
+            <a href="{{ route('service_credits.index') }}" class="sidebar-link {{ request()->routeIs('service_credits.*') ? 'active' : '' }}">
+                <i class="bi bi-award-fill"></i>
+                <span>Service Credits</span>
+            </a>
+            <a href="{{ route('completed_researches_summary.index') }}" class="sidebar-link {{ request()->routeIs('completed_researches_summary.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-ruled-fill"></i>
+                <span>Completed Summaries</span>
+            </a>
+            <a href="{{ route('accomplishment_reports.index') }}" class="sidebar-link {{ request()->routeIs('accomplishment_reports.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                <span>Accomplishment Reports</span>
+            </a>
+        @endif
+
         <a href="{{ route('repository.index') }}" class="sidebar-link {{ request()->routeIs('repository.index') ? 'active' : '' }}">
             <i class="bi bi-journal-bookmark-fill"></i>
-            <span>Research Repository</span>
+            <span>Published Researches</span>
         </a>
 
         <a href="{{ route('messages.index') }}" class="sidebar-link {{ request()->routeIs('messages.index') ? 'active' : '' }}">

@@ -46,7 +46,8 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            // Lockout duration extended to 1 hour (3600 seconds) per evaluator recommendation
+            RateLimiter::hit($this->throttleKey(), 3600);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -73,10 +74,21 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        if ($seconds >= 3540) {
+            $hours = max(1, round($seconds / 3600));
+            $timeString = $hours . ' ' . Str::plural('hour', $hours);
+        } elseif ($seconds >= 60) {
+            $minutes = ceil($seconds / 60);
+            $timeString = $minutes . ' ' . Str::plural('minute', $minutes);
+        } else {
+            $timeString = $seconds . ' ' . Str::plural('second', $seconds);
+        }
+
         throw ValidationException::withMessages([
             'email' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
+                'time' => $timeString,
             ]),
         ]);
     }

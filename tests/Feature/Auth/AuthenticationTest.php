@@ -42,4 +42,24 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_login_attempts_are_rate_limited_with_one_hour_lockout()
+    {
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertStringContainsString('Too many login attempts. Please try again in 1 hour.', session('errors')->first('email'));
+    }
 }

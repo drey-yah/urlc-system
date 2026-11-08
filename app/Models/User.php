@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'campus',
         'department',
         'organization',
+        'allow_collaboration',
     ];
 
     /**
@@ -50,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'is_approved' => 'boolean',
         'additional_roles' => 'array',
+        'allow_collaboration' => 'boolean',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -191,6 +193,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function collaboratedProposals()
     {
-        return $this->belongsToMany(\App\Models\ResearchProposal::class, 'proposal_collaborators');
+        return $this->belongsToMany(\App\Models\ResearchProposal::class, 'proposal_collaborators')
+            ->withPivot('status', 'invited_at', 'responded_at')
+            ->withTimestamps();
     }
 }

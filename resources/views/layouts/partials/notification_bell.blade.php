@@ -116,6 +116,23 @@
                             {{ $notification->data['message'] ?? '' }}
                         </p>
 
+                        @if(($notification->data['type'] ?? '') === 'collaboration_invitation' && !empty($notification->data['proposal_id']))
+                            <div class="d-flex align-items-center gap-1.5 my-1.5" onclick="event.stopPropagation();">
+                                <form method="POST" action="{{ route('collaboration.respond', [$notification->data['proposal_id'], 'accept']) }}" class="m-0 d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 0.7rem;">
+                                        <i class="bi bi-check-lg me-0.5"></i> Accept
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('collaboration.respond', [$notification->data['proposal_id'], 'decline']) }}" class="m-0 d-inline" onsubmit="return confirm('Decline this invitation?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-0.5" style="font-size: 0.7rem;">
+                                        <i class="bi bi-x-lg me-0.5"></i> Decline
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+
                         <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.68rem;">
                             <i class="bi bi-clock"></i>
                             <span>{{ $notification->created_at->diffForHumans() }}</span>

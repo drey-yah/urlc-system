@@ -1,7 +1,17 @@
 <x-app-layout>
-    <div class="mb-5">
-        <h1 class="h3 fw-bold mb-1">Recording Staff Dashboard</h1>
-        <p class="text-muted">Welcome, {{ Auth::user()->name }} | Track & Record Research Lifecycle</p>
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Recording Staff Dashboard</h1>
+            <p class="text-muted mb-0">Welcome, {{ Auth::user()->name }} | Track & Record Research Lifecycle</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{{ route('inception_researches.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Inception Lists
+            </a>
+            <a href="{{ route('inception_researches.create') }}" class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm">
+                <i class="bi bi-plus-circle-fill me-1"></i> Prepare Inception List
+            </a>
+        </div>
     </div>
 
     <!-- Tabs for different ledgers -->

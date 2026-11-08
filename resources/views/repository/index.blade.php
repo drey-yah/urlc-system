@@ -2,7 +2,7 @@
     <!-- Page Header -->
     <div class="mb-3 mb-md-4">
         <h1 class="h4 h-md-3 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-            <i class="bi bi-journal-bookmark-fill text-primary"></i> Research Document Repository
+            <i class="bi bi-journal-bookmark-fill text-primary"></i> Published Researches
         </h1>
         <p class="text-muted small mb-0">Browse, search, and access all completed institutional research projects.</p>
     </div>

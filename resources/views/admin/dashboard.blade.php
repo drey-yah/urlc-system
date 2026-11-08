@@ -7,7 +7,39 @@
             </h1>
             <p class="text-muted small mb-0">Overview of research proposals, user assignments, and portal operations.</p>
         </div>
-        <div class="d-flex gap-2 w-100 w-sm-auto">
+        <div class="d-flex gap-2 w-100 w-sm-auto flex-wrap">
+            <a href="{{ route('accomplishment_reports.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="Research Accomplishment Reports">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>Accomplishment Reports</span>
+            </a>
+            <a href="{{ route('service_credits.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="List of Researchers Qualified to Avail Service Credits">
+                <i class="bi bi-award"></i>
+                <span>Service Credits</span>
+            </a>
+            <a href="{{ route('inception_researches.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="List of Research for Inception">
+                <i class="bi bi-file-earmark-spreadsheet"></i>
+                <span>Inception Lists</span>
+            </a>
+            <a href="{{ route('presented_researches.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="List of Presented Researches">
+                <i class="bi bi-easel"></i>
+                <span>Presented Lists</span>
+            </a>
+            <a href="{{ route('published_researches_dossiers.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="List of Published Researches">
+                <i class="bi bi-journal-bookmark"></i>
+                <span>Published Lists</span>
+            </a>
+            <a href="{{ route('ongoing_researches.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="List of On-going Researches">
+                <i class="bi bi-play-circle"></i>
+                <span>On-going Researches</span>
+            </a>
+            <a href="{{ route('in_house_reviews.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="In-house Reviewed Research Proposals">
+                <i class="bi bi-mortarboard"></i>
+                <span>In-house Reviews</span>
+            </a>
+            <a href="{{ route('approved_researches.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="List of Approved Researches Dossiers">
+                <i class="bi bi-file-earmark-check"></i>
+                <span>Approved Researches</span>
+            </a>
             <a href="{{ route('admin.proposals') }}" class="btn btn-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;">
                 <i class="bi bi-file-earmark-text"></i>
                 <span class="d-none d-sm-inline">Manage </span>Proposals
@@ -369,7 +401,7 @@
                                     <i class="bi bi-archive fs-6"></i>
                                 </div>
                                 <div class="flex-grow-1 min-w-0" style="min-width: 0;">
-                                    <div class="fw-semibold text-dark small">Research Repository</div>
+                                    <div class="fw-semibold text-dark small">Published Researches</div>
                                     <div class="text-muted text-truncate" style="font-size: 0.75rem;">Access published manuscripts</div>
                                 </div>
                                 <i class="bi bi-arrow-right text-muted small"></i>

@@ -19,7 +19,7 @@ class VerifyEmailController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->intended(RouteServiceProvider::HOME.'?verified=1')
-                ->with('success', 'Your institutional email is already verified. Welcome back to URLC Portal!');
+                ->with('success', 'Your email is already verified. Welcome back to URLC Portal!');
         }
 
         if ($request->user()->markEmailAsVerified()) {

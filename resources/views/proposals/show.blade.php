@@ -5,6 +5,61 @@
         </a>
     </div>
 
+    <!-- Collaborator Invitation Banner (Accept / Decline) -->
+    @php
+        $myCollabPivot = $proposal->collaborators->firstWhere('id', auth()->id());
+    @endphp
+
+    @if($myCollabPivot && ($myCollabPivot->pivot->status ?? 'pending') === 'pending')
+        <div class="card border-0 shadow-sm rounded-4 mb-3 mb-md-4 overflow-hidden" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-left: 5px solid #F59E0B !important;">
+            <div class="card-body p-3.5 p-md-4">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-warning bg-opacity-25 text-warning-emphasis d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px;">
+                            <i class="bi bi-person-plus-fill fs-4 text-warning"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-0.5">
+                                <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">Collaboration Invitation</h5>
+                                <span class="badge bg-warning text-dark rounded-pill px-2.5 py-0.5 small fw-semibold">Action Required</span>
+                            </div>
+                            <p class="text-secondary small mb-0">
+                                <strong>{{ $proposal->user->name }}</strong> tagged and invited you as a co-proponent/collaborator on this proposal. Do you wish to accept or decline?
+                            </p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'accept']) }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-1.5">
+                                <i class="bi bi-check-lg"></i> Accept Invitation
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'decline']) }}" class="m-0" onsubmit="return confirm('Are you sure you want to decline this collaboration invitation?');">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5">
+                                <i class="bi bi-x-lg"></i> Decline
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @elseif($myCollabPivot && ($myCollabPivot->pivot->status ?? '') === 'declined')
+        <div class="alert alert-secondary border-0 rounded-4 d-flex align-items-center justify-content-between p-3 mb-3 mb-md-4 shadow-xs">
+            <div class="d-flex align-items-center gap-2 text-muted small">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>You previously declined the invitation to collaborate on this research proposal.</span>
+            </div>
+            <form method="POST" action="{{ route('collaboration.respond', [$proposal->id, 'accept']) }}" class="m-0">
+                @csrf
+                <button type="submit" class="btn btn-link btn-sm text-primary text-decoration-none fw-bold p-0">
+                    Re-accept Invitation
+                </button>
+            </form>
+        </div>
+    @endif
+
     <!-- Main Header Banner -->
     <div class="card border-0 shadow-sm mb-3 mb-md-4 rounded-4 overflow-hidden">
         <div class="gradient-banner p-3 p-md-4 p-lg-5 text-white">
@@ -913,28 +968,57 @@
                     </div>
                     @endif
 
-                    <!-- Collaborators Section -->
-                    @if(!in_array(auth()->user()->role, ['researcher']))
+                    <!-- Collaborators Section (Visible to all project stakeholders) -->
                     <div class="col-12">
-                        <div class="p-3.5 p-md-4 bg-white rounded-3 border">
-                            <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-3">
-                                <i class="bi bi-people text-info"></i> Project Collaborators
-                            </h4>
+                        <div class="p-3.5 p-md-4 bg-white rounded-3 border shadow-xs">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="h6 fw-bold d-flex align-items-center gap-2 mb-0">
+                                    <i class="bi bi-people-fill text-info"></i> Co-Proponents &amp; Collaborators
+                                </h4>
+                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                    {{ $proposal->collaborators->count() }} tagged
+                                </span>
+                            </div>
 
                             @if($proposal->collaborators->isNotEmpty())
                                 <div class="d-flex flex-wrap gap-2.5">
                                     @foreach($proposal->collaborators as $collab)
-                                    <div class="d-flex align-items-center gap-2.5 p-2.5 rounded-3 border bg-light" style="min-width: 200px;">
-                                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
-                                             style="width: 36px; height: 36px; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                                            {{ strtoupper(substr($collab->name, 0, 1)) }}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <div class="fw-semibold text-dark small text-truncate">{{ $collab->name }}</div>
-                                            <div class="text-muted small text-truncate" style="font-size: 0.72rem;">
-                                                {{ $collab->department ? strtoupper($collab->department) : 'No Department' }}
-                                                @if($collab->campus) &bull; {{ $collab->campus }}@endif
+                                    @php
+                                        $cStatus = $collab->pivot->status ?? 'pending';
+                                    @endphp
+                                    <div class="d-flex align-items-center justify-content-between gap-2.5 p-2.5 rounded-3 border bg-light" style="min-width: 240px;">
+                                        <div class="d-flex align-items-center gap-2.5 min-w-0">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                                                 style="width: 36px; height: 36px; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                                                {{ strtoupper(substr($collab->name, 0, 1)) }}
                                             </div>
+                                            <div class="min-w-0">
+                                                <div class="fw-semibold text-dark small text-truncate">
+                                                    {{ $collab->name }}
+                                                    @if($collab->id === auth()->id())
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary border" style="font-size: 0.65rem;">You</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-muted small text-truncate" style="font-size: 0.72rem;">
+                                                    {{ $collab->department ? strtoupper($collab->department) : 'No Department' }}
+                                                    @if($collab->campus) &bull; {{ $collab->campus }}@endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-1">
+                                            @if($cStatus === 'accepted')
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 0.68rem;" title="Accepted invitation">
+                                                    <i class="bi bi-check-circle-fill me-0.5"></i> Accepted
+                                                </span>
+                                            @elseif($cStatus === 'declined')
+                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 0.68rem;" title="Declined invitation">
+                                                    <i class="bi bi-x-circle me-0.5"></i> Declined
+                                                </span>
+                                            @else
+                                                <span class="badge bg-warning bg-opacity-20 text-warning-emphasis border border-warning border-opacity-50 rounded-pill px-2 py-0.5" style="font-size: 0.68rem;" title="Pending collaborator confirmation">
+                                                    <i class="bi bi-clock me-0.5"></i> Pending
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                     @endforeach
@@ -944,7 +1028,6 @@
                             @endif
                         </div>
                     </div>
-                    @endif
                 </div>
             </div>
         </div>
