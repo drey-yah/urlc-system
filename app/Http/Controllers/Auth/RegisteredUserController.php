@@ -37,7 +37,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff,recording_staff,dean,vprei,budget_officer,sao_finance,president,funding_agency'],
+            'role' => ['required', 'string', 'in:researcher,reviewer,admin,coordinator,staff,recording_staff,dean,vprei,vpaf,budget_officer,sao_finance,president,funding_agency'],
             'campus' => ['nullable', 'string', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
             'organization' => ['nullable', 'string', 'max:255', 'required_if:role,funding_agency'],

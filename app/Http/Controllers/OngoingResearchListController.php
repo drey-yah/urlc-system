@@ -236,7 +236,7 @@ class OngoingResearchListController extends Controller
         $items = $list->items ?? [];
 
         $logoBase64 = null;
-        if (file_exists(public_path('logo.png'))) {
+        if (extension_loaded('gd') && function_exists('imagecreatefrompng') && file_exists(public_path('logo.png'))) {
             $logoBase64 = base64_encode(file_get_contents(public_path('logo.png')));
         }
 

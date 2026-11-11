@@ -8,6 +8,10 @@
             <p class="text-muted small mb-0">Overview of research proposals, user assignments, and portal operations.</p>
         </div>
         <div class="d-flex gap-2 w-100 w-sm-auto flex-wrap">
+            <a href="{{ route('schedules.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="Announcements & Research Schedules">
+                <i class="bi bi-megaphone"></i>
+                <span>Announcements &amp; Schedules</span>
+            </a>
             <a href="{{ route('accomplishment_reports.index') }}" class="btn btn-outline-primary btn-sm px-3 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-1.5 flex-grow-1 flex-sm-grow-0" style="font-size: 0.84rem;" title="Research Accomplishment Reports">
                 <i class="bi bi-file-earmark-bar-graph"></i>
                 <span>Accomplishment Reports</span>
@@ -343,6 +347,9 @@
         <!-- Management Modules & Shortcuts (Right 4 Columns) -->
         <div class="col-lg-4">
             <div class="d-flex flex-column gap-3 gap-md-4">
+                <!-- Upcoming Research Schedules Widget -->
+                @include('schedules.partials.dashboard_widget')
+
                 <!-- Administrative Actions Card -->
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-header bg-white py-3 px-3 px-md-4 border-0 rounded-top-4">
@@ -386,13 +393,13 @@
                     </div>
                     <div class="card-body p-3 p-md-4 pt-0">
                         <div class="list-group list-group-flush">
-                            <a href="{{ route('announcements.index') }}" class="list-group-item list-group-item-action border-0 px-0 py-2.5 d-flex align-items-center gap-3">
+                            <a href="{{ route('schedules.index') }}" class="list-group-item list-group-item-action border-0 px-0 py-2.5 d-flex align-items-center gap-3">
                                 <div class="bg-info bg-opacity-10 text-info rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
                                     <i class="bi bi-megaphone fs-6"></i>
                                 </div>
                                 <div class="flex-grow-1 min-w-0" style="min-width: 0;">
-                                    <div class="fw-semibold text-dark small">Announcements</div>
-                                    <div class="text-muted text-truncate" style="font-size: 0.75rem;">Post calls for papers</div>
+                                    <div class="fw-semibold text-dark small">Announcements &amp; Schedules</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.75rem;">Manage calls, reviews &amp; updates</div>
                                 </div>
                                 <i class="bi bi-arrow-right text-muted small"></i>
                             </a>

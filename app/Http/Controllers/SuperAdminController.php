@@ -67,7 +67,7 @@ class SuperAdminController extends Controller
         $allowedRoles = [
             'researcher', 'reviewer', 'coordinator', 'dean', 
             'staff', 'recording_staff', 'budget_officer', 
-            'sao_finance', 'vprei', 'president', 'funding_agency', 'admin'
+            'sao_finance', 'vprei', 'vpaf', 'president', 'funding_agency', 'admin'
         ];
 
         $request->validate([

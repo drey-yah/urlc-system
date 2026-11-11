@@ -1,17 +1,37 @@
 <x-app-layout>
-    <!-- Page Header -->
+    <!-- Unified Module Header -->
     <div class="mb-3 mb-md-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div>
             <h1 class="h4 h-md-3 fw-bold text-dark d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-bell text-primary"></i> Announcements
+                <i class="bi bi-megaphone-fill" style="color: var(--ua-maroon, #8C1D2C);"></i> Announcements &amp; Research Schedules
             </h1>
-            <p class="text-muted small mb-0">Stay updated with official university research updates and news.</p>
+            <p class="text-muted small mb-0">Stay updated with official university research updates, calls, and schedules.</p>
         </div>
-        @if(auth()->user()->role === 'admin')
-            <button class="btn btn-primary px-3 px-md-4 py-2 rounded-pill fw-bold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
-                <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline">Create Announcement</span><span class="d-sm-none">Create</span>
-            </button>
+        @if(auth()->user()->role === 'admin' || auth()->user()->isDirector())
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ route('schedules.index') }}" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size: 0.85rem;">
+                    <i class="bi bi-calendar2-week"></i> <span>Manage Schedules</span>
+                </a>
+                <button class="btn btn-primary px-3 px-md-4 py-2 rounded-pill fw-bold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
+                    <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline">Post Announcement</span><span class="d-sm-none">Create</span>
+                </button>
+            </div>
         @endif
+    </div>
+
+    <!-- Unified Module Navigation Tabs -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-4 border-bottom pb-3">
+        <a href="{{ route('schedules.index') }}" class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-light text-muted border">
+            <i class="bi bi-calendar2-week-fill"></i>
+            <span>Research Schedules &amp; Deadlines</span>
+            @php $activeSchedulesCount = \App\Models\ResearchSchedule::where('status', 'published')->where('start_date', '>=', now()->startOfDay())->count(); @endphp
+            <span class="badge rounded-pill bg-secondary text-white ms-1" style="font-size: 0.72rem;">{{ $activeSchedulesCount }}</span>
+        </a>
+        <a href="{{ route('announcements.index') }}" class="btn btn-sm rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-2 btn-primary shadow-xs">
+            <i class="bi bi-megaphone-fill"></i>
+            <span>Announcements Feed</span>
+            <span class="badge rounded-pill bg-white text-primary ms-1" style="font-size: 0.72rem;">{{ $announcements->count() }}</span>
+        </a>
     </div>
 
     <div class="row g-3 g-md-4">
@@ -65,11 +85,18 @@
                                     <span class="d-none d-sm-inline">Comments</span>
                                 </button>
                             </div>
-                            <button class="btn btn-primary btn-sm px-3 py-1.5 rounded-pill fw-bold shadow-xs d-inline-flex align-items-center gap-1 text-nowrap" data-bs-toggle="modal" data-bs-target="#annModal{{ $announcement->id }}" style="font-size: 0.82rem;">
-                                <span class="d-none d-sm-inline">Read Full Announcement</span>
-                                <span class="d-sm-none">Read More</span>
-                                <i class="bi bi-arrow-right"></i>
-                            </button>
+                            <div class="d-flex align-items-center gap-1.5">
+                                @if($announcement->researchSchedule)
+                                    <a href="{{ route('schedules.show', $announcement->researchSchedule->id) }}" class="btn btn-outline-primary btn-sm px-2.5 py-1.5 rounded-pill fw-bold shadow-xs d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.8rem;">
+                                        <i class="bi bi-calendar2-check-fill"></i> <span class="d-none d-md-inline">View Schedule &amp; RSVP</span><span class="d-md-none">Schedule</span>
+                                    </a>
+                                @endif
+                                <button class="btn btn-primary btn-sm px-3 py-1.5 rounded-pill fw-bold shadow-xs d-inline-flex align-items-center gap-1 text-nowrap" data-bs-toggle="modal" data-bs-target="#annModal{{ $announcement->id }}" style="font-size: 0.82rem;">
+                                    <span class="d-none d-sm-inline">Read Full Announcement</span>
+                                    <span class="d-sm-none">Read More</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -91,6 +118,21 @@
                                     <span>&bull;</span>
                                     <span><i class="bi bi-person me-1"></i> {{ $announcement->user->name }}</span>
                                 </div>
+                                @if($announcement->researchSchedule)
+                                    <div class="p-3 mb-3 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-calendar2-check-fill text-primary fs-5"></i>
+                                            <div>
+                                                <strong class="text-dark d-block small">Official Research Schedule Attached</strong>
+                                                <span class="text-muted" style="font-size: 0.76rem;">Date: {{ $announcement->researchSchedule->start_date->format('M d, Y (g:i A)') }} | Venue: {{ $announcement->researchSchedule->venue ?: 'Campus/Virtual' }}</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('schedules.show', $announcement->researchSchedule->id) }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold">
+                                            Open Schedule &amp; RSVP &rarr;
+                                        </a>
+                                    </div>
+                                @endif
+
                                 <div class="text-dark bg-light p-3 rounded-3 border mb-3" style="line-height: 1.8; white-space: pre-wrap; font-size: 0.95rem;">{{ $announcement->content }}</div>
                                 
                                 <!-- Modal Interactions Bar -->

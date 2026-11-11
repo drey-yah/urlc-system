@@ -144,6 +144,13 @@
             </a>
         @endif
 
+        @if($currentRole === 'vpaf')
+            <a href="{{ route('vpaf.dashboard') }}" class="sidebar-link {{ request()->routeIs('vpaf.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-bank"></i>
+                <span>VPAF Recommending</span>
+            </a>
+        @endif
+
         @if($currentRole === 'president')
             <a href="{{ route('president.dashboard') }}" class="sidebar-link {{ request()->routeIs('president.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-person-workspace"></i>
@@ -187,20 +194,29 @@
             </a>
         @endif
 
-        <a href="{{ route('announcements.index') }}" class="sidebar-link {{ request()->routeIs('announcements.index') ? 'active' : '' }}">
+        <a href="{{ route('schedules.index') }}" class="sidebar-link {{ request()->routeIs('schedules.*') || request()->routeIs('announcements.*') ? 'active' : '' }}">
             <i class="bi bi-megaphone-fill"></i>
-            <span>Announcements</span>
+            <span>Announcements & Schedules</span>
         </a>
 
-        <button type="button" class="sidebar-link w-100 border-0 bg-transparent text-start" data-bs-toggle="modal" data-bs-target="#submissionGuidelinesModal">
-            <i class="bi bi-book-half"></i>
-            <span>Submission Guidelines</span>
-        </button>
+        @if(!in_array($currentRole, ['vpaf']))
+            <button type="button" class="sidebar-link w-100 border-0 bg-transparent text-start" data-bs-toggle="modal" data-bs-target="#submissionGuidelinesModal">
+                <i class="bi bi-book-half"></i>
+                <span>Submission Guidelines</span>
+            </button>
 
-        <a href="{{ route('template.download.proposal') }}" class="sidebar-link" title="Download Form RESU-FM-015 Word Template">
-            <i class="bi bi-file-earmark-word"></i>
-            <span>Download Template</span>
-        </a>
+            <a href="{{ route('template.download.proposal') }}" class="sidebar-link" title="Download Form RESU-FM-015 Word Template">
+                <i class="bi bi-file-earmark-word"></i>
+                <span>Download Template</span>
+            </a>
+        @endif
+
+        @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'vpaf', 'president', 'staff', 'recording_staff']))
+            <a href="{{ route('internally_funded_endorsements.index') }}" class="sidebar-link {{ request()->routeIs('internally_funded_endorsements.*') ? 'active' : '' }}">
+                <i class="bi bi-file-earmark-ruled-fill"></i>
+                <span>Funded Endorsements</span>
+            </a>
+        @endif
 
         @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'president', 'staff', 'recording_staff']))
             <a href="{{ route('approved_researches.index') }}" class="sidebar-link {{ request()->routeIs('approved_researches.*') ? 'active' : '' }}">

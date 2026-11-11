@@ -131,6 +131,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'admin' || $this->role === 'super_admin';
     }
 
+    public function isDirector(): bool
+    {
+        return $this->role === 'director' || $this->role === 'admin' || $this->isSuperAdmin() || $this->hasRole('director');
+    }
+
     public function isReviewer()
     {
         return $this->role === 'reviewer';
@@ -166,6 +171,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'vprei';
     }
 
+    public function isVpaf()
+    {
+        return $this->role === 'vpaf';
+    }
+
     public function isBudgetOfficer()
     {
         return $this->role === 'budget_officer';
@@ -196,5 +206,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(\App\Models\ResearchProposal::class, 'proposal_collaborators')
             ->withPivot('status', 'invited_at', 'responded_at')
             ->withTimestamps();
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(\App\Models\ResearchSchedule::class);
+    }
+
+    public function scheduleAttendances()
+    {
+        return $this->hasMany(\App\Models\ScheduleAttendee::class);
     }
 }

@@ -130,6 +130,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/announcements/{id}/like', [\App\Http\Controllers\AnnouncementInteractionController::class, 'like'])->name('announcements.like');
     Route::post('/announcements/{id}/comment', [\App\Http\Controllers\AnnouncementInteractionController::class, 'comment'])->name('announcements.comment');
 
+    // Research Schedules & Calendar
+    Route::get('/schedules', [\App\Http\Controllers\ResearchScheduleController::class, 'index'])->name('schedules.index');
+    Route::post('/schedules', [\App\Http\Controllers\ResearchScheduleController::class, 'store'])->name('schedules.store');
+    Route::get('/schedules/{id}', [\App\Http\Controllers\ResearchScheduleController::class, 'show'])->name('schedules.show');
+    Route::put('/schedules/{id}', [\App\Http\Controllers\ResearchScheduleController::class, 'update'])->name('schedules.update');
+    Route::delete('/schedules/{id}', [\App\Http\Controllers\ResearchScheduleController::class, 'destroy'])->name('schedules.destroy');
+    Route::get('/schedules/{id}/ics', [\App\Http\Controllers\ResearchScheduleController::class, 'downloadIcs'])->name('schedules.ics');
+    Route::get('/schedules/{id}/attachment', [\App\Http\Controllers\ResearchScheduleController::class, 'downloadAttachment'])->name('schedules.downloadAttachment');
+    Route::post('/schedules/{id}/rsvp', [\App\Http\Controllers\ResearchScheduleController::class, 'rsvp'])->name('schedules.rsvp');
+    Route::post('/schedules/{id}/reminder', [\App\Http\Controllers\ResearchScheduleController::class, 'sendImmediateReminder'])->name('schedules.reminder');
+
     // Messaging Module (Gmail style)
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
@@ -260,6 +271,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/accomplishment-reports/{id}/pdf', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'exportPdf'])->name('accomplishment_reports.pdf');
     Route::delete('/accomplishment-reports/{id}', [\App\Http\Controllers\ResearchAccomplishmentReportController::class, 'destroy'])->name('accomplishment_reports.destroy');
 
+    // Internally-Funded Research Proposal Endorsement Form (Prepared by Director, Recommending: VPREI & VPAF, Approved by President)
+    Route::get('/internally-funded-endorsements', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'index'])->name('internally_funded_endorsements.index');
+    Route::get('/internally-funded-endorsements/create', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'create'])->name('internally_funded_endorsements.create');
+    Route::post('/internally-funded-endorsements', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'store'])->name('internally_funded_endorsements.store');
+    Route::get('/internally-funded-endorsements/{id}', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'show'])->name('internally_funded_endorsements.show');
+    Route::post('/internally-funded-endorsements/{id}/recommend-vprei', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'recommendVprei'])->name('internally_funded_endorsements.recommend_vprei');
+    Route::post('/internally-funded-endorsements/{id}/recommend-vpaf', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'recommendVpaf'])->name('internally_funded_endorsements.recommend_vpaf');
+    Route::post('/internally-funded-endorsements/{id}/approve-president', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'approvePresident'])->name('internally_funded_endorsements.approve_president');
+    Route::post('/internally-funded-endorsements/{id}/return', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'returnDossier'])->name('internally_funded_endorsements.return');
+    Route::get('/internally-funded-endorsements/{id}/pdf', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'exportPdf'])->name('internally_funded_endorsements.pdf');
+    Route::delete('/internally-funded-endorsements/{id}', [\App\Http\Controllers\InternallyFundedEndorsementController::class, 'destroy'])->name('internally_funded_endorsements.destroy');
+
     // Profile Routes
     Route::get('/profile/{id?}', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
     Route::get('/settings/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
@@ -347,6 +370,16 @@ Route::middleware(['auth', 'role:vprei', 'approved', 'verified'])->group(functio
     Route::get('/vprei', [\App\Http\Controllers\VpreiController::class, 'dashboard'])->name('vprei.dashboard');
     Route::post('/vprei/proposals/{id}/approve', [\App\Http\Controllers\VpreiController::class, 'approve'])->name('vprei.approve');
     Route::post('/phase2/activity-design/{id}/vprei-approve', [\App\Http\Controllers\ActivityDesignController::class, 'vpreiApprove'])->name('vprei.phase2.approveActivity');
+});
+
+/*
+|--------------------------------------------------------------------------
+| VPAF (VP for Academic & Finance) Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:vpaf', 'approved', 'verified'])->group(function () {
+    Route::get('/vpaf', [\App\Http\Controllers\VpafController::class, 'dashboard'])->name('vpaf.dashboard');
 });
 
 /*

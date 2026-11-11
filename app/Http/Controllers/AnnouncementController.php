@@ -12,7 +12,7 @@ class AnnouncementController extends Controller
 {
     public function index()
     {
-        $announcements = Announcement::with(['user', 'likes', 'comments.user', 'comments.replies.user'])
+        $announcements = Announcement::with(['user', 'likes', 'comments.user', 'comments.replies.user', 'researchSchedule'])
             ->latest()
             ->get();
         return view('announcements.index', compact('announcements'));

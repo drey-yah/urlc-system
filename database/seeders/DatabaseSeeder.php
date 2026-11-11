@@ -94,6 +94,26 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        \App\Models\User::updateOrCreate(
+            ['email' => 'ammjaromayu@gmail.com'],
+            [
+                'name' => 'Vice President for Academic & Finance (VPAF)',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'vpaf',
+                'is_approved' => true,
+            ]
+        );
+
+        \App\Models\User::updateOrCreate(
+            ['email' => 'president@antiquespride.edu.ph'],
+            [
+                'name' => 'Dr. Pablo S. Crespo Jr.',
+                'password' => Hash::make('marie@2025'),
+                'role' => 'president',
+                'is_approved' => true,
+            ]
+        );
+
         // Seed Institutional Budget Allocations Matrix
         $this->call(BudgetAllocationSeeder::class);
     }

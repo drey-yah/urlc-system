@@ -86,6 +86,10 @@
                         $badgeBg = 'rgba(245, 158, 11, 0.12)';
                         $badgeColor = '#d97706';
                         $itemIcon = 'bi-megaphone-fill';
+                    } elseif (str_contains($titleLower, 'schedule') || str_contains($titleLower, 'in-house') || str_contains($titleLower, 'inception')) {
+                        $badgeBg = 'rgba(13, 148, 136, 0.12)';
+                        $badgeColor = '#0f766e';
+                        $itemIcon = 'bi-calendar-event-fill';
                     } else {
                         $badgeBg = 'rgba(59, 130, 246, 0.12)';
                         $badgeColor = '#2563eb';
@@ -167,8 +171,8 @@
             <span class="text-muted small" style="font-size: 0.72rem;">
                 Showing <strong class="text-dark notif-count-showing">{{ min(10, $totalCount) }}</strong> of <strong class="text-dark notif-count-total">{{ $totalCount }}</strong>
             </span>
-            <a href="{{ route('announcements.index') }}" class="small text-decoration-none fw-semibold text-muted" style="font-size: 0.74rem;">
-                Announcements <i class="bi bi-arrow-right"></i>
+            <a href="{{ route('schedules.index') }}" class="small text-decoration-none fw-semibold text-muted" style="font-size: 0.74rem;">
+                Announcements & Schedules <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>

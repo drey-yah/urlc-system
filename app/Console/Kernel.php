@@ -15,7 +15,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Automated reminders for upcoming research schedules, in-house reviews, and call for papers
+        $schedule->command('schedules:send-reminders')->dailyAt('08:00');
     }
 
     /**

@@ -233,6 +233,9 @@
                     </div>
                 </div>
 
+                <!-- Upcoming Schedules & Deadlines Widget -->
+                @include('schedules.partials.dashboard_widget')
+
                 <!-- Latest Announcements Card -->
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-header bg-white py-2 py-md-3 px-3 px-md-4 border-0 rounded-top-4 d-flex justify-content-between align-items-center">

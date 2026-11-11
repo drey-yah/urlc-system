@@ -17,7 +17,7 @@ class UserManagementController extends Controller
     public function updateRole(Request $request, $id)
     {
         $request->validate([
-            'role' => 'required|in:admin,reviewer,researcher,coordinator,staff,recording_staff,dean,vprei,budget_officer,sao_finance,president,funding_agency',
+            'role' => 'required|in:admin,reviewer,researcher,coordinator,staff,recording_staff,dean,vprei,vpaf,budget_officer,sao_finance,president,funding_agency',
         ]);
 
         $user = User::findOrFail($id);
@@ -35,7 +35,7 @@ class UserManagementController extends Controller
         $allowedRoles = [
             'researcher', 'reviewer', 'coordinator', 'dean', 
             'staff', 'recording_staff', 'budget_officer', 
-            'sao_finance', 'vprei', 'president', 'funding_agency', 'admin'
+            'sao_finance', 'vprei', 'vpaf', 'president', 'funding_agency', 'admin'
         ];
 
         $request->validate([

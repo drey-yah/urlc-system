@@ -32,6 +32,8 @@ class DashboardController extends Controller
                 return redirect('/dean');
             case 'vprei':
                 return redirect('/vprei');
+            case 'vpaf':
+                return redirect('/vpaf');
             case 'president':
                 return redirect('/president');
             case 'budget_officer':
@@ -73,6 +75,7 @@ class DashboardController extends Controller
             'coordinator' => 'College Coordinator',
             'dean' => 'College Dean',
             'vprei' => 'VPREI',
+            'vpaf' => 'VPAF (VP for Academic & Finance)',
             'president' => 'President',
             'budget_officer' => 'Budget Officer',
             'sao_finance' => 'Finance Officer',
@@ -398,7 +401,11 @@ class DashboardController extends Controller
             if ($notification) {
                 $notification->markAsRead();
 
-                if (!empty($notification->data['proposal_id'])) {
+                if (!empty($notification->data['target_url'])) {
+                    return redirect($notification->data['target_url']);
+                } elseif (!empty($notification->data['schedule_id'])) {
+                    return redirect()->route('schedules.show', $notification->data['schedule_id']);
+                } elseif (!empty($notification->data['proposal_id'])) {
                     return redirect()->route('proposal.show', $notification->data['proposal_id']);
                 } elseif (!empty($notification->data['announcement_id'])) {
                     return redirect()->route('announcements.index');
@@ -434,6 +441,10 @@ class DashboardController extends Controller
                 $badgeBg = 'rgba(245, 158, 11, 0.12)';
                 $badgeColor = '#d97706';
                 $itemIcon = 'bi-megaphone-fill';
+            } elseif (str_contains($titleLower, 'schedule') || str_contains($titleLower, 'in-house') || str_contains($titleLower, 'inception')) {
+                $badgeBg = 'rgba(13, 148, 136, 0.12)';
+                $badgeColor = '#0f766e';
+                $itemIcon = 'bi-calendar-event-fill';
             } else {
                 $badgeBg = 'rgba(59, 130, 246, 0.12)';
                 $badgeColor = '#2563eb';

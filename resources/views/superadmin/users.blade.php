@@ -1,4 +1,23 @@
 <x-app-layout>
+    @php
+        $roleDisplayNames = [
+            'researcher' => 'Researcher',
+            'reviewer' => 'Evaluator / Reviewer',
+            'coordinator' => 'College Coordinator',
+            'dean' => 'College Dean',
+            'staff' => 'Support Staff (Receiving)',
+            'recording_staff' => 'Support Staff (Recording)',
+            'budget_officer' => 'Budget Officer',
+            'sao_finance' => 'Finance Officer',
+            'vprei' => 'VPREI',
+            'vpaf' => 'VPAF (VP for Academic & Finance)',
+            'president' => 'SUC President',
+            'funding_agency' => 'Funding Agency',
+            'admin' => 'Research Director / Admin',
+            'super_admin' => 'Super Admin',
+        ];
+    @endphp
+
     <div class="mb-5">
         <h1 class="h3 fw-bold mb-1">User Management</h1>
         <p class="text-muted">Review, approve, and manage all system users</p>
@@ -17,6 +36,7 @@
                         <option value="coordinator" {{ request('role') == 'coordinator' ? 'selected' : '' }}>College Coordinator</option>
                         <option value="dean" {{ request('role') == 'dean' ? 'selected' : '' }}>College Dean</option>
                         <option value="vprei" {{ request('role') == 'vprei' ? 'selected' : '' }}>VPREI</option>
+                        <option value="vpaf" {{ request('role') == 'vpaf' ? 'selected' : '' }}>VPAF</option>
                         <option value="president" {{ request('role') == 'president' ? 'selected' : '' }}>SUC President</option>
                         <option value="budget_officer" {{ request('role') == 'budget_officer' ? 'selected' : '' }}>Budget Officer</option>
                         <option value="sao_finance" {{ request('role') == 'sao_finance' ? 'selected' : '' }}>Finance Officer</option>
@@ -74,12 +94,12 @@
                             <td>
                                 <div class="d-flex flex-wrap gap-1 align-items-center">
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill small fw-semibold">
-                                        <i class="bi bi-star-fill text-warning me-1" style="font-size: 0.65rem;"></i> {{ ucfirst(str_replace('_', ' ', $user->role)) }}
+                                        <i class="bi bi-star-fill text-warning me-1" style="font-size: 0.65rem;"></i> {{ $roleDisplayNames[$user->role] ?? ucfirst(str_replace('_', ' ', $user->role)) }}
                                     </span>
                                     @if(!empty($user->additional_roles))
                                         @foreach($user->additional_roles as $extraRole)
                                             <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-0.5 rounded-pill" style="font-size: 0.7rem;">
-                                                <i class="bi bi-plus-circle me-0.5"></i> {{ ucfirst(str_replace('_', ' ', $extraRole)) }}
+                                                <i class="bi bi-plus-circle me-0.5"></i> {{ $roleDisplayNames[$extraRole] ?? ucfirst(str_replace('_', ' ', $extraRole)) }}
                                             </span>
                                         @endforeach
                                     @endif
@@ -156,6 +176,7 @@
                                                             <option value="budget_officer" {{ $user->role == 'budget_officer' ? 'selected' : '' }}>💰 Budget Officer</option>
                                                             <option value="sao_finance" {{ $user->role == 'sao_finance' ? 'selected' : '' }}>💳 Finance Officer</option>
                                                             <option value="vprei" {{ $user->role == 'vprei' ? 'selected' : '' }}>🎖️ VPREI</option>
+                                                            <option value="vpaf" {{ $user->role == 'vpaf' ? 'selected' : '' }}>🏛️ VPAF (VP for Academic &amp; Finance)</option>
                                                             <option value="president" {{ $user->role == 'president' ? 'selected' : '' }}>👔 SUC President</option>
                                                             <option value="funding_agency" {{ $user->role == 'funding_agency' ? 'selected' : '' }}>🏢 Funding Agency</option>
                                                             <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>🛡️ Research Director / Admin</option>
@@ -183,10 +204,14 @@
                                                                 'researcher' => ['name' => 'Researcher', 'icon' => 'bi-mortarboard-fill', 'desc' => 'Allows authoring & submitting research proposals'],
                                                                 'coordinator' => ['name' => 'College Coordinator', 'icon' => 'bi-check-circle-fill', 'desc' => 'Allows endorsing college proposals (RESU-FM-003)'],
                                                                 'dean' => ['name' => 'College Dean', 'icon' => 'bi-bank2', 'desc' => 'Allows executive noting of college endorsements'],
-                                                                'staff' => ['name' => 'Receiving Staff', 'icon' => 'bi-inbox-fill', 'desc' => 'Allows administrative completeness checking'],
-                                                                'recording_staff' => ['name' => 'Recording Staff', 'icon' => 'bi-journal-text', 'desc' => 'Allows tracking & logging research outputs'],
+                                                                'staff' => ['name' => 'Support Staff (Receiving)', 'icon' => 'bi-inbox-fill', 'desc' => 'Allows administrative completeness checking'],
+                                                                'recording_staff' => ['name' => 'Support Staff (Recording)', 'icon' => 'bi-journal-text', 'desc' => 'Allows tracking & logging research outputs'],
                                                                 'budget_officer' => ['name' => 'Budget Officer', 'icon' => 'bi-cash-stack', 'desc' => 'Allows certifying availability of funds'],
                                                                 'sao_finance' => ['name' => 'Finance Officer', 'icon' => 'bi-bank', 'desc' => 'Allows processing purchase requests'],
+                                                                'vprei' => ['name' => 'VPREI', 'icon' => 'bi-award-fill', 'desc' => 'Allows noting and approving institutional research dossiers'],
+                                                                'vpaf' => ['name' => 'VPAF (VP for Academic & Finance)', 'icon' => 'bi-bank', 'desc' => 'Allows recommending approval for internally-funded proposal endorsement forms'],
+                                                                'president' => ['name' => 'SUC President', 'icon' => 'bi-person-workspace', 'desc' => 'Allows institutional presidential approvals and signing of endorsements'],
+                                                                'funding_agency' => ['name' => 'Funding Agency', 'icon' => 'bi-building', 'desc' => 'Allows external grant evaluations and agreement execution'],
                                                                 'admin' => ['name' => 'Research Director / Admin', 'icon' => 'bi-shield-check', 'desc' => 'Full research unit administrative review access'],
                                                             ];
                                                         @endphp

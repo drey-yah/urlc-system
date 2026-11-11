@@ -33,4 +33,9 @@ class Announcement extends Model
     {
         return $this->hasMany(AnnouncementInteraction::class)->where('type', 'like');
     }
+
+    public function researchSchedule()
+    {
+        return $this->hasOne(ResearchSchedule::class);
+    }
 }

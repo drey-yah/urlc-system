@@ -17,6 +17,7 @@
         'budget_officer' => ['label' => 'Budget Officer', 'icon' => 'bi-cash-stack', 'color' => '#b45309', 'bg' => 'rgba(180, 83, 9, 0.12)'],
         'sao_finance' => ['label' => 'Finance Officer', 'icon' => 'bi-bank', 'color' => '#4f46e5', 'bg' => 'rgba(79, 70, 229, 0.12)'],
         'vprei' => ['label' => 'VPREI', 'icon' => 'bi-award-fill', 'color' => '#8C1D2C', 'bg' => 'rgba(140, 29, 44, 0.12)'],
+        'vpaf' => ['label' => 'VPAF', 'icon' => 'bi-bank', 'color' => '#8C1D2C', 'bg' => 'rgba(140, 29, 44, 0.12)'],
         'president' => ['label' => 'President', 'icon' => 'bi-person-workspace', 'color' => '#8C1D2C', 'bg' => 'rgba(140, 29, 44, 0.12)'],
         'admin' => ['label' => 'Research Director', 'icon' => 'bi-shield-check', 'color' => '#8C1D2C', 'bg' => 'rgba(140, 29, 44, 0.12)'],
         'super_admin' => ['label' => 'Super Admin', 'icon' => 'bi-shield-lock-fill', 'color' => '#111827', 'bg' => 'rgba(17, 24, 39, 0.12)'],
