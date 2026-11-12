@@ -126,6 +126,126 @@
                     <!-- TAB 1: General Info & Proponents -->
                     <!-- ======================================================== -->
                     <div class="tab-pane fade show active" id="pane-step-1" role="tabpanel">
+
+                        <!-- ========================================== -->
+                        <!-- SUBMISSION MODE SELECTOR (Option A vs Option B) -->
+                        <!-- ========================================== -->
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+                            <div class="p-3 p-md-4 border-bottom bg-light bg-opacity-60 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                                        <i class="bi bi-magic text-warning"></i> Choose How to Create Your Proposal
+                                    </h5>
+                                    <p class="text-muted small mb-0">Select your preferred submission path. You can auto-fill everything from an existing PDF manuscript or compose directly section-by-section.</p>
+                                </div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold rounded-pill px-3 py-1.5 small border border-primary border-opacity-25 text-nowrap">
+                                    <i class="bi bi-shield-check me-1"></i> Form RESU-FM-015 Compliant
+                                </span>
+                            </div>
+
+                            <div class="p-3 p-md-4">
+                                <div class="row g-3">
+                                    <!-- OPTION A: Smart Upload & Auto-Fill (Fast Track) -->
+                                    <div class="col-12 col-lg-7">
+                                        <div class="card h-100 border-2 rounded-4 p-3 p-md-4 position-relative border-primary bg-primary bg-opacity-10 shadow-xs" id="modeCardAutoFill" style="border-style: solid !important;">
+                                            <div class="position-absolute top-0 end-0 m-3 d-none d-sm-block">
+                                                <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small fw-bold shadow-xs">
+                                                    <i class="bi bi-star-fill text-warning me-1"></i> RECOMMENDED (FAST TRACK)
+                                                </span>
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-2.5 mb-2">
+                                                <div class="rounded-circle bg-primary text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                                    <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-0 text-dark">Option A: Upload &amp; Auto-Fill from PDF</h6>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">Already have your proposal drafted in Word / PDF?</span>
+                                                </div>
+                                            </div>
+
+                                            <p class="text-secondary small mb-3" style="line-height: 1.5;">
+                                                Drop your PDF manuscript here. Our smart reader will instantly extract your <strong>Title, Abstract, Proponent Info, Narrative Chapters, and Line-Item Budget (LIB)</strong> and auto-populate all form sections in seconds.
+                                            </p>
+
+                                            <!-- Dropzone Input Box -->
+                                            <div class="border-2 border-primary border-opacity-50 rounded-4 p-4 text-center bg-white position-relative shadow-2xs hover-border-primary transition-all" id="smartDropzoneBox" style="border-style: dashed !important; cursor: pointer;">
+                                                <input type="file" id="smartProposalDoc" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="application/pdf" style="cursor: pointer; z-index: 5;">
+                                                <i class="bi bi-file-earmark-pdf-fill fs-1 text-primary mb-2 d-block"></i>
+                                                <h6 class="fw-bold mb-1 text-dark" id="smartDropzoneTitle">Click to attach external PDF or drag &amp; drop</h6>
+                                                <span class="text-muted small d-block" id="smartDropzoneSub" style="font-size: 0.75rem;">PDF FORMAT &bull; MAXIMUM 20MB &bull; Official Form RESU-FM-015</span>
+                                            </div>
+
+                                            <!-- Extraction Status Box -->
+                                            <div id="smartExtractStatus" class="mt-3 p-3 rounded-4 bg-white border border-primary border-opacity-25 d-none shadow-xs">
+                                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="spinner-border spinner-border-sm text-primary d-none" id="smartSpinner" role="status"></div>
+                                                        <i class="bi bi-check-circle-fill text-success fs-5 d-none" id="smartSuccessIcon"></i>
+                                                        <span class="fw-bold small text-dark" id="smartStatusTitle">Analyzing PDF layers...</span>
+                                                    </div>
+                                                    <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 small fw-bold" id="smartBadge">Processing</span>
+                                                </div>
+                                                <div class="small text-muted mb-2" id="smartStatusMessage" style="font-size: 0.8rem;">
+                                                    Extracting document text, manuscript chapters, and line-item budget table...
+                                                </div>
+                                                <!-- Action Buttons after extraction -->
+                                                <div class="d-flex align-items-center gap-2 flex-wrap pt-2.5 border-top d-none" id="smartActionRow">
+                                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" onclick="openLivePreviewModal()">
+                                                        <i class="bi bi-eye-fill"></i> View Form RESU-FM-015
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" onclick="document.getElementById('proposalTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });">
+                                                        <i class="bi bi-pencil-square"></i> Review Extracted Info
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold ms-auto shadow-xs d-inline-flex align-items-center gap-1" onclick="navigateToStep('tab-step-5')">
+                                                        Proceed to Submit <i class="bi bi-arrow-right"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- OPTION B: Guided Manual Entry -->
+                                    <div class="col-12 col-lg-5">
+                                        <div class="card h-100 border rounded-4 p-3 p-md-4 bg-light bg-opacity-40 shadow-xs" id="modeCardManual">
+                                            <div class="d-flex align-items-center gap-2.5 mb-2">
+                                                <div class="rounded-circle bg-secondary bg-opacity-15 text-secondary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                                    <i class="bi bi-pencil-fill fs-6"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-0 text-dark">Option B: Draft Directly Online</h6>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">Drafting from scratch in the system?</span>
+                                                </div>
+                                            </div>
+
+                                            <p class="text-secondary small mb-3" style="line-height: 1.5;">
+                                                Compose your proposal directly section-by-section. Use our structured 5-step guided wizard to draft official chapters, build your Gantt schedule, and calculate your Line-Item Budget directly.
+                                            </p>
+
+                                            <div class="bg-white rounded-4 p-3 border mb-3 small shadow-2xs">
+                                                <div class="d-flex align-items-center gap-2 mb-1.5 text-secondary">
+                                                    <i class="bi bi-check2-circle text-primary"></i> <span>Step 1: General Info &amp; Co-Proponents</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 mb-1.5 text-secondary">
+                                                    <i class="bi bi-check2-circle text-primary"></i> <span>Step 2: Narrative Sections (RRL, Methodology)</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 mb-1.5 text-secondary">
+                                                    <i class="bi bi-check2-circle text-primary"></i> <span>Step 3: Work Plan Matrix (Gantt)</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 text-secondary">
+                                                    <i class="bi bi-check2-circle text-primary"></i> <span>Step 4: Line-Item Budget (MOOE &amp; CO)</span>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold w-100 mt-auto d-inline-flex align-items-center justify-content-center gap-2 shadow-xs" onclick="document.getElementById('proposalTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });">
+                                                <i class="bi bi-input-cursor-text"></i> Start Manual Guided Entry
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row g-4">
                             <div class="col-12 col-lg-7">
                                 <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white h-100">
@@ -495,6 +615,15 @@ Author, A. A. (Year). Title of work. Publisher / Journal, Vol(Issue), pages. htt
                                         <i class="bi bi-plus-circle-fill"></i> Add Capital Outlay
                                     </button>
                                 </div>
+                            </div>
+
+                            <!-- PDF Auto-fill Notification Alert -->
+                            <div id="libExtractedAlert" class="alert alert-success border border-success border-opacity-25 rounded-4 d-none mb-3 py-2.5 px-3 d-flex align-items-center justify-content-between shadow-xs">
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <i class="bi bi-magic fs-5 text-success"></i>
+                                    <span><strong>Auto-filled from PDF:</strong> <span id="libExtractedCount" class="fw-bold">0</span> Line-Item Budget entries were automatically extracted and populated from your uploaded proposal. You can freely review, edit, or adjust amounts below.</span>
+                                </div>
+                                <button type="button" class="btn-close btn-close-sm" onclick="document.getElementById('libExtractedAlert').classList.add('d-none')"></button>
                             </div>
 
                             <div class="table-responsive">
@@ -1143,13 +1272,98 @@ Author, A. A. (Year). Title of work. Publisher / Journal, Vol(Issue), pages. htt
             document.getElementById('grandTotalBudgetDisplay').innerText = formatPhp(grandTotal);
         }
 
+        // Auto-populate Line-Item Budget (LIB) table from PDF smart extraction
+        function populateExtractedBudgetItems(items) {
+            if (!items || !items.length) return;
+            const tbody = document.getElementById('budgetItemsBody');
+            if (!tbody) return;
+
+            // Clear default sample rows
+            tbody.innerHTML = '';
+            budgetCounter = 0;
+
+            items.forEach((item) => {
+                const newIndex = budgetCounter++;
+                const catType = item.category_type || (item.category_group === 'capital_outlay' ? 'co' : 'mooe');
+                const catGroup = item.category_group || 'supplies';
+                const itemName = item.item_name || '';
+                const existingRes = item.existing_resources || 'RESU';
+                const amount = parseFloat(item.amount) || 0;
+
+                const tr = document.createElement('tr');
+                tr.className = 'budget-item-row';
+                tr.setAttribute('data-type', catType);
+
+                tr.innerHTML = `
+                    <td class="p-2">
+                        <select name="budget_items[${newIndex}][category_group]" class="form-select form-select-sm border-0 bg-light rounded-3 fw-bold ${catType === 'co' ? 'text-dark' : 'text-primary'}" onchange="updateBudgetItemType(this)">
+                            <option value="supplies" ${catGroup === 'supplies' ? 'selected' : ''}>Supplies &amp; Materials</option>
+                            <option value="travel" ${catGroup === 'travel' ? 'selected' : ''}>Travelling Expenses (Local)</option>
+                            <option value="professional_services" ${catGroup === 'professional_services' ? 'selected' : ''}>Other Professional Services</option>
+                            <option value="other_mooe" ${catGroup === 'other_mooe' ? 'selected' : ''}>Other MOOE</option>
+                            <option value="capital_outlay" ${catGroup === 'capital_outlay' ? 'selected' : ''}>Capital Outlay (CO)</option>
+                        </select>
+                        <input type="hidden" name="budget_items[${newIndex}][category_type]" value="${catType}" class="category-type-input">
+                    </td>
+                    <td class="p-2">
+                        <input type="text" name="budget_items[${newIndex}][item_name]" class="form-control form-control-sm border-0 bg-light rounded-3" value="${escapeHtml(itemName)}" placeholder="Item description" required>
+                    </td>
+                    <td class="p-2">
+                        <input type="text" name="budget_items[${newIndex}][existing_resources]" class="form-control form-control-sm border-0 bg-light rounded-3" value="${escapeHtml(existingRes)}" placeholder="RESU / College">
+                    </td>
+                    <td class="p-2">
+                        <input type="number" step="0.01" name="budget_items[${newIndex}][amount]" class="form-control form-control-sm border-0 bg-light rounded-3 text-end fw-bold budget-amount-input" value="${amount.toFixed(2)}" oninput="calculateBudgetTotals()" required>
+                    </td>
+                    <td class="p-2 text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 rounded-circle p-1" onclick="removeBudgetRow(this)"><i class="bi bi-trash"></i></button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+
+            calculateBudgetTotals();
+
+            // Show notification banner inside Tab 4
+            const alertBox = document.getElementById('libExtractedAlert');
+            const alertCount = document.getElementById('libExtractedCount');
+            if (alertBox && alertCount) {
+                alertCount.innerText = items.length;
+                alertBox.classList.remove('d-none');
+            }
+
+            // Add visual pill badge on Tab 4 button to guide user
+            const tab4Btn = document.getElementById('tab-step-4');
+            if (tab4Btn) {
+                const existingBadge = tab4Btn.querySelector('.lib-extracted-badge');
+                if (existingBadge) existingBadge.remove();
+
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-success rounded-pill ms-1.5 lib-extracted-badge shadow-xs';
+                badge.style.fontSize = '0.68rem';
+                badge.innerHTML = `<i class="bi bi-check-circle-fill me-0.5"></i> ${items.length} auto-filled`;
+                tab4Btn.appendChild(badge);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         // Initialize calculations on load
         calculateBudgetTotals();
 
         // ==========================================
-        // SMART PDF EXTRACTOR & AUTO-FILL
+        // SMART PDF EXTRACTOR & AUTO-FILL (DUAL MODES)
         // ==========================================
         const proposalDoc = document.getElementById('proposalDoc');
+        const smartProposalDoc = document.getElementById('smartProposalDoc');
         const titleInput = document.getElementById('proposalTitle');
         const fieldInput = document.getElementById('proposalField');
         const abstractInput = document.getElementById('proposalAbstract');
@@ -1163,89 +1377,211 @@ Author, A. A. (Year). Title of work. Publisher / Journal, Vol(Issue), pages. htt
         const titleSuggestionsBox = document.getElementById('titleSuggestionsContainer');
         const titleSuggestionsList = document.getElementById('titleSuggestionsList');
 
-        if (proposalDoc) {
-            proposalDoc.addEventListener('change', async function(e) {
-                if (!e.target.files || !e.target.files[0]) return;
-                const file = e.target.files[0];
+        // Option A Smart Dropzone UI Elements
+        const smartDropzoneTitle = document.getElementById('smartDropzoneTitle');
+        const smartDropzoneSub = document.getElementById('smartDropzoneSub');
+        const smartExtractStatus = document.getElementById('smartExtractStatus');
+        const smartSpinner = document.getElementById('smartSpinner');
+        const smartSuccessIcon = document.getElementById('smartSuccessIcon');
+        const smartStatusTitle = document.getElementById('smartStatusTitle');
+        const smartStatusMessage = document.getElementById('smartStatusMessage');
+        const smartBadge = document.getElementById('smartBadge');
+        const smartActionRow = document.getElementById('smartActionRow');
 
-                fileNameDisplay.innerHTML = `<i class="bi bi-file-earmark-pdf me-1"></i> Attached: <strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+        async function processUploadedProposal(file, sourceInput) {
+            if (!file) return;
+
+            // Sync files across both inputs so the form submits it properly
+            if (sourceInput === smartProposalDoc && proposalDoc) {
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    proposalDoc.files = dt.files;
+                } catch (e) {}
+            } else if (sourceInput === proposalDoc && smartProposalDoc) {
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    smartProposalDoc.files = dt.files;
+                } catch (e) {}
+            }
+
+            const fileSizeMb = (file.size / 1024 / 1024).toFixed(2);
+
+            // Update Option A Dropzone Label
+            if (smartDropzoneTitle) {
+                smartDropzoneTitle.innerHTML = `<i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> ${escapeHtml(file.name)}`;
+            }
+            if (smartDropzoneSub) {
+                smartDropzoneSub.innerText = `${fileSizeMb} MB • Manuscript attached & ready`;
+            }
+
+            // Update Step 5 File Display
+            if (fileNameDisplay) {
+                fileNameDisplay.innerHTML = `<i class="bi bi-file-earmark-pdf me-1"></i> Attached: <strong>${escapeHtml(file.name)}</strong> (${fileSizeMb} MB)`;
                 fileNameDisplay.classList.remove('d-none');
+            }
 
-                // Show Scanning Status
+            // Show Processing Status in Option A
+            if (smartExtractStatus) {
+                smartExtractStatus.classList.remove('d-none');
+                smartSpinner.classList.remove('d-none');
+                smartSuccessIcon.classList.add('d-none');
+                smartBadge.className = 'badge bg-primary text-white rounded-pill px-2.5 py-1 small fw-bold';
+                smartBadge.innerText = 'Analyzing Manuscript';
+                smartStatusTitle.innerText = 'Reading proposal PDF layers...';
+                smartStatusMessage.innerText = 'Parsing Title, Abstract, Manuscript Chapters, and Line-Item Budget table...';
+                if (smartActionRow) smartActionRow.classList.add('d-none');
+            }
+
+            // Show Scanning Status in Step 5
+            if (ocrCard) {
                 ocrCard.className = 'mt-3 p-3 rounded-4 border border-primary bg-primary bg-opacity-10 d-block shadow-xs';
                 ocrSpinner.classList.remove('d-none');
                 ocrTitle.className = 'fw-bold small text-primary';
                 ocrTitle.innerText = 'Smart Document Analyzer Running...';
                 ocrMsg.innerText = 'Extracting document text layers and cross-referencing fields...';
                 ocrBadge.style.display = 'none';
+            }
 
-                const formData = new FormData();
-                formData.append('document', file);
-                formData.append('_token', '{{ csrf_token() }}');
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('_token', '{{ csrf_token() }}');
 
-                try {
-                    const response = await fetch("{{ route('proposal.extractPdf') }}", {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
+            try {
+                const response = await fetch("{{ route('proposal.extractPdf') }}", {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.has_text) {
+                    let filledList = [];
+
+                    // 1. General Info & Title
+                    if (data.title && (!titleInput.value || titleInput.value.trim() === '')) {
+                        titleInput.value = data.title;
+                        filledList.push('Title');
+                    }
+
+                    if (titleSuggestionsList && data.title_suggestions && data.title_suggestions.length > 1) {
+                        titleSuggestionsList.innerHTML = '';
+                        data.title_suggestions.forEach(cand => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'btn btn-outline-primary border-opacity-50 py-0.5 px-2.5 rounded-pill shadow-xs text-truncate text-start';
+                            btn.style.fontSize = '0.73rem';
+                            btn.style.maxWidth = '280px';
+                            btn.innerText = cand;
+                            btn.title = 'Click to use: ' + cand;
+                            btn.onclick = () => {
+                                titleInput.value = cand;
+                                navigateToStep('tab-step-1');
+                            };
+                            titleSuggestionsList.appendChild(btn);
+                        });
+                        titleSuggestionsBox.classList.remove('d-none');
+                    }
+
+                    if (data.abstract && (!abstractInput.value || abstractInput.value.trim() === '')) {
+                        abstractInput.value = data.abstract;
+                        filledList.push('Abstract');
+                    }
+                    if (data.research_field && (!fieldInput.value || fieldInput.value.trim() === '')) {
+                        fieldInput.value = data.research_field;
+                        filledList.push('Research Discipline');
+                    }
+                    const credInput = document.querySelector('textarea[name="credentials"]');
+                    if (data.sections && data.sections.credentials && credInput && (!credInput.value || credInput.value.trim() === '')) {
+                        credInput.value = data.sections.credentials;
+                        filledList.push('Credentials');
+                    }
+
+                    // 2. Manuscript Narrative Sections (Step 2)
+                    let narrativeExtractedCount = 0;
+                    if (data.sections) {
+                        const narrativeMap = {
+                            'background_of_study': 'backgroundOfStudy',
+                            'significance_of_study': 'significanceOfStudy',
+                            'definition_of_terms': 'definitionOfTerms',
+                            'literature_review': 'literatureReview',
+                            'methodology': 'methodologyField',
+                            'references': 'referencesField'
+                        };
+
+                        for (const [secKey, elId] of Object.entries(narrativeMap)) {
+                            const textarea = document.getElementById(elId);
+                            if (textarea && data.sections[secKey] && (!textarea.value || textarea.value.trim() === '')) {
+                                textarea.value = data.sections[secKey];
+                                narrativeExtractedCount++;
+                            }
                         }
-                    });
 
-                    const data = await response.json();
+                        if (narrativeExtractedCount > 0) {
+                            filledList.push(`${narrativeExtractedCount} Manuscript Chapters`);
 
-                    if (data.success && data.has_text) {
+                            // Visual badge on Step 2 tab
+                            const tab2Btn = document.getElementById('tab-step-2');
+                            if (tab2Btn) {
+                                const oldBadge = tab2Btn.querySelector('.narrative-extracted-badge');
+                                if (oldBadge) oldBadge.remove();
+                                const badge = document.createElement('span');
+                                badge.className = 'badge bg-success rounded-pill ms-1.5 narrative-extracted-badge shadow-xs';
+                                badge.style.fontSize = '0.68rem';
+                                badge.innerHTML = `<i class="bi bi-check-circle-fill me-0.5"></i> ${narrativeExtractedCount} auto-filled`;
+                                tab2Btn.appendChild(badge);
+                            }
+                        }
+                    }
+
+                    // 3. Line-Item Budget (Step 4)
+                    if (data.budget_items && data.budget_items.length > 0) {
+                        populateExtractedBudgetItems(data.budget_items);
+                        const phpFormatted = '₱' + Number(data.budget_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        filledList.push(`Line-Item Budget (${data.budget_items.length} items totaling ${phpFormatted})`);
+                    }
+
+                    // 4. Raw Extracted Text
+                    if (data.extracted_text) {
+                        extractedTextInput.value = data.extracted_text;
+                    }
+
+                    // Success State: Option A
+                    if (smartExtractStatus) {
+                        smartSpinner.classList.add('d-none');
+                        smartSuccessIcon.classList.remove('d-none');
+                        smartBadge.className = 'badge bg-success text-white rounded-pill px-2.5 py-1 small fw-bold';
+                        smartBadge.innerText = 'Smart Auto-Populated';
+                        smartStatusTitle.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> Proposal Read Successfully (${data.word_count.toLocaleString()} words indexed)`;
+                        smartStatusMessage.innerHTML = `✨ <strong>Auto-filled:</strong> ${filledList.join(' &bull; ')}. Click below to view the official Form RESU-FM-015 layout or tweak any section.`;
+                        if (smartActionRow) smartActionRow.classList.remove('d-none');
+                    }
+
+                    // Success State: Step 5 OCR Card
+                    if (ocrCard) {
                         ocrSpinner.classList.add('d-none');
                         ocrCard.className = 'mt-3 p-3 rounded-4 border border-success bg-success bg-opacity-10 d-block shadow-xs';
                         ocrTitle.className = 'fw-bold small text-success';
                         ocrTitle.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Manuscript Processed (${data.word_count.toLocaleString()} words indexed)`;
-                        ocrMsg.innerHTML = 'Document content was analyzed and indexed for inline evaluator review.';
+                        ocrMsg.innerHTML = `✨ Successfully auto-populated: <strong>${filledList.join('</strong>, <strong>')}</strong>. You can review and adjust any field or budget item.`;
                         ocrBadge.className = 'badge bg-success text-white rounded-pill px-2.5 py-1 small fw-bold';
                         ocrBadge.innerText = 'Smart Analyzed';
                         ocrBadge.style.display = 'inline-block';
-
-                        let filledList = [];
-                        if (data.title && (!titleInput.value || titleInput.value.trim() === '')) {
-                            titleInput.value = data.title;
-                            filledList.push('Title');
-                        }
-
-                        if (titleSuggestionsList && data.title_suggestions && data.title_suggestions.length > 1) {
-                            titleSuggestionsList.innerHTML = '';
-                            data.title_suggestions.forEach(cand => {
-                                const btn = document.createElement('button');
-                                btn.type = 'button';
-                                btn.className = 'btn btn-outline-primary border-opacity-50 py-0.5 px-2.5 rounded-pill shadow-xs text-truncate text-start';
-                                btn.style.fontSize = '0.73rem';
-                                btn.style.maxWidth = '280px';
-                                btn.innerText = cand;
-                                btn.title = 'Click to use: ' + cand;
-                                btn.onclick = () => {
-                                    titleInput.value = cand;
-                                    navigateToStep('tab-step-1');
-                                };
-                                titleSuggestionsList.appendChild(btn);
-                            });
-                            titleSuggestionsBox.classList.remove('d-none');
-                        }
-
-                        if (data.abstract && (!abstractInput.value || abstractInput.value.trim() === '')) {
-                            abstractInput.value = data.abstract;
-                            filledList.push('Abstract');
-                        }
-                        if (data.research_field && (!fieldInput.value || fieldInput.value.trim() === '')) {
-                            fieldInput.value = data.research_field;
-                            filledList.push('Research Field');
-                        }
-                        if (data.extracted_text) {
-                            extractedTextInput.value = data.extracted_text;
-                        }
-
-                        if (filledList.length > 0) {
-                            ocrMsg.innerHTML = `✨ Successfully auto-populated: <strong>${filledList.join(', ')}</strong> in General Info.`;
-                        }
-                    } else {
+                    }
+                } else {
+                    if (smartExtractStatus) {
+                        smartSpinner.classList.add('d-none');
+                        smartStatusTitle.innerText = 'PDF Attached (Scanned / Image Stream)';
+                        smartStatusMessage.innerText = 'No digital text stream detected in PDF. The document has been attached and you can fill out the form fields manually.';
+                        smartBadge.className = 'badge bg-secondary text-white rounded-pill px-2.5 py-1 small fw-bold';
+                        smartBadge.innerText = 'Attached';
+                    }
+                    if (ocrCard) {
                         ocrSpinner.classList.add('d-none');
                         ocrCard.className = 'mt-3 p-3 rounded-4 border border-secondary bg-light d-block shadow-xs';
                         ocrTitle.className = 'fw-bold small text-secondary';
@@ -1253,7 +1589,16 @@ Author, A. A. (Year). Title of work. Publisher / Journal, Vol(Issue), pages. htt
                         ocrMsg.innerText = 'Document attached. The structured fields above will serve as the primary manuscript.';
                         ocrBadge.style.display = 'none';
                     }
-                } catch (err) {
+                }
+            } catch (err) {
+                if (smartExtractStatus) {
+                    smartSpinner.classList.add('d-none');
+                    smartStatusTitle.innerText = 'Document Attached';
+                    smartStatusMessage.innerText = 'File attached successfully. You can review or complete form fields below.';
+                    smartBadge.className = 'badge bg-secondary text-white rounded-pill px-2.5 py-1 small fw-bold';
+                    smartBadge.innerText = 'Attached';
+                }
+                if (ocrCard) {
                     ocrSpinner.classList.add('d-none');
                     ocrCard.className = 'mt-3 p-3 rounded-4 border border-light bg-light d-block shadow-xs';
                     ocrTitle.className = 'fw-bold small text-muted';
@@ -1261,6 +1606,22 @@ Author, A. A. (Year). Title of work. Publisher / Journal, Vol(Issue), pages. htt
                     ocrMsg.innerText = 'PDF attached successfully.';
                     ocrBadge.style.display = 'none';
                 }
+            }
+        }
+
+        // Event listener for Option A Dropzone
+        if (smartProposalDoc) {
+            smartProposalDoc.addEventListener('change', function(e) {
+                if (!e.target.files || !e.target.files[0]) return;
+                processUploadedProposal(e.target.files[0], smartProposalDoc);
+            });
+        }
+
+        // Event listener for Step 5 Dropzone
+        if (proposalDoc) {
+            proposalDoc.addEventListener('change', function(e) {
+                if (!e.target.files || !e.target.files[0]) return;
+                processUploadedProposal(e.target.files[0], proposalDoc);
             });
         }
 

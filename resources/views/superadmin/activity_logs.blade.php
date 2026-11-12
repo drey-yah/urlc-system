@@ -1,4 +1,19 @@
 <x-app-layout>
+    @php
+        $formatAuditValue = function ($val) {
+            if (is_null($val)) return 'None';
+            if (is_bool($val)) return $val ? 'true' : 'false';
+            if (is_array($val)) {
+                if (empty($val)) return 'None';
+                return implode(', ', array_map(function ($item) {
+                    if (is_null($item)) return 'null';
+                    if (is_bool($item)) return $item ? 'true' : 'false';
+                    return is_scalar($item) ? (string) $item : json_encode($item);
+                }, $val));
+            }
+            return (string) $val;
+        };
+    @endphp
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Activity & Audit Logs</h1>
@@ -249,9 +264,8 @@
                                     <div>
                                         @foreach($log->properties['attributes'] as $key => $newValue)
                                             @php
-                                                $oldValue = $log->properties['old'][$key] ?? 'N/A';
-                                                if (is_bool($oldValue)) $oldValue = $oldValue ? 'true' : 'false';
-                                                if (is_bool($newValue)) $newValue = $newValue ? 'true' : 'false';
+                                                $oldValue = $formatAuditValue($log->properties['old'][$key] ?? null);
+                                                $newValue = $formatAuditValue($newValue);
                                             @endphp
                                             <div class="mb-1 text-break">
                                                 <strong class="text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
@@ -260,6 +274,12 @@
                                                 <span class="text-success fw-semibold">{{ $newValue }}</span>
                                             </div>
                                         @endforeach
+                                    </div>
+                                @elseif(isset($log->properties['roles']))
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge bg-white text-dark border px-1.5 py-0.5" style="font-size: 0.7rem;">
+                                            <i class="bi bi-person-badge text-primary me-1"></i>Roles: {{ is_array($log->properties['roles']) ? implode(', ', $log->properties['roles']) : $log->properties['roles'] }}
+                                        </span>
                                     </div>
                                 @elseif(isset($log->properties['attributes']))
                                     <div class="text-muted">
@@ -401,9 +421,8 @@
                                         <div class="small">
                                             @foreach($log->properties['attributes'] as $key => $newValue)
                                                 @php
-                                                    $oldValue = $log->properties['old'][$key] ?? 'N/A';
-                                                    if (is_bool($oldValue)) $oldValue = $oldValue ? 'true' : 'false';
-                                                    if (is_bool($newValue)) $newValue = $newValue ? 'true' : 'false';
+                                                    $oldValue = $formatAuditValue($log->properties['old'][$key] ?? null);
+                                                    $newValue = $formatAuditValue($newValue);
                                                 @endphp
                                                 <div class="mb-1">
                                                     <strong class="text-muted">{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
@@ -412,6 +431,12 @@
                                                     <span class="text-success fw-semibold">{{ $newValue }}</span>
                                                 </div>
                                             @endforeach
+                                        </div>
+                                    @elseif(isset($log->properties['roles']))
+                                        <div>
+                                            <span class="badge bg-light text-dark border px-2 py-1 small">
+                                                <i class="bi bi-person-badge text-primary me-1"></i>Roles: {{ is_array($log->properties['roles']) ? implode(', ', $log->properties['roles']) : $log->properties['roles'] }}
+                                            </span>
                                         </div>
                                     @elseif(isset($log->properties['attributes']))
                                         <div class="small text-muted">

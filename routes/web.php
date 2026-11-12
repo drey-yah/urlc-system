@@ -118,6 +118,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/annotations/{id}/toggle-resolve', [ProposalAnnotationController::class, 'toggleResolve'])->name('proposal.annotations.toggleResolve');
     Route::delete('/annotations/{id}', [ProposalAnnotationController::class, 'destroy'])->name('proposal.annotations.destroy');
     Route::get('/proposal/{id}/review-summary', [ProposalAnnotationController::class, 'exportSummary'])->name('proposal.reviewSummary');
+    Route::get('/proposal/{id}/evaluation-sheet/{evaluation_id?}', [ResearchProposalController::class, 'downloadEvaluationPdf'])->name('proposal.evaluationPdf');
+    Route::post('/proposal/{id}/evaluate', [ResearchProposalController::class, 'updateStatus'])->name('proposal.evaluate');
+    Route::patch('/proposal/{id}/section', [ResearchProposalController::class, 'updateSection'])->name('proposal.updateSection');
+    Route::post('/proposal/{id}/resubmit-revisions', [ResearchProposalController::class, 'resubmitRevisions'])->name('proposal.resubmitRevisions');
     Route::get('/proposal/{id}/endorsement-form', [\App\Http\Controllers\CoordinatorController::class, 'generateEndorsementForm'])->name('proposal.endorsement_form');
     Route::get('/proposal/{id}/resu-fm015', [\App\Http\Controllers\ResearchProposalController::class, 'exportResuFm015'])->name('proposal.resu_fm015');
     Route::get('/proposal/{id}/notice', [ResearchProposalController::class, 'downloadNoticeOfAcceptance'])->name('proposal.downloadNotice');

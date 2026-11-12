@@ -211,14 +211,14 @@
             </a>
         @endif
 
-        @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'vpaf', 'president', 'staff', 'recording_staff']))
+        @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'vpaf', 'president', 'staff']))
             <a href="{{ route('internally_funded_endorsements.index') }}" class="sidebar-link {{ request()->routeIs('internally_funded_endorsements.*') ? 'active' : '' }}">
                 <i class="bi bi-file-earmark-ruled-fill"></i>
                 <span>Funded Endorsements</span>
             </a>
         @endif
 
-        @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'president', 'staff', 'recording_staff']))
+        @if(in_array($currentRole, ['admin', 'super_admin', 'vprei', 'president', 'staff']))
             <a href="{{ route('approved_researches.index') }}" class="sidebar-link {{ request()->routeIs('approved_researches.*') ? 'active' : '' }}">
                 <i class="bi bi-file-earmark-check-fill"></i>
                 <span>Approved Researches</span>

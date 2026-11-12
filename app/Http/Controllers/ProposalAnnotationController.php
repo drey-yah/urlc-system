@@ -23,6 +23,7 @@ class ProposalAnnotationController extends Controller
             'documents',
             'milestones',
             'budgetItems',
+            'evaluations',
             'annotations.user',
             'annotations.taggedUser',
             'annotations.replies.user'
@@ -32,12 +33,18 @@ class ProposalAnnotationController extends Controller
         $activeRole = $currentUser->activeRole();
         $isAuthorOrCollaborator = $proposal->user_id === $currentUser->id || $proposal->collaborators->contains('id', $currentUser->id);
         $isAssignedReviewer = $proposal->assignments->contains('id', $currentUser->id);
-        $isAdminOrStaff = in_array($activeRole, ['admin', 'super_admin', 'staff', 'vprei']) || $currentUser->isSuperAdmin();
+        $isAdminOrStaff = in_array($activeRole, ['admin', 'super_admin', 'staff', 'recording_staff', 'vprei']) || $currentUser->isSuperAdmin();
 
         // Authorization check
         if (!$isAdminOrStaff && !$isAuthorOrCollaborator && !$isAssignedReviewer && $activeRole !== 'reviewer') {
             abort(403, 'Unauthorized access to review workspace.');
         }
+
+        // Evaluation for current user if reviewer/admin
+        $reviewerEvaluation = $proposal->evaluations->where('user_id', $currentUser->id)->first() ?? $proposal->evaluations->first();
+
+        // Check if user is eligible to edit manuscript sections directly in workspace
+        $canEditManuscript = ($isAuthorOrCollaborator || $isAdminOrStaff) && !in_array($proposal->status, ['final_approved', 'rejected', 'archived', 'completed']);
 
         // Taggable candidates: Lead Author + Collaborators
         $taggableUsers = collect([$proposal->user])->merge($proposal->collaborators)->unique('id');
@@ -57,7 +64,31 @@ class ProposalAnnotationController extends Controller
             'References & Citations' => 'References & Citations',
         ];
 
-        return view('proposals.review_workspace', compact('proposal', 'taggableUsers', 'chapters', 'isAuthorOrCollaborator', 'isAssignedReviewer', 'isAdminOrStaff'));
+        // Parse modular sections from uploaded PDF manuscript if present
+        $parsedSections = !empty($proposal->extracted_text)
+            ? \App\Services\PdfTextExtractor::parseManuscriptSections($proposal->extracted_text)
+            : [];
+
+        if (!empty($parsedSections)) {
+            foreach ($parsedSections as $sec) {
+                $secTitle = $sec['title'];
+                if (!isset($chapters[$secTitle])) {
+                    $chapters[$secTitle] = $secTitle;
+                }
+            }
+        }
+
+        return view('proposals.review_workspace', compact(
+            'proposal',
+            'taggableUsers',
+            'chapters',
+            'isAuthorOrCollaborator',
+            'isAssignedReviewer',
+            'isAdminOrStaff',
+            'canEditManuscript',
+            'reviewerEvaluation',
+            'parsedSections'
+        ));
     }
 
     /**

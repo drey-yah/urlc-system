@@ -57,22 +57,41 @@
                                         </span>
                                     </div>
 
-                                    <div class="d-flex gap-2 pt-2 border-top flex-wrap">
+                                    @php
+                                        $myEval = $proposal->evaluations->first();
+                                        $isFinalDecision = in_array($proposal->status, ['final_approved', 'final_rejected']);
+                                    @endphp
+                                    <div class="d-flex gap-1.5 pt-2 border-top flex-wrap align-items-center">
                                         <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill flex-fill text-center py-1.5 fw-bold" style="font-size: 0.78rem;">
                                             <i class="bi bi-chat-quote-fill text-warning me-0.5"></i> Annotate
+                                        </a>
+                                        <a href="{{ route('proposal.evaluationPdf', $proposal->id) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill flex-fill text-center py-1.5 fw-semibold" style="font-size: 0.78rem;" title="Official Form RESU-FM-001">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i> FM-001
                                         </a>
                                         <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill flex-fill text-center py-1.5" style="font-size: 0.8rem;">
                                             Details
                                         </a>
-                                        <button class="btn btn-sm btn-primary rounded-pill flex-fill text-center py-1.5 shadow-xs select-proposal" 
-                                                data-id="{{ $proposal->id }}" 
-                                                data-title="{{ $proposal->title }}"
-                                                data-status="{{ $proposal->status }}"
-                                                data-comments="{{ $proposal->review_comments }}"
-                                                data-suggestions="{{ $proposal->review_suggestions }}"
-                                                style="font-size: 0.8rem;">
-                                            <i class="bi bi-pencil-square me-1"></i> Quick Decision
-                                        </button>
+                                        @if($isFinalDecision)
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1.5 flex-fill text-center small fw-semibold" title="Evaluation closed - final executive decision already rendered">
+                                                <i class="bi bi-lock-fill me-1"></i> Finalized
+                                            </span>
+                                        @else
+                                            <button class="btn btn-sm btn-primary rounded-pill flex-fill text-center py-1.5 shadow-xs select-proposal" 
+                                                    data-id="{{ $proposal->id }}" 
+                                                    data-title="{{ $proposal->title }}"
+                                                    data-status="{{ $proposal->status }}"
+                                                    data-comments="{{ $myEval->comments ?? $proposal->review_comments }}"
+                                                    data-suggestions="{{ $myEval->suggestions ?? $proposal->review_suggestions }}"
+                                                    data-score-a="{{ $myEval->score_a ?? '' }}"
+                                                    data-score-b="{{ $myEval->score_b ?? '' }}"
+                                                    data-score-c="{{ $myEval->score_c ?? '' }}"
+                                                    data-score-d="{{ $myEval->score_d ?? '' }}"
+                                                    data-score-e="{{ $myEval->score_e ?? '' }}"
+                                                    data-total-score="{{ $myEval->total_score ?? '' }}"
+                                                    style="font-size: 0.8rem;">
+                                                <i class="bi bi-star-fill text-warning me-1"></i> Evaluate
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -120,22 +139,41 @@
                                             <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small fw-medium">{{ min(100, max(0, round(($proposal->current_phase / 5) * 100))) }}% (Phase {{ $proposal->current_phase }})</span>
                                         </td>
                                         <td class="pe-4 py-3 text-end">
-                                            <div class="d-flex justify-content-end gap-1.5 flex-wrap">
-                                                <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
-                                                    <i class="bi bi-chat-quote-fill text-warning"></i> Annotate Document
+                                            @php
+                                                $myEval = $proposal->evaluations->first();
+                                                $isFinalDecision = in_array($proposal->status, ['final_approved', 'final_rejected']);
+                                            @endphp
+                                            <div class="d-flex justify-content-end align-items-center gap-1.5 flex-wrap">
+                                                <a href="{{ route('proposal.reviewWorkspace', $proposal->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;">
+                                                    <i class="bi bi-chat-quote-fill text-warning"></i> Annotate
                                                 </a>
-                                                <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1" style="font-size: 0.8rem;">
+                                                <a href="{{ route('proposal.evaluationPdf', $proposal->id) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.78rem;" title="Official Form RESU-FM-001 PDF">
+                                                    <i class="bi bi-file-earmark-pdf-fill"></i> FM-001
+                                                </a>
+                                                <a href="{{ route('proposal.show', $proposal->id) }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1" style="font-size: 0.8rem;">
                                                     View
                                                 </a>
-                                                <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm select-proposal" 
-                                                        data-id="{{ $proposal->id }}" 
-                                                        data-title="{{ $proposal->title }}"
-                                                        data-status="{{ $proposal->status }}"
-                                                        data-comments="{{ $proposal->review_comments }}"
-                                                        data-suggestions="{{ $proposal->review_suggestions }}"
-                                                        style="font-size: 0.8rem;">
-                                                    <i class="bi bi-pencil-square me-1"></i> Decision
-                                                </button>
+                                                @if($isFinalDecision)
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1 small fw-semibold" title="Evaluation closed - final executive decision already rendered">
+                                                        <i class="bi bi-lock-fill"></i> Finalized
+                                                    </span>
+                                                @else
+                                                    <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 shadow-sm select-proposal d-inline-flex align-items-center gap-1" 
+                                                            data-id="{{ $proposal->id }}" 
+                                                            data-title="{{ $proposal->title }}"
+                                                            data-status="{{ $proposal->status }}"
+                                                            data-comments="{{ $myEval->comments ?? $proposal->review_comments }}"
+                                                            data-suggestions="{{ $myEval->suggestions ?? $proposal->review_suggestions }}"
+                                                            data-score-a="{{ $myEval->score_a ?? '' }}"
+                                                            data-score-b="{{ $myEval->score_b ?? '' }}"
+                                                            data-score-c="{{ $myEval->score_c ?? '' }}"
+                                                            data-score-d="{{ $myEval->score_d ?? '' }}"
+                                                            data-score-e="{{ $myEval->score_e ?? '' }}"
+                                                            data-total-score="{{ $myEval->total_score ?? '' }}"
+                                                            style="font-size: 0.8rem;">
+                                                        <i class="bi bi-star-fill text-warning"></i> Evaluate
+                                                    </button>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
@@ -152,17 +190,21 @@
         </div>
 
         <!-- Feedback Form (Right 4 Columns) -->
-        <div class="col-lg-4">
+        <div class="col-lg-5 col-xl-4">
             <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 80px;" id="feedback-card">
-                <div class="card-header bg-white py-3 px-4 border-0 rounded-top-4">
-                    <h5 class="mb-0 fw-bold text-dark">Review Feedback</h5>
+                <div class="card-header bg-white py-3 px-3 px-md-4 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
+                        <i class="bi bi-clipboard2-check-fill text-primary"></i> Proposal Evaluation
+                    </h5>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-0.5 rounded-pill font-monospace" style="font-size: 0.68rem;">RESU-FM-001</span>
                 </div>
                 <div class="card-body p-3 p-md-4" id="feedback-container">
                     <div id="no-proposal-selected" class="text-center py-5">
                         <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 text-muted">
-                            <i class="bi bi-file-earmark-text fs-2"></i>
+                            <i class="bi bi-file-earmark-check fs-2 text-primary opacity-75"></i>
                         </div>
-                        <p class="text-muted small mb-0 fw-medium">Select a proposal from the list to begin evaluating</p>
+                        <p class="text-dark fw-bold mb-1 small">Select a proposal to evaluate</p>
+                        <p class="text-muted small mb-0" style="font-size: 0.75rem;">Click "Evaluate" on any proposal to input criteria ratings and export the official RESU-FM-001 sheet.</p>
                     </div>
 
                     <form id="review-form" method="POST" action="" enctype="multipart/form-data" class="d-none">
@@ -170,47 +212,132 @@
                         <div class="bg-primary bg-opacity-10 p-3 rounded-3 mb-3 border border-primary border-opacity-10">
                             <small class="text-primary fw-bold text-uppercase d-block mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Selected Proposal:</small>
                             <p class="fw-bold mb-2 text-dark small" id="selected-proposal-title"></p>
-                            <a href="#" id="selected-workspace-link" class="btn btn-warning bg-opacity-25 text-dark border border-warning border-opacity-50 btn-sm w-100 rounded-pill py-1.5 fw-bold d-flex align-items-center justify-content-center gap-1.5" style="font-size: 0.78rem;">
-                                <i class="bi bi-chat-quote-fill text-warning"></i> Open In-Line Document Annotator
-                            </a>
-                        </div>
-                        
-                        <div class="mb-3 d-flex justify-content-between align-items-center bg-light p-2.5 rounded-3 border">
-                            <div class="small fw-semibold text-muted" style="font-size: 0.78rem;">Evaluation Form</div>
-                            <a href="javascript:alert('Template download will be provided by Admin.')" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.75rem;">
-                                <i class="bi bi-download me-1"></i> Template
-                            </a>
+                            <div class="d-flex gap-1.5">
+                                <a href="#" id="selected-workspace-link" class="btn btn-warning bg-opacity-25 text-dark border border-warning border-opacity-50 btn-xs flex-fill rounded-pill py-1 fw-bold d-inline-flex align-items-center justify-content-center gap-1" style="font-size: 0.75rem;">
+                                    <i class="bi bi-chat-quote-fill text-warning"></i> Annotator
+                                </a>
+                                <a href="#" id="eval-pdf-link" target="_blank" class="btn btn-danger bg-opacity-25 text-danger border border-danger border-opacity-50 btn-xs flex-fill rounded-pill py-1 fw-bold d-inline-flex align-items-center justify-content-center gap-1" style="font-size: 0.75rem;">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i> FM-001 PDF
+                                </a>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small text-uppercase" style="font-size: 0.72rem;">Upload Completed Evaluation</label>
-                            <input type="file" name="evaluation_document" class="form-control bg-light border py-1.5 px-2" style="font-size: 0.8rem;" accept=".pdf,.doc,.docx">
-                            <small class="text-muted" style="font-size: 0.68rem;">Optional. PDF, DOC, DOCX up to 10MB.</small>
+                        <!-- Form RESU-FM-001 Criteria Rubric -->
+                        <div class="card border rounded-3 mb-3 p-2.5 bg-light bg-opacity-50 shadow-2xs">
+                            <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                <span class="fw-bold text-dark small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.04em;">
+                                    <i class="bi bi-list-check text-primary me-1"></i> Criteria on Approval
+                                </span>
+                                <span class="badge bg-light text-secondary border rounded-pill" style="font-size: 0.65rem;">Max 100%</span>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered bg-white small mb-1 align-middle" style="font-size: 0.75rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Criteria &amp; Weight</th>
+                                            <th style="width: 78px;" class="text-center">Score (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <strong class="text-dark">A.</strong> Innovativeness / Novelty / Creativity
+                                                <small class="text-muted d-block" style="font-size: 0.67rem;">Max weight: 15%</small>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.5" min="0" max="15" name="score_a" id="eval-score-a" class="form-control form-control-sm text-center fw-bold rubric-input py-1 px-1" placeholder="0" style="font-size: 0.8rem;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong class="text-dark">B.</strong> Time Schedule and Cost
+                                                <small class="text-muted d-block" style="font-size: 0.67rem;">Max weight: 5%</small>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.5" min="0" max="5" name="score_b" id="eval-score-b" class="form-control form-control-sm text-center fw-bold rubric-input py-1 px-1" placeholder="0" style="font-size: 0.8rem;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong class="text-dark">C.</strong> Applicability (CPE, ext., IPSs)
+                                                <small class="text-muted d-block" style="font-size: 0.67rem;">Max weight: 25%</small>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.5" min="0" max="25" name="score_c" id="eval-score-c" class="form-control form-control-sm text-center fw-bold rubric-input py-1 px-1" placeholder="0" style="font-size: 0.8rem;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong class="text-dark">D.</strong> Relevance (S&amp;T Advancement)
+                                                <small class="text-muted d-block" style="font-size: 0.67rem;">Max weight: 25%</small>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.5" min="0" max="25" name="score_d" id="eval-score-d" class="form-control form-control-sm text-center fw-bold rubric-input py-1 px-1" placeholder="0" style="font-size: 0.8rem;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong class="text-dark">E.</strong> Effectiveness (Stakeholders)
+                                                <small class="text-muted d-block" style="font-size: 0.67rem;">Max weight: 30%</small>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.5" min="0" max="30" name="score_e" id="eval-score-e" class="form-control form-control-sm text-center fw-bold rubric-input py-1 px-1" placeholder="0" style="font-size: 0.8rem;">
+                                            </td>
+                                        </tr>
+                                        <tr class="table-light">
+                                            <td class="fw-bold text-uppercase text-dark" style="font-size: 0.72rem;">TOTAL RATING</td>
+                                            <td class="text-center fw-bold fs-6" id="eval-total-display">0.00%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Live Passing Indicator Banner -->
+                            <div id="eval-threshold-badge" class="alert py-1 px-2 mb-0 rounded-2 text-center small fw-semibold alert-secondary" style="font-size: 0.72rem;">
+                                <i class="bi bi-info-circle me-1"></i> A rating of at least <strong>80%</strong> is required for approval.
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small text-uppercase" style="font-size: 0.72rem;">Decision Status</label>
-                            <select name="status" id="status-select" class="form-select bg-light border py-2" style="font-size: 0.85rem;">
-                                <option value="pending">Pending</option>
+                        <!-- Decision Status -->
+                        <div class="mb-2.5">
+                            <label class="form-label fw-semibold text-muted small text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.04em;">Decision Status</label>
+                            <select name="status" id="status-select" class="form-select form-select-sm bg-white border py-1.5" style="font-size: 0.82rem;">
+                                <option value="pending">Pending Review</option>
                                 <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
+                                <option value="approved_with_revisions">Approved with Revisions</option>
                                 <option value="revision_required">Revision Required</option>
+                                <option value="rejected">Rejected</option>
                             </select>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small text-uppercase" style="font-size: 0.72rem;">Comments</label>
-                            <textarea name="review_comments" id="comments-text" class="form-control bg-light border py-2" rows="3" placeholder="Enter your comments about the proposal" style="font-size: 0.85rem;"></textarea>
+                        <!-- Comments -->
+                        <div class="mb-2.5">
+                            <label class="form-label fw-semibold text-muted small text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.04em;">Evaluator Comments / Remarks</label>
+                            <textarea name="review_comments" id="comments-text" class="form-control bg-white border py-1.5 px-2.5" rows="3" placeholder="Enter evaluation comments for Form RESU-FM-001" style="font-size: 0.82rem;"></textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold text-muted small text-uppercase" style="font-size: 0.72rem;">Suggestions</label>
-                            <textarea name="review_suggestions" id="suggestions-text" class="form-control bg-light border py-2" rows="3" placeholder="Enter suggestions for improvement" style="font-size: 0.85rem;"></textarea>
+                        <!-- Suggestions -->
+                        <div class="mb-2.5">
+                            <label class="form-label fw-semibold text-muted small text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.04em;">Suggestions for Improvement</label>
+                            <textarea name="review_suggestions" id="suggestions-text" class="form-control bg-white border py-1.5 px-2.5" rows="2" placeholder="Specific actionable suggestions" style="font-size: 0.82rem;"></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-pill shadow-sm">
-                            <i class="bi bi-check-circle"></i> Submit Review
-                        </button>
+                        <!-- Optional file -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.04em;">Supplementary Document (Optional)</label>
+                            <input type="file" name="evaluation_document" class="form-control form-control-sm bg-white border py-1 px-2" style="font-size: 0.78rem;" accept=".pdf,.doc,.docx">
+                            <small class="text-muted d-block mt-0.5" style="font-size: 0.67rem;">Upload signed scan or supplementary review file (PDF/DOC up to 10MB).</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-pill shadow-xs" style="font-size: 0.84rem;">
+                                <i class="bi bi-check-circle-fill"></i> Save Evaluation &amp; Decision
+                            </button>
+                            <a href="#" id="eval-print-bottom-btn" target="_blank" class="btn btn-outline-danger py-1.5 fw-semibold d-flex align-items-center justify-content-center gap-1.5 rounded-pill" style="font-size: 0.8rem;">
+                                <i class="bi bi-printer-fill"></i> Print / Download RESU-FM-001 Form
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -228,13 +355,60 @@
             const suggestionsText = document.getElementById('suggestions-text');
             const feedbackCard = document.getElementById('feedback-card');
 
+            const scoreA = document.getElementById('eval-score-a');
+            const scoreB = document.getElementById('eval-score-b');
+            const scoreC = document.getElementById('eval-score-c');
+            const scoreD = document.getElementById('eval-score-d');
+            const scoreE = document.getElementById('eval-score-e');
+            const totalDisplay = document.getElementById('eval-total-display');
+            const badge = document.getElementById('eval-threshold-badge');
+            const pdfTopLink = document.getElementById('eval-pdf-link');
+            const pdfBottomLink = document.getElementById('eval-print-bottom-btn');
+
+            function recalculateTotal() {
+                const a = parseFloat(scoreA.value || 0);
+                const b = parseFloat(scoreB.value || 0);
+                const c = parseFloat(scoreC.value || 0);
+                const d = parseFloat(scoreD.value || 0);
+                const e = parseFloat(scoreE.value || 0);
+
+                const total = Math.min(100, Math.max(0, a + b + c + d + e));
+                totalDisplay.textContent = total.toFixed(2) + '%';
+
+                if (total >= 80) {
+                    totalDisplay.className = 'text-center fw-bold fs-6 text-success';
+                    badge.className = 'alert py-1 px-2 mb-0 rounded-2 text-center small fw-semibold alert-success text-success border-success border-opacity-25';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Total score: <strong>' + total.toFixed(2) + '%</strong>. Meets the <strong>80%</strong> approval threshold.';
+                } else if (total > 0) {
+                    totalDisplay.className = 'text-center fw-bold fs-6 text-danger';
+                    badge.className = 'alert py-1 px-2 mb-0 rounded-2 text-center small fw-semibold alert-warning text-dark border-warning border-opacity-50';
+                    badge.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1 text-warning"></i> Total score: <strong>' + total.toFixed(2) + '%</strong>. Below the 80% passing threshold.';
+                } else {
+                    totalDisplay.className = 'text-center fw-bold fs-6 text-primary';
+                    badge.className = 'alert py-1 px-2 mb-0 rounded-2 text-center small fw-semibold alert-secondary text-muted';
+                    badge.innerHTML = '<i class="bi bi-info-circle me-1"></i> A rating of at least <strong>80%</strong> is required for approval.';
+                }
+            }
+
+            [scoreA, scoreB, scoreC, scoreD, scoreE].forEach(input => {
+                if (input) {
+                    input.addEventListener('input', recalculateTotal);
+                }
+            });
+
             selectButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
                     const title = this.getAttribute('data-title');
                     const status = this.getAttribute('data-status');
-                    const comments = this.getAttribute('data-comments');
-                    const suggestions = this.getAttribute('data-suggestions');
+                    const comments = this.getAttribute('data-comments') || '';
+                    const suggestions = this.getAttribute('data-suggestions') || '';
+
+                    const valA = this.getAttribute('data-score-a');
+                    const valB = this.getAttribute('data-score-b');
+                    const valC = this.getAttribute('data-score-c');
+                    const valD = this.getAttribute('data-score-d');
+                    const valE = this.getAttribute('data-score-e');
 
                     // Highlight desktop row
                     document.querySelectorAll('.proposal-row').forEach(row => row.classList.remove('table-primary'));
@@ -250,11 +424,24 @@
                     form.action = `/reviewer/proposals/${id}/update-status`;
                     titleDisplay.textContent = title;
                     statusSelect.value = status;
+
                     const workspaceLink = document.getElementById('selected-workspace-link');
                     if (workspaceLink) workspaceLink.href = `/proposal/${id}/review-workspace`;
-                    // Ensure comments and suggestions start completely blank for reviewer input
-                    commentsText.value = '';
-                    suggestionsText.value = '';
+
+                    const pdfUrl = `/proposal/${id}/evaluation-sheet`;
+                    if (pdfTopLink) pdfTopLink.href = pdfUrl;
+                    if (pdfBottomLink) pdfBottomLink.href = pdfUrl;
+
+                    scoreA.value = valA !== '' ? valA : '';
+                    scoreB.value = valB !== '' ? valB : '';
+                    scoreC.value = valC !== '' ? valC : '';
+                    scoreD.value = valD !== '' ? valD : '';
+                    scoreE.value = valE !== '' ? valE : '';
+
+                    commentsText.value = comments;
+                    suggestionsText.value = suggestions;
+
+                    recalculateTotal();
 
                     // Show Form
                     form.classList.remove('d-none');

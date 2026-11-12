@@ -217,4 +217,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(\App\Models\ScheduleAttendee::class);
     }
+
+    public function proposalEvaluations()
+    {
+        return $this->hasMany(\App\Models\ProposalEvaluation::class, 'user_id');
+    }
 }

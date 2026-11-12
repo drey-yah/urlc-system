@@ -183,7 +183,7 @@ class CoordinatorController extends Controller
     public function generateEndorsementForm($id)
     {
         $user = auth()->user();
-        if (!in_array($user->role, ['coordinator', 'dean', 'admin', 'super_admin', 'staff'])) {
+        if (!in_array($user->role, ['coordinator', 'dean', 'admin', 'super_admin', 'staff', 'recording_staff'])) {
             abort(403, 'Unauthorized. The College Research Proposal Endorsement Form (RESU-FM-003) is restricted to College Research Coordinators, Deans, and Research Administrators.');
         }
 

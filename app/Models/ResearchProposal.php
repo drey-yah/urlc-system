@@ -110,6 +110,12 @@ class ResearchProposal extends Model
         return $this->hasMany(ProposalBudgetItem::class);
     }
 
+    // Relationship: Proposal has many reviewer evaluations (RESU-FM-001)
+    public function evaluations()
+    {
+        return $this->hasMany(ProposalEvaluation::class, 'research_proposal_id');
+    }
+
     // Phase 2 Relationships
     public function activityDesigns()
     {

@@ -55,7 +55,82 @@ class ResearchProposalController extends Controller
 
             $text = \App\Services\PdfTextExtractor::extractText($tempPath);
             $meta = \App\Services\PdfTextExtractor::parseMetadata($text, $file->getClientOriginalName());
+            $budgetItems = \App\Services\PdfTextExtractor::parseBudgetItems($text);
             $wordCount = !empty($text) ? str_word_count($text) : 0;
+            $totalBudget = array_sum(array_column($budgetItems, 'amount'));
+
+            // Extract structured narrative sections (Form RESU-FM-015 chapters)
+            $rawSections = \App\Services\PdfTextExtractor::parseManuscriptSections($text);
+            $sections = [];
+
+            $findContent = function($keys) use ($rawSections) {
+                $keys = is_array($keys) ? $keys : [$keys];
+                $out = [];
+                foreach ($rawSections as $s) {
+                    if (in_array($s['key'], $keys) && !empty(trim($s['content'] ?? ''))) {
+                        $out[] = trim($s['content']);
+                    }
+                }
+                return implode("\n\n", $out);
+            };
+
+            // Background of the Study (includes Statement of the Problem & Framework if distinct)
+            $bg = $findContent(['background_of_study']);
+            $sop = $findContent(['statement_of_problem']);
+            $tf = $findContent(['theoretical_framework']);
+            $combinedBg = $bg;
+            if (!empty($sop) && stripos($combinedBg, 'Statement of the Problem') === false) {
+                $combinedBg .= ($combinedBg ? "\n\n" : "") . "Statement of the Problem:\n" . $sop;
+            }
+            if (!empty($tf) && stripos($combinedBg, 'Theoretical') === false) {
+                $combinedBg .= ($combinedBg ? "\n\n" : "") . "Theoretical & Conceptual Framework:\n" . $tf;
+            }
+            if (!empty($combinedBg)) {
+                $sections['background_of_study'] = $combinedBg;
+            }
+
+            // Significance of the Study
+            $sig = $findContent(['significance_of_study']);
+            if (!empty($sig)) $sections['significance_of_study'] = $sig;
+
+            // Definition of Terms
+            $dot = $findContent(['definition_of_terms']);
+            if (!empty($dot)) $sections['definition_of_terms'] = $dot;
+
+            // Review of Related Literature (RRL)
+            $rrl = $findContent(['literature_review']);
+            if (!empty($rrl)) $sections['literature_review'] = $rrl;
+
+            // Methodology & Research Design (includes Sampling, Instrumentation, and Analysis if distinct)
+            $meth = $findContent(['methodology']);
+            $pop = $findContent(['population_sampling']);
+            $inst = $findContent(['instrumentation']);
+            $dg = $findContent(['data_gathering']);
+            $da = $findContent(['data_analysis']);
+            $combinedMeth = $meth;
+            if (!empty($pop) && stripos($combinedMeth, 'Sampling') === false && stripos($combinedMeth, 'Participants') === false) {
+                $combinedMeth .= ($combinedMeth ? "\n\n" : "") . "Population and Sampling:\n" . $pop;
+            }
+            if (!empty($inst) && stripos($combinedMeth, 'Instrument') === false) {
+                $combinedMeth .= ($combinedMeth ? "\n\n" : "") . "Research Instrument:\n" . $inst;
+            }
+            if (!empty($dg) && stripos($combinedMeth, 'Data Gathering') === false) {
+                $combinedMeth .= ($combinedMeth ? "\n\n" : "") . "Data Gathering Procedure:\n" . $dg;
+            }
+            if (!empty($da) && stripos($combinedMeth, 'Data Analysis') === false) {
+                $combinedMeth .= ($combinedMeth ? "\n\n" : "") . "Data Analysis:\n" . $da;
+            }
+            if (!empty($combinedMeth)) {
+                $sections['methodology'] = $combinedMeth;
+            }
+
+            // References
+            $ref = $findContent(['references']);
+            if (!empty($ref)) $sections['references'] = $ref;
+
+            // Proponent Credentials
+            $cred = $findContent(['credentials']);
+            if (!empty($cred)) $sections['credentials'] = $cred;
 
             return response()->json([
                 'success' => true,
@@ -65,6 +140,9 @@ class ResearchProposalController extends Controller
                 'title_suggestions' => $meta['title_suggestions'] ?? [],
                 'abstract' => $meta['abstract'],
                 'research_field' => $meta['research_field'],
+                'sections' => $sections,
+                'budget_items' => $budgetItems,
+                'budget_total' => $totalBudget,
                 'extracted_text' => $text,
                 'message' => !empty($text) 
                     ? "Document analyzed successfully! Extracted {$wordCount} words." 
@@ -274,7 +352,13 @@ class ResearchProposalController extends Controller
             ->where('user_id', auth()->id())
             ->pluck('research_proposal_id');
 
-        $proposals = ResearchProposal::with(['user', 'collaborators'])
+        $proposals = ResearchProposal::with([
+            'user',
+            'collaborators',
+            'evaluations' => function ($q) {
+                $q->where('user_id', auth()->id());
+            }
+        ])
             ->whereIn('id', $assignedProposalIds)
             ->where('user_id', '!=', auth()->id())
             ->get();
@@ -337,24 +421,35 @@ class ResearchProposalController extends Controller
         return redirect()->back()->with('success', 'Reviewer removed successfully!');
     }
 
-    // Reviewer: Update proposal status, comments, and suggestions
+    // Reviewer: Update proposal status, criteria ratings (RESU-FM-001), comments, and suggestions
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
             'status' => 'required|in:pending,approved,rejected,revision_required,approved_with_revisions',
+            'score_a' => 'nullable|numeric|min:0|max:15',
+            'score_b' => 'nullable|numeric|min:0|max:5',
+            'score_c' => 'nullable|numeric|min:0|max:25',
+            'score_d' => 'nullable|numeric|min:0|max:25',
+            'score_e' => 'nullable|numeric|min:0|max:30',
             'review_comments' => 'nullable|string',
             'review_suggestions' => 'nullable|string',
             'evaluation_document' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        $proposal = ResearchProposal::with('collaborators')->findOrFail($id);
+        $proposal = ResearchProposal::with(['collaborators', 'user'])->findOrFail($id);
 
         // Conflict of Interest (COI) Protection: Cannot evaluate own proposal
         if ($proposal->user_id === auth()->id() || $proposal->collaborators->contains('id', auth()->id())) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Conflict of Interest: You cannot evaluate your own proposal.'], 403);
+            }
             abort(403, 'Conflict of Interest: You cannot evaluate or submit feedback on your own research proposal.');
         }
 
         if (in_array($proposal->status, ['final_approved', 'final_rejected'])) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'This proposal has already received a final decision and cannot be updated.'], 422);
+            }
             return redirect()->back()->with('error', 'This proposal has already received a final decision and cannot be updated.');
         }
 
@@ -365,22 +460,130 @@ class ResearchProposalController extends Controller
             'review_suggestions' => $request->review_suggestions,
         ]);
 
+        $docPath = null;
         if ($request->hasFile('evaluation_document')) {
-            $filePath = $request->file('evaluation_document')->store('evaluations', config('filesystems.default', 'public'));
+            $docPath = $request->file('evaluation_document')->store('evaluations', config('filesystems.default', 'public'));
             
             $proposal->documents()->create([
                 'document_tag' => "{$proposal->proposal_code}-PH{$proposal->current_phase}-EVAL-" . auth()->id() . '-' . time(),
                 'document_type' => 'evaluation',
                 'phase' => $proposal->current_phase ?? 3,
                 'version' => 1,
-                'file_path' => $filePath,
+                'file_path' => $docPath,
             ]);
+        }
+
+        // Save structured evaluation (RESU-FM-001)
+        $hasScores = $request->filled('score_a') || $request->filled('score_b') || $request->filled('score_c') || $request->filled('score_d') || $request->filled('score_e');
+        $scoreA = floatval($request->score_a ?? 0);
+        $scoreB = floatval($request->score_b ?? 0);
+        $scoreC = floatval($request->score_c ?? 0);
+        $scoreD = floatval($request->score_d ?? 0);
+        $scoreE = floatval($request->score_e ?? 0);
+        $totalScore = $scoreA + $scoreB + $scoreC + $scoreD + $scoreE;
+        $meetsThreshold = $totalScore >= 80.0;
+
+        $evaluation = null;
+        if ($hasScores || $request->filled('review_comments') || $request->filled('review_suggestions')) {
+            $evaluation = \App\Models\ProposalEvaluation::updateOrCreate(
+                [
+                    'research_proposal_id' => $proposal->id,
+                    'user_id' => auth()->id(),
+                ],
+                [
+                    'score_a' => $scoreA,
+                    'score_b' => $scoreB,
+                    'score_c' => $scoreC,
+                    'score_d' => $scoreD,
+                    'score_e' => $scoreE,
+                    'total_score' => $totalScore,
+                    'meets_threshold' => $meetsThreshold,
+                    'decision' => $request->status,
+                    'comments' => $request->review_comments,
+                    'suggestions' => $request->review_suggestions,
+                    'document_path' => $docPath,
+                    'evaluated_at' => now(),
+                ]
+            );
         }
 
         // Notify Researcher
         $proposal->user->notify(new \App\Notifications\ProposalFeedbackNotification($proposal));
 
-        return redirect()->back()->with('success', 'Proposal updated and researcher notified successfully!');
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Proposal evaluation and ratings saved successfully!',
+                'total_score' => $totalScore,
+                'meets_threshold' => $meetsThreshold,
+                'status' => $request->status,
+                'pdf_url' => route('proposal.evaluationPdf', $proposal->id),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Proposal evaluation saved and researcher notified successfully!');
+    }
+
+    /**
+     * Generate & Download Official Form RESU-FM-001 (Criteria on Approval of Research Proposals) PDF
+     */
+    public function downloadEvaluationPdf($id, $evaluationId = null)
+    {
+        $proposal = ResearchProposal::with(['user', 'collaborators', 'assignments'])->findOrFail($id);
+        $currentUser = auth()->user();
+
+        // Check permission: author, collaborator, assigned reviewer, admin/staff
+        $isAuthorOrCollab = $proposal->user_id === $currentUser->id || $proposal->collaborators->contains('id', $currentUser->id);
+        $isAssignedReviewer = $proposal->assignments->contains('id', $currentUser->id);
+        $isAdminOrStaff = in_array($currentUser->role, ['admin', 'super_admin', 'staff', 'recording_staff', 'vprei']) || $currentUser->isSuperAdmin();
+
+        if (!$isAuthorOrCollab && !$isAssignedReviewer && !$isAdminOrStaff && $currentUser->role !== 'reviewer') {
+            abort(403, 'Unauthorized access to evaluation sheet.');
+        }
+
+        if ($evaluationId) {
+            $evaluation = \App\Models\ProposalEvaluation::with('reviewer')
+                ->where('research_proposal_id', $proposal->id)
+                ->findOrFail($evaluationId);
+        } else {
+            // Find current user's evaluation if reviewer, or latest evaluation
+            $evaluation = \App\Models\ProposalEvaluation::with('reviewer')
+                ->where('research_proposal_id', $proposal->id)
+                ->where('user_id', $currentUser->id)
+                ->first();
+
+            if (!$evaluation) {
+                $evaluation = \App\Models\ProposalEvaluation::with('reviewer')
+                    ->where('research_proposal_id', $proposal->id)
+                    ->latest()
+                    ->first();
+            }
+
+            // Fallback for printing blank form
+            if (!$evaluation) {
+                $evaluation = new \App\Models\ProposalEvaluation([
+                    'research_proposal_id' => $proposal->id,
+                    'score_a' => 0,
+                    'score_b' => 0,
+                    'score_c' => 0,
+                    'score_d' => 0,
+                    'score_e' => 0,
+                    'total_score' => 0,
+                    'meets_threshold' => false,
+                    'decision' => 'pending',
+                ]);
+            }
+        }
+
+        $logoBase64 = null;
+        if (file_exists(public_path('logo.png'))) {
+            $logoBase64 = base64_encode(file_get_contents(public_path('logo.png')));
+        }
+
+        $pdf = \PDF::loadView('pdfs.resu_fm001', compact('proposal', 'evaluation', 'logoBase64'));
+        $filename = 'RESU-FM-001_Evaluation_' . ($proposal->proposal_code ?? 'PR-' . $proposal->id) . '.pdf';
+        
+        return $pdf->stream($filename);
     }
 
     // Admin: View ALL proposals
@@ -481,7 +684,7 @@ class ResearchProposalController extends Controller
             : collect();
         
         // Authorization check
-        if (!auth()->user()->isSuperAdmin() && !in_array($activeRole, ['admin', 'staff', 'vprei', 'president', 'budget_officer', 'sao_finance'])) {
+        if (!auth()->user()->isSuperAdmin() && !in_array($activeRole, ['admin', 'staff', 'recording_staff', 'vprei', 'president', 'budget_officer', 'sao_finance'])) {
             if ($activeRole == 'researcher' && !$isAuthorOrCollaborator) {
                 abort(403, 'Unauthorized access.');
             } elseif ($activeRole == 'reviewer' && !$isAssignedReviewer && !$isAuthorOrCollaborator) {
@@ -1157,5 +1360,250 @@ class ResearchProposalController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    /**
+     * In-Place Update a specific manuscript section from the Review Workspace.
+     */
+    public function updateSection(Request $request, $id)
+    {
+        $proposal = ResearchProposal::with(['collaborators'])->findOrFail($id);
+
+        $currentUser = auth()->user();
+        $activeRole = $currentUser->activeRole();
+        $isAuthorOrCollaborator = $proposal->user_id === $currentUser->id || $proposal->collaborators->contains('id', $currentUser->id);
+        $isAdminOrStaff = in_array($activeRole, ['admin', 'super_admin', 'staff', 'recording_staff', 'vprei']) || $currentUser->isSuperAdmin();
+
+        if (!$isAuthorOrCollaborator && !$isAdminOrStaff) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only proposal authors or administrators can edit the manuscript.'
+            ], 403);
+        }
+
+        if (in_array($proposal->status, ['final_approved', 'rejected', 'archived', 'completed'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This proposal is archived or completed and can no longer be edited.'
+            ], 422);
+        }
+
+        $request->validate([
+            'section' => 'required|string|in:title,abstract,background_of_study,significance_of_study,definition_of_terms,literature_review,methodology,references,credentials,sdgs_addressed,extracted_text,manuscript_section',
+            'section_index' => 'nullable|integer|min:0',
+            'content' => 'nullable|string',
+        ]);
+
+        $section = $request->section;
+        $content = $request->content ?? '';
+
+        // Handle parsed manuscript section update
+        if ($section === 'manuscript_section') {
+            $sectionIndex = $request->input('section_index');
+            if ($sectionIndex === null) {
+                return response()->json(['success' => false, 'message' => 'Section index is required.'], 422);
+            }
+
+            $sections = \App\Services\PdfTextExtractor::parseManuscriptSections($proposal->extracted_text ?? '');
+            if (!isset($sections[$sectionIndex])) {
+                return response()->json(['success' => false, 'message' => 'Specified section was not found.'], 404);
+            }
+
+            // Update this section's content
+            $sections[$sectionIndex]['content'] = $content;
+
+            // If mapped to a database field, synchronize column
+            if (!empty($sections[$sectionIndex]['field'])) {
+                $fieldName = $sections[$sectionIndex]['field'];
+                if (in_array($fieldName, ['background_of_study', 'significance_of_study', 'definition_of_terms', 'literature_review', 'methodology', 'references', 'credentials', 'title'])) {
+                    $proposal->{$fieldName} = $content;
+                    if ($fieldName === 'background_of_study') {
+                        $proposal->rationale = $content;
+                    }
+                }
+            }
+
+            // Recombine into continuous extracted text
+            $proposal->extracted_text = \App\Services\PdfTextExtractor::recombineSections($sections);
+            $proposal->save();
+
+            $renderedHtml = \App\Services\PdfTextExtractor::formatSectionContentHtml($content);
+
+            return response()->json([
+                'success' => true,
+                'message' => ($sections[$sectionIndex]['title'] ?? 'Section') . ' updated successfully.',
+                'section' => 'manuscript_section',
+                'section_index' => $sectionIndex,
+                'raw_text' => $content,
+                'rendered_html' => $renderedHtml,
+            ]);
+        }
+
+        $updatePayload = [];
+
+        switch ($section) {
+            case 'title':
+                if (empty(trim($content))) {
+                    return response()->json(['success' => false, 'message' => 'Title cannot be empty.'], 422);
+                }
+                $updatePayload['title'] = trim($content);
+                break;
+
+            case 'abstract':
+                $updatePayload['abstract'] = $content;
+                break;
+
+            case 'background_of_study':
+                $updatePayload['background_of_study'] = $content;
+                $updatePayload['rationale'] = $content;
+                break;
+
+            case 'significance_of_study':
+                $updatePayload['significance_of_study'] = $content;
+                break;
+
+            case 'definition_of_terms':
+                $updatePayload['definition_of_terms'] = $content;
+                break;
+
+            case 'literature_review':
+                $updatePayload['literature_review'] = $content;
+                break;
+
+            case 'methodology':
+                $updatePayload['methodology'] = $content;
+                break;
+
+            case 'references':
+                $updatePayload['references'] = $content;
+                break;
+
+            case 'credentials':
+                $updatePayload['credentials'] = $content;
+                break;
+
+            case 'sdgs_addressed':
+                $updatePayload['sdgs_addressed'] = $content;
+                break;
+
+            case 'extracted_text':
+                $updatePayload['extracted_text'] = $content;
+                break;
+        }
+
+        $proposal->update($updatePayload);
+
+        // Re-synthesize extracted_text if structured fields were updated
+        if (in_array($section, ['title', 'credentials', 'background_of_study', 'significance_of_study', 'definition_of_terms', 'literature_review', 'methodology', 'references'])) {
+            if ($proposal->background_of_study || $proposal->methodology || $proposal->literature_review) {
+                $parts = [];
+                if ($proposal->title) $parts[] = "RESEARCH TITLE:\n" . $proposal->title;
+                if ($proposal->credentials) $parts[] = "KEY PROPONENTS & CREDENTIALS:\n" . $proposal->credentials;
+                if ($proposal->background_of_study) $parts[] = "BACKGROUND OF THE STUDY & THEORETICAL FRAMEWORK:\n" . $proposal->background_of_study;
+                if ($proposal->significance_of_study) $parts[] = "SIGNIFICANCE OF THE STUDY:\n" . $proposal->significance_of_study;
+                if ($proposal->definition_of_terms) $parts[] = "DEFINITION OF TERMS:\n" . $proposal->definition_of_terms;
+                if ($proposal->literature_review) $parts[] = "REVIEW OF RELATED LITERATURE:\n" . $proposal->literature_review;
+                if ($proposal->methodology) $parts[] = "METHODOLOGY & RESEARCH DESIGN:\n" . $proposal->methodology;
+                if ($proposal->references) $parts[] = "REFERENCES:\n" . $proposal->references;
+                $proposal->update(['extracted_text' => implode("\n\n", $parts)]);
+            }
+        }
+
+        // Render response HTML for seamless frontend injection
+        $renderedHtml = '';
+        if ($section === 'extracted_text') {
+            $renderedHtml = \App\Services\PdfTextExtractor::formatTextToHtml($content);
+        } elseif ($section === 'title') {
+            $renderedHtml = e($content);
+        } else {
+            $renderedHtml = nl2br(e($content));
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Section updated successfully.',
+            'section' => $section,
+            'raw_text' => $content,
+            'rendered_html' => $renderedHtml,
+        ]);
+    }
+
+    /**
+     * Resubmit revisions from the Review Workspace.
+     */
+    public function resubmitRevisions(Request $request, $id)
+    {
+        $proposal = ResearchProposal::with(['collaborators', 'user'])->findOrFail($id);
+
+        $currentUser = auth()->user();
+        $activeRole = $currentUser->activeRole();
+        $isAuthorOrCollaborator = $proposal->user_id === $currentUser->id || $proposal->collaborators->contains('id', $currentUser->id);
+        $isAdminOrStaff = in_array($activeRole, ['admin', 'super_admin', 'staff', 'recording_staff', 'vprei']) || $currentUser->isSuperAdmin();
+
+        if (!$isAuthorOrCollaborator && !$isAdminOrStaff) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Only proposal authors or administrators can resubmit revisions.'
+            ], 403);
+        }
+
+        $newStatus = 'accepted_for_in_house_review';
+        if ($proposal->status === 'returned_for_revision' && $proposal->returned_by_role === 'staff') {
+            $newStatus = 'submitted_to_research_unit';
+        } elseif ($proposal->status === 'returned_for_revision' && $proposal->returned_by_role === 'coordinator') {
+            $newStatus = 'pending_coordinator_endorsement';
+        }
+
+        $proposal->update([
+            'status' => $newStatus,
+            'return_reason' => null,
+            'returned_by_role' => null,
+            'returned_at' => null,
+        ]);
+
+        // Send notifications to stakeholders
+        if ($newStatus === 'accepted_for_in_house_review') {
+            $assignments = \DB::table('proposal_assignments')->where('research_proposal_id', $proposal->id)->pluck('user_id');
+            $reviewers = User::whereIn('id', $assignments)->get();
+            foreach ($reviewers as $rev) {
+                $rev->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Revised Proposal Resubmitted',
+                    "Researcher {$proposal->user->name} resubmitted revised manuscript for '{$proposal->title}'.",
+                    'bi-arrow-repeat',
+                    'text-success'
+                ));
+            }
+        } elseif ($newStatus === 'submitted_to_research_unit') {
+            $staffUsers = User::where('role', 'staff')->get();
+            foreach ($staffUsers as $staff) {
+                $staff->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Revised Proposal Resubmitted',
+                    "Researcher {$proposal->user->name} resubmitted revised manuscript for '{$proposal->title}' addressing administrative completeness.",
+                    'bi-arrow-repeat',
+                    'text-info'
+                ));
+            }
+        } elseif ($newStatus === 'pending_coordinator_endorsement') {
+            $coords = User::where('role', 'coordinator')
+                ->where('department', $proposal->user->department)
+                ->get();
+            foreach ($coords as $coord) {
+                $coord->notify(new WorkflowStatusNotification(
+                    $proposal,
+                    'Proposal Resubmitted for Endorsement',
+                    "Researcher {$proposal->user->name} resubmitted revised proposal '{$proposal->title}' for your endorsement.",
+                    'bi-arrow-repeat',
+                    'text-primary'
+                ));
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Proposal revisions have been resubmitted successfully.',
+            'new_status' => $newStatus,
+        ]);
     }
 }

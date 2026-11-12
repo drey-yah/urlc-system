@@ -96,7 +96,10 @@
                     <a href="{{ route('proposal.resu_fm015', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm">
                         <i class="bi bi-file-earmark-text-fill text-primary me-1"></i> RESU-FM-015 Form
                     </a>
-                    @if(in_array(auth()->user()->role, ['coordinator', 'dean', 'admin', 'super_admin', 'staff']))
+                    <a href="{{ route('proposal.evaluationPdf', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm" title="Criteria on Approval of Research Proposals">
+                        <i class="bi bi-clipboard2-check-fill text-danger me-1"></i> RESU-FM-001 Form
+                    </a>
+                    @if(in_array(auth()->user()->role, ['coordinator', 'dean', 'admin', 'super_admin', 'staff', 'recording_staff']))
                         <a href="{{ route('proposal.endorsement_form', $proposal->id) }}" target="_blank" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark shadow-sm">
                             <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i> Endorsement Form
                         </a>
@@ -721,6 +724,10 @@
                         <a href="{{ route('proposal.downloadNTP', $proposal->id) }}" class="btn btn-dark rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;">
                             <i class="bi bi-file-earmark-arrow-down"></i> <span>Notice to Proceed (NTP)</span>
                         </a>
+                        @elseif($proposal->status === 'endorsed_to_vprei')
+                        <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-2 shadow-xs w-100 w-sm-auto text-center" style="font-size: 0.85rem;" title="Notice to Proceed (NTP) will be automatically generated and unlocked once the VPREI grants final executive approval">
+                            <i class="bi bi-hourglass-split text-warning"></i> <span>Notice to Proceed (Awaiting VPREI Approval)</span>
+                        </span>
                         @endif
                         
                         @if($proposal->current_phase >= 5)
@@ -772,18 +779,33 @@
                                     </a>
                                 </div>
                             </div>
-                            @if($proposal->abstract)
-                                <p class="text-secondary small mb-2 lh-base" style="font-size: 0.85rem;">{{ $proposal->abstract }}</p>
+                            @php
+                                $hasAbstract = !empty(trim($proposal->abstract ?? ''));
+                                $hasBackground = !empty(trim($proposal->background_of_study ?? ''));
+                                // Detect if abstract is identical to or duplicates the background text
+                                $isDuplicateBg = false;
+                                if ($hasAbstract && $hasBackground) {
+                                    $cleanAbs = preg_replace('/[^a-zA-Z0-9]/', '', strtolower($proposal->abstract));
+                                    $cleanBg = preg_replace('/[^a-zA-Z0-9]/', '', strtolower($proposal->background_of_study));
+                                    if ($cleanAbs === $cleanBg || str_starts_with($cleanBg, $cleanAbs) || str_starts_with($cleanAbs, $cleanBg)) {
+                                        $isDuplicateBg = true;
+                                    }
+                                }
+                            @endphp
+
+                            @if($hasAbstract)
+                                <p class="text-secondary small mb-2 lh-base" style="font-size: 0.85rem; text-align: justify;">{{ $proposal->abstract }}</p>
                             @endif
-                            @if($proposal->background_of_study)
+
+                            @if($hasBackground && !$isDuplicateBg)
                                 <div class="mt-2 pt-2 border-top border-light-subtle">
                                     <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.68rem;">Background of the Study &amp; Problem Statement:</small>
-                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">{{ \Illuminate\Support\Str::limit($proposal->background_of_study, 450) }}</p>
+                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem; text-align: justify;">{{ \Illuminate\Support\Str::limit($proposal->background_of_study, 450) }}</p>
                                 </div>
-                            @elseif($proposal->rationale)
+                            @elseif($proposal->rationale && !$isDuplicateBg)
                                 <div class="mt-2 pt-2 border-top border-light-subtle">
                                     <small class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 0.68rem;">Rationale &amp; Background:</small>
-                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem;">{{ $proposal->rationale }}</p>
+                                    <p class="text-secondary small mb-0 lh-base" style="font-size: 0.82rem; text-align: justify;">{{ $proposal->rationale }}</p>
                                 </div>
                             @endif
                             <div class="d-flex align-items-center gap-3 flex-wrap mt-3 pt-2 border-top border-light-subtle" style="font-size: 0.75rem;">
